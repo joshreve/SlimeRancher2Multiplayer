@@ -22,6 +22,7 @@ public sealed class SR2MPServer
 
     // Just here so that the port is viewable.
     public int Port { get; private set; }
+    public string PlayerId { get; private set; } = string.Empty;
 
     public event Action? OnServerStarted;
 
@@ -56,6 +57,7 @@ public sealed class SR2MPServer
 
         try
         {
+            PlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
             packetManager.RegisterHandlers();
             Application.quitting += new Action(Close);
             networkManager.Start(port, enableIPv6);
