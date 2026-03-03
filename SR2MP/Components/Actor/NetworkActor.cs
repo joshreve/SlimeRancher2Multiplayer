@@ -361,7 +361,8 @@ public sealed class NetworkActor : MonoBehaviour
                     packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
                 }
 
-            Main.SendToAllOrServer(packet);
+                Main.SendToAllOrServer(packet);
+            }
         }
         catch (Exception ex)
         {

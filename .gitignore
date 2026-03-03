@@ -415,3 +415,4 @@ NewSR2MP/Networking/Patches/SteamContextPatch.cs
 /SR2MP/Patches/Private
 !SR2MP/DiscordRPC.dll
 ExternalAnnotations/
+.vscode/
