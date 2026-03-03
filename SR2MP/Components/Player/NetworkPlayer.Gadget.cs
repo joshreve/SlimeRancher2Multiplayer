@@ -2,6 +2,8 @@ using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.Util.Extensions;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.Player;
+using SR2MP.Shared.Managers;
+using static SR2MP.Shared.Utils.Timers;
 
 namespace SR2MP.Components.Player;
 
@@ -21,6 +23,8 @@ public partial class NetworkPlayer
         }
     }
 
+    public bool onlinePlacementValid;
+
     public bool onlineGadgetMode;
     public bool cachedOnlineGadgetMode;
 
@@ -31,44 +35,75 @@ public partial class NetworkPlayer
     public Vector3 prevGadgetPosition;
     public Quaternion nextGadgetRotation;
     public Quaternion prevGadgetRotation;
+    public Quaternion onlineGadgetLocalRotation;
 
     public PlayerItemController playerItemController;
     public GameObject? footprintPrefabInstance;
+    public Renderer? footprintRendererInstance;
+    public GameObject? placeholderGadgetPrefabInstance;
+
+    private float interpolationStartGadget;
+    private float interpolationEndGadget;
+    private float transformTimerGadget = PlayerTimer;
 
     private void AwakeGadgetMode()
     {
         playerItemController = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
+
         onNetworkGadgetModeChanged += OnGadgetModeChanged;
+        onNetworkGadgetIDChanged += OnGadgetIDChanged;
     }
 
-    private void OnGadgetIDChanged(int gadgetID)
+    private void ApplyGadgetLocalRotation()
     {
-        var definition = actorManager.ActorTypes[gadgetID].Cast<GadgetDefinition>();
-        SetHeldGadget(playerItemController._gadgetItem, definition);
+        if (!placeholderGadgetPrefabInstance) return;
+        var gadgetObj = placeholderGadgetPrefabInstance!.GetComponentInChildren<Gadget>();
+        if (gadgetObj)
+            gadgetObj.transform.localRotation = onlineGadgetLocalRotation;
     }
 
-    private void UpdateInterpolation()
+    private void UpdateGadgetInterpolation()
     {
         if (!footprintPrefabInstance)
             return;
 
-        if (interpolationEnd <= interpolationStart)
-            return;
-
-        var t = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
+        var t = Mathf.InverseLerp(interpolationStartGadget, interpolationEndGadget, UnityEngine.Time.unscaledTime);
         t = Mathf.Clamp01(t);
 
         footprintPrefabInstance!.transform.position = Vector3.Lerp(prevGadgetPosition, nextGadgetPosition, t);
         footprintPrefabInstance!.transform.rotation = Quaternion.Slerp(prevGadgetRotation, nextGadgetRotation, t);
+
+        ApplyGadgetLocalRotation();
     }
 
     private void UpdateGadgetMode()
     {
+        if (footprintPrefabInstance && !IsLocal)
+            UpdateGadgetInterpolation();
+
+        transformTimerGadget -= UnityEngine.Time.unscaledDeltaTime;
+        if (transformTimerGadget >= 0f)
+            return;
+
         if (IsLocal)
         {
             UpdateLocalGadgetMode();
             return;
         }
+        UpdateOnlineGadgetMode();
+    }
+
+    private Material GetFootprintMaterial(bool isValidPlacement)
+    {
+        return isValidPlacement
+            ? playerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintValidMaterial
+            : playerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintInvalidMaterial;
+    }
+
+    private void UpdateOnlineGadgetMode()
+    {
+        interpolationStartGadget = UnityEngine.Time.unscaledTime;
+        interpolationEndGadget = UnityEngine.Time.unscaledTime + PlayerTimer;
 
         if (cachedOnlineGadgetMode != onlineGadgetMode)
         {
@@ -83,40 +118,67 @@ public partial class NetworkPlayer
         }
 
         if (footprintPrefabInstance)
-        {
-            UpdateInterpolation();
-        }
+            footprintRendererInstance!.material = GetFootprintMaterial(onlinePlacementValid);
     }
 
     private void UpdateLocalGadgetMode()
     {
         footprintPrefabInstance = playerItemController._gadgetItem._gadgetFootprintInstance;
+
         if (!footprintPrefabInstance)
+        {
+            var packet2 = new PlayerGadgetUpdatePacket
+            {
+                Enabled = false,
+                PlayerId = ID,
+                Position = Vector3.zero,
+                Rotation = Quaternion.identity,
+                GadgetLocalRotation = Quaternion.identity,
+                CurrentGadget = -1,
+                ValidPlacement = false,
+            };
+
+            Main.SendToAllOrServer(packet2);
             return;
+        }
+
+        var gadget = playerItemController._gadgetItem._heldGadget;
+        var gadgetID =
+            gadget
+            ? NetworkActorManager.GetPersistentID(gadget.Cast<IdentifiableType>())
+            : -1;
+
+        var gadgetLocalRotation = Quaternion.identity;
+        var gadgetObj = footprintPrefabInstance.GetComponentInChildren<Gadget>();
+        if (gadgetObj)
+            gadgetLocalRotation = gadgetObj.transform.localRotation;
 
         var packet = new PlayerGadgetUpdatePacket
         {
-            Enabled = InGadgetMode,
+            Enabled = true,
             PlayerId = ID,
             Position = footprintPrefabInstance.transform.position,
-            Rotation = footprintPrefabInstance.transform.localEulerAngles,
+            Rotation = footprintPrefabInstance.transform.rotation,
+            GadgetLocalRotation = gadgetLocalRotation,
+            CurrentGadget = gadgetID,
+            ValidPlacement = (playerItemController._gadgetItem._isPlacementValid &&
+                              !playerItemController._gadgetItem._isPlacementBlocked)
+                             || gadgetID == -1,
         };
 
         Main.SendToAllOrServer(packet);
     }
 
-    public void OnGadgetPositionReceived(Vector3 newPosition, Vector3 newRotation)
+    public void OnGadgetPositionReceived(Vector3 newPosition, Quaternion newRotation, Quaternion newLocalRotation)
     {
-        prevGadgetPosition = footprintPrefabInstance != null
-            ? footprintPrefabInstance.transform.position
-            : newPosition;
-
-        prevGadgetRotation = footprintPrefabInstance != null
-            ? footprintPrefabInstance.transform.rotation
-            : Quaternion.Euler(newRotation);
+        prevGadgetPosition = footprintPrefabInstance?.transform.position ?? newPosition;
+        prevGadgetRotation = footprintPrefabInstance?.transform.rotation ?? newRotation;
 
         nextGadgetPosition = newPosition;
-        nextGadgetRotation = Quaternion.Euler(newRotation);
+        nextGadgetRotation = newRotation;
+        onlineGadgetLocalRotation = newLocalRotation;
+
+        ApplyGadgetLocalRotation();
     }
 
     private void OnGadgetModeChanged(bool newMode)
@@ -133,7 +195,8 @@ public partial class NetworkPlayer
             footprintPrefabInstance.transform.rotation = nextGadgetRotation;
             prevGadgetPosition = nextGadgetPosition;
             prevGadgetRotation = nextGadgetRotation;
-            Instantiate(footprintRendererPrefab, footprintPrefabInstance.transform, false);
+            var renderer = Instantiate(footprintRendererPrefab, footprintPrefabInstance.transform, false);
+            footprintRendererInstance = renderer.GetComponent<MeshRenderer>();
         }
         else
         {
@@ -142,21 +205,58 @@ public partial class NetworkPlayer
         }
     }
 
-    public void SetHeldGadget(GadgetItem self, GadgetDefinition gadgetDefinition)
+    private void OnGadgetIDChanged(int gadgetID)
     {
+        if (gadgetID == -1)
+        {
+            SetHeldGadget(playerItemController._gadgetItem, null);
+            return;
+        }
+
+        if (!actorManager.ActorTypes.TryGetValue(gadgetID, out var type))
+        {
+            SrLogger.LogWarning($"OnGadgetIDChanged: no actor type found for id {gadgetID}");
+            return;
+        }
+
+        var definition = type.TryCast<GadgetDefinition>();
+        if (!definition)
+        {
+            SrLogger.LogWarning($"OnGadgetIDChanged: Could not Cast for a GadgetDefinition!");
+            return;
+        }
+
+        SetHeldGadget(playerItemController._gadgetItem, definition);
+    }
+
+    public void SetHeldGadget(GadgetItem self, GadgetDefinition? gadgetDefinition)
+    {
+        Destroy(placeholderGadgetPrefabInstance);
+        placeholderGadgetPrefabInstance = null;
+
+        if (!gadgetDefinition)
+            return;
+
         var gadgetDefinitionToPlace = self.GetGadgetDefinitionToPlace(gadgetDefinition);
         var prefab = gadgetDefinitionToPlace.prefab;
-        var footprintTransform = self._gadgetFootprintInstance.transform;
+        var footprintTransform = footprintPrefabInstance!.transform;
 
-        var placeholderObject = self.CopyPlaceholderGameObject(prefab, footprintTransform);
-        placeholderObject.SetActive(false);
+        placeholderGadgetPrefabInstance = self.CopyPlaceholderGameObject(prefab, footprintTransform);
+        placeholderGadgetPrefabInstance.SetActive(false);
 
         self.CopyMeshComponents(prefab);
         self.CopyGadgetComponents(prefab);
         self.CopySpecialComponents(prefab);
 
-        placeholderObject.SetActive(true);
+        placeholderGadgetPrefabInstance.SetActive(true);
 
         self.SetGadgetLayerRecursively(prefab.transform, prefab.SRGetComponent<Gadget>());
+
+        placeholderGadgetPrefabInstance.transform.parent = footprintTransform;
+        placeholderGadgetPrefabInstance.transform.localPosition = Vector3.zero;
+
+        ApplyGadgetLocalRotation();
+
+        DontDestroyOnLoad(placeholderGadgetPrefabInstance);
     }
 }

@@ -104,7 +104,7 @@ public sealed class ServerPacketManager
         }
 
         // Handle reliability ACK packets
-        if (packetTypeHeader == 254)
+        if (packetTypeHeader == (byte)PacketType.ReservedAcknowledge)
         {
             try
             {
@@ -123,12 +123,13 @@ public sealed class ServerPacketManager
         // Otherwise clients will resend if the ACK packet was lost
         if (packetReliability != PacketReliability.Unreliable)
         {
+            //if (!clientManager.TryGetClient(clientEp, out _)) return;
             SendAck(clientEp, packetId, packetTypeHeader);
         }
 
         // Packet deduplication (per client)
         var packetKey = new PacketKey(packetTypeHeader, packetId, clientEp);
-        
+
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
             PacketBufferPool.Return(reader);
@@ -159,7 +160,7 @@ public sealed class ServerPacketManager
         if (!clientManager.TryGetClient(clientEp, out _))
             return;
 
-        var ackPacket = new AckPacket
+        var ackPacket = new AckPacket()
         {
             PacketId = packetId,
             OriginalPacketType = packetType

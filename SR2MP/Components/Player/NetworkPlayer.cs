@@ -123,7 +123,6 @@ public partial class NetworkPlayer : MonoBehaviour
 
     public void Update()
     {
-        UpdateGadgetMode();
         
         if (model == null)
         {
@@ -152,12 +151,16 @@ public partial class NetworkPlayer : MonoBehaviour
         }
 
         ReloadMeshTransform();
+        
+        UpdateGadgetMode();
+        
         if (transformTimer >= 0f)
             return;
         transformTimer = PlayerTimer;
-
         if (IsLocal)
         {
+            UpdateLocalGadgetMode();
+            
             RemotePlayerManager.SendPlayerUpdate(
                 position: transform.position,
                 rotation: transform.eulerAngles.y,
@@ -204,6 +207,7 @@ public partial class NetworkPlayer : MonoBehaviour
             animator.SetFloat(HorizontalSpeed, model.HorizontalSpeed);
             animator.SetFloat(ForwardSpeed, model.ForwardSpeed);
             animator.SetBool(Sprinting, model.Sprinting);
+            
         }
     }
 

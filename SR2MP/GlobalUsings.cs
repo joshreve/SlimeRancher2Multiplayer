@@ -13,3 +13,5 @@ global using Il2CppMonomiPark.SlimeRancher;
 
 global using static SR2MP.Shared.Utils.FXConstants;
 global using static SR2MP.GlobalVariables;
+
+global using Gadget = Il2CppMonomiPark.SlimeRancher.World.Gadget;
