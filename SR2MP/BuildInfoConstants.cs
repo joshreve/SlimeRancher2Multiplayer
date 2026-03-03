@@ -4,7 +4,7 @@ internal static class BuildInfo
     internal const string Description = "Adds Multiplayer to Slime Rancher 2";
     internal const string Author = "Shark";
     internal const string CoAuthors = "";
-    internal const string Contributors = "AlchlcSystm, shizophrenicgopher, PinkTarr";
+    internal const string Contributors = "AlchlcSystm, PinkTarr";
     internal const string Company = "";
     //Version is shown my ML
     //DisplayVersion is shown by SR2E

@@ -18,7 +18,7 @@ public sealed class PlayerJoinPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadStringWithSize(15)!;
+        PlayerId = reader.ReadStringWithSize(16)!;
         PlayerName = reader.ReadString();
     }
 }

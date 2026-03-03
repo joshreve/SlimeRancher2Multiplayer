@@ -42,9 +42,9 @@ public static class GlobalVariables
 
     public static string LocalID =>
         Main.Server.IsRunning()
-            ? "HOST"
+            ? Main.Server.PlayerId
             : Main.Client.IsConnected
-                ? Main.Client.OwnPlayerId
+                ? Main.Client.PlayerId
                 : string.Empty;
 
     public static (float Current, float Previous)[]? MarketPricesArray => SceneContext.Instance

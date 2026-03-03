@@ -32,7 +32,7 @@ public sealed class PlayerGadgetUpdatePacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         Enabled = reader.ReadBool();
-        PlayerId = reader.ReadStringWithSize(15)!;
+        PlayerId = reader.ReadStringWithSize(16)!;
 
         if (!Enabled) return;
 

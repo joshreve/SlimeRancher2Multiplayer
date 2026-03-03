@@ -30,7 +30,7 @@ public sealed class SR2MPClient
     private readonly ClientPacketManager packetManager;
 
     public bool IsConnected => isConnected;
-    public string OwnPlayerId { get; private set; } = string.Empty;
+    public string PlayerId { get; private set; } = string.Empty;
 
     public event Action<string>? OnConnected;
     public event Action? OnDisconnected;
@@ -89,7 +89,7 @@ public sealed class SR2MPClient
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
             udpClient.Client.SendBufferSize = 512 * 1024;
 
-            OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
+            PlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
 
             // Initialize reliability manager
             reliabilityManager = new ReliabilityManager(SendRaw);
@@ -113,7 +113,7 @@ public sealed class SR2MPClient
 
             var connectPacket = new ConnectPacket
             {
-                PlayerId = OwnPlayerId,
+                PlayerId = PlayerId,
                 Username = Main.Username,
                 ModHashes = Mods.ToList().ConvertAll(mod => mod.Hash())
             };
@@ -121,7 +121,7 @@ public sealed class SR2MPClient
             SendPacket(connectPacket);
 
             SrLogger.LogMessage("Connecting to the Server...",
-                $"Connecting to {serverIp}:{port} as {OwnPlayerId}...");
+                $"Connecting to {serverIp}:{port} as {PlayerId}...");
         }
         catch (Exception ex)
         {
@@ -314,7 +314,7 @@ public sealed class SR2MPClient
                 var leavePacket = new PlayerLeavePacket
                 {
                     Type = PacketType.PlayerLeave,
-                    PlayerId = OwnPlayerId
+                    PlayerId = PlayerId
                 };
 
                 SendPacket(leavePacket);
@@ -378,7 +378,7 @@ public sealed class SR2MPClient
         connectionTimeoutTimer?.Dispose();
         connectionTimeoutTimer = null;
 
-        OnConnected?.Invoke(OwnPlayerId);
+        OnConnected?.Invoke(PlayerId);
     }
 
     public static RemotePlayer? GetRemotePlayer(string playerId)

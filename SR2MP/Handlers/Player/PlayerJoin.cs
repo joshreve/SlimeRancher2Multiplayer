@@ -33,7 +33,7 @@ public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
             return false;
         }
 
-        if (packet.PlayerId.Equals(Main.Client.OwnPlayerId))
+        if (packet.PlayerId.Equals(Main.Client.PlayerId))
         {
             SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);
             return false;

@@ -13,13 +13,13 @@ public static class OnPlayerLoadPatch
         if (Main.Server.IsRunning())
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
-            networkPlayer.ID = "HOST";
+            networkPlayer.ID = Main.Server.PlayerId;
             networkPlayer.IsLocal = true;
         }
         else if (Main.Client.IsConnected)
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
-            networkPlayer.ID = Main.Client.OwnPlayerId;
+            networkPlayer.ID = Main.Client.PlayerId;
             networkPlayer.IsLocal = true;
         }
         else
@@ -41,10 +41,10 @@ public static class OnPlayerLoadPatch
                 if (!__instance)
                     return;
 
-                playerManager.AddPlayer("HOST").Username = Main.Username;
+                playerManager.AddPlayer(Main.Server.PlayerId).Username = Main.Username;
 
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
-                networkPlayer.ID = "HOST";
+                networkPlayer.ID = Main.Server.PlayerId;
                 networkPlayer.IsLocal = true;
             };
         }
