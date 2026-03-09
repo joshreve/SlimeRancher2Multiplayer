@@ -146,7 +146,7 @@ public sealed partial class MultiplayerUI
 
         const float x = 6 + HorizontalSpacing;
         var y = previousLayoutChatRect.y + previousLayoutChatRect.height;
-        var w = maxWidth;
+        const float w = maxWidth;
         var h = height;
 
         var rect = new Rect(x, y, w, h);

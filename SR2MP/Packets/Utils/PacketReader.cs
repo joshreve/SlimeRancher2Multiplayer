@@ -334,6 +334,7 @@ public static class PacketReaderDels
     public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
     public static readonly Func<PacketReader, ushort> UShort = reader => reader.ReadUShort();
     public static readonly Func<PacketReader, int> Int32 = reader => reader.ReadInt();
+    public static readonly Func<PacketReader, int> PackedInt32 = reader => reader.ReadPackedInt();
 
     public static class NetObject<T> where T : INetObject, new()
     {

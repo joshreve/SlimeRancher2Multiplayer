@@ -17,30 +17,30 @@ public sealed class ResourceAttachPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteLong(ActorId.Value);
+        writer.WritePackedLong(ActorId.Value);
         writer.WriteString(PlotID);
         writer.WriteInt(Joint);
         writer.WriteVector3(SpawnerID);
 
-        writer.WriteBool(Model.nextSpawnRipens);
         writer.WriteDouble(Model.nextSpawnTime);
         writer.WriteFloat(Model.storedWater);
-        writer.WriteBool(Model.wasPreviouslyPlanted);
+        writer.WritePackedBool(Model.nextSpawnRipens);
+        writer.WritePackedBool(Model.wasPreviouslyPlanted);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        ActorId = new ActorId(reader.ReadLong());
+        ActorId = new ActorId(reader.ReadPackedLong());
         PlotID = reader.ReadString();
         Joint = reader.ReadInt();
         SpawnerID = reader.ReadVector3();
 
         Model = new SpawnResourceModel
         {
-            nextSpawnRipens = reader.ReadBool(),
             nextSpawnTime = reader.ReadDouble(),
             storedWater = reader.ReadFloat(),
-            wasPreviouslyPlanted = reader.ReadBool()
+            nextSpawnRipens = reader.ReadPackedBool(),
+            wasPreviouslyPlanted = reader.ReadPackedBool()
         };
     }
 }

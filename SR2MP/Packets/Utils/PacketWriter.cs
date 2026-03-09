@@ -370,6 +370,7 @@ public static class PacketWriterDels
     public static readonly Action<PacketWriter, string> String = (writer, value) => writer.WriteString(value);
     public static readonly Action<PacketWriter, ushort> UShort = (writer, value) => writer.WriteUShort(value);
     public static readonly Action<PacketWriter, int> Int32 = (writer, value) => writer.WriteInt(value);
+    public static readonly Action<PacketWriter, int> PackedInt32 = (writer, value) => writer.WritePackedInt(value);
 
     public static class NetObject<T> where T : INetObject
     {

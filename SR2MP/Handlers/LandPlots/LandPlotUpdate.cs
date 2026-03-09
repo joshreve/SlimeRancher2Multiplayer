@@ -14,15 +14,15 @@ public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgra
 {
     protected override bool Handle(LandPlotUpgradePacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        var model = GameState.landPlots[packet.PlotID];
 
-        model.upgrades.Add(packet.PlotUpgrade);
+        model.upgrades.Add(packet.ID);
 
         if (model.gameObj)
         {
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
             handlingPacket = true;
-            landPlotComponent.AddUpgrade(packet.PlotUpgrade);
+            landPlotComponent.AddUpgrade(packet.ID);
             handlingPacket = false;
         }
 
@@ -35,9 +35,9 @@ public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
 {
     protected override bool Handle(NewLandPlotPacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        var model = GameState.landPlots[packet.PlotID];
 
-        model.typeId = packet.PlotType;
+        model.typeId = packet.ID;
 
         if (model.gameObj)
         {
@@ -46,7 +46,7 @@ public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
 
             handlingPacket = true;
             location.Replace(landPlotComponent,
-                GameContext.Instance.LookupDirector._plotPrefabDict[packet.PlotType]);
+                GameContext.Instance.LookupDirector._plotPrefabDict[packet.ID]);
             handlingPacket = false;
         }
 

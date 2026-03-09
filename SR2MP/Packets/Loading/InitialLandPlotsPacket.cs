@@ -1,4 +1,3 @@
-using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Utils;
 
@@ -8,19 +7,16 @@ public sealed class InitialLandPlotsPacket : IPacket
 {
     public sealed class BasePlot : INetObject
     {
-        public override string ToString()
-        {
-            return ID;
-        }
+        public override string ToString() => ID;
 
         private static readonly Dictionary<LandPlot.Id, Type> DataTypes = new()
         {
-            { LandPlot.Id.GARDEN, typeof(GardenData) },
-            { LandPlot.Id.SILO,   typeof(SiloData)   },
-            { LandPlot.Id.CORRAL,   typeof(CorralData)   },
-            { LandPlot.Id.COOP,   typeof(CoopPondData)   },
-            { LandPlot.Id.POND,   typeof(CoopPondData)   },
-            { LandPlot.Id.INCINERATOR,   typeof(IncineratorData)   },
+            { LandPlot.Id.GARDEN,      typeof(GardenData)      },
+            { LandPlot.Id.SILO,        typeof(SiloData)        },
+            { LandPlot.Id.CORRAL,      typeof(CorralData)      },
+            { LandPlot.Id.COOP,        typeof(CoopPondData)    },
+            { LandPlot.Id.POND,        typeof(CoopPondData)    },
+            { LandPlot.Id.INCINERATOR, typeof(IncineratorData) },
         };
 
         public string ID;
@@ -65,7 +61,7 @@ public sealed class InitialLandPlotsPacket : IPacket
         public void Deserialise(PacketReader reader) => Crop = reader.ReadInt();
     }
 
-    public class SiloData : INetObject
+    public sealed class SiloData : INetObject
     {
         public List<byte> SelectedSlots;
         public NetworkAmmo Ammo;
@@ -82,7 +78,8 @@ public sealed class InitialLandPlotsPacket : IPacket
             SelectedSlots = reader.ReadList(PacketReaderDels.Byte);
         }
     }
-    public class CorralData : INetObject
+
+    public sealed class CorralData : INetObject
     {
         public NetworkAmmo PlortCollectorAmmo;
         public NetworkAmmo AutoFeederAmmo;
@@ -102,27 +99,23 @@ public sealed class InitialLandPlotsPacket : IPacket
             AutoFeederSpeed = reader.ReadByte();
         }
     }
+
     // Data for Coop or Pond
-    public class CoopPondData : INetObject
+    public sealed class CoopPondData : INetObject
     {
         public NetworkAmmo CollectorAmmo;
 
-        public  void Serialise(PacketWriter writer)
-        {
-            writer.WriteNetObject(CollectorAmmo);
-        }
+        public  void Serialise(PacketWriter writer) => writer.WriteNetObject(CollectorAmmo);
 
-        public void Deserialise(PacketReader reader)
-        {
-            CollectorAmmo = reader.ReadNetObject<NetworkAmmo>();
-        }
+        public void Deserialise(PacketReader reader) => CollectorAmmo = reader.ReadNetObject<NetworkAmmo>();
     }
+
     // Data for Incinerators
-    public class IncineratorData : INetObject
+    public sealed class IncineratorData : INetObject
     {
         public NetworkAmmo PlortCollectorAmmo;
         public float AshLevel;
-        
+
         public void Serialise(PacketWriter writer)
         {
             writer.WriteNetObject(PlortCollectorAmmo);

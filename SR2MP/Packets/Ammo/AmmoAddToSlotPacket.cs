@@ -2,29 +2,29 @@
 
 namespace SR2MP.Packets.Ammo;
 
-public class AmmoAddToSlotPacket : IPacket
+public sealed class AmmoAddToSlotPacket : IPacket
 {
     public int Identifiable;
     public int SlotIndex;
     public int Count;
     public string ID;
-    
+
     public PacketType Type => PacketType.AmmoAddToSlot;
     public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteInt(Identifiable);
-        writer.WriteInt(SlotIndex);
-        writer.WriteInt(Count);
+        writer.WritePackedInt(Identifiable);
+        writer.WritePackedInt(SlotIndex);
+        writer.WritePackedInt(Count);
         writer.WriteString(ID);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        Identifiable = reader.ReadInt();
-        SlotIndex = reader.ReadInt();
-        Count = reader.ReadInt();
+        Identifiable = reader.ReadPackedInt();
+        SlotIndex = reader.ReadPackedInt();
+        Count = reader.ReadPackedInt();
         ID = reader.ReadString();
     }
 }

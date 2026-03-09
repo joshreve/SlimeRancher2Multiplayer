@@ -17,8 +17,8 @@ public static class UpgradeLandPlot
 
         var packet = new LandPlotUpgradePacket
         {
-            ID = __instance.GetComponentInParent<LandPlotLocation>()._id,
-            PlotUpgrade = upgrade
+            PlotID = __instance.GetComponentInParent<LandPlotLocation>()._id,
+            ID = upgrade
         };
 
         Main.SendToAllOrServer(packet);

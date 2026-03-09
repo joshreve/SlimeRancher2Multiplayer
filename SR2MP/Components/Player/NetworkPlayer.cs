@@ -63,6 +63,7 @@ public partial class NetworkPlayer : MonoBehaviour
         usernamePanel.alignment = TextAlignmentOptions.Center;
         usernamePanel.fontSize = 3;
         usernamePanel.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
+
         if (!usernamePanel.GetComponent<TransformLookAtCamera>())
         {
             usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
@@ -123,7 +124,6 @@ public partial class NetworkPlayer : MonoBehaviour
 
     public void Update()
     {
-        
         if (model == null)
         {
             model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
@@ -151,16 +151,16 @@ public partial class NetworkPlayer : MonoBehaviour
         }
 
         ReloadMeshTransform();
-        
+
         UpdateGadgetMode();
-        
+
         if (transformTimer >= 0f)
             return;
         transformTimer = PlayerTimer;
         if (IsLocal)
         {
             UpdateLocalGadgetMode();
-            
+
             RemotePlayerManager.SendPlayerUpdate(
                 position: transform.position,
                 rotation: transform.eulerAngles.y,
@@ -207,7 +207,6 @@ public partial class NetworkPlayer : MonoBehaviour
             animator.SetFloat(HorizontalSpeed, model.HorizontalSpeed);
             animator.SetFloat(ForwardSpeed, model.ForwardSpeed);
             animator.SetBool(Sprinting, model.Sprinting);
-            
         }
     }
 

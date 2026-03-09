@@ -2,11 +2,11 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public class PlortCollectionPacket : IPacket
+public sealed class PlortCollectionPacket : IPacket
 {
     public string ID;
     public double EndTime;
-    
+
     public PacketType Type => PacketType.PlortCollection;
     public PacketReliability Reliability => PacketReliability.Reliable;
 

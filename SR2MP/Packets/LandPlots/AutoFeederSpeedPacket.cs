@@ -2,11 +2,11 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public class AutoFeederSpeedPacket : IPacket
+public sealed class AutoFeederSpeedPacket : IPacket
 {
     public SlimeFeeder.FeedSpeed Speed;
     public string ID;
-    
+
     public PacketType Type => PacketType.AutoFeederSpeed;
     public PacketReliability Reliability => PacketReliability.Reliable;
 

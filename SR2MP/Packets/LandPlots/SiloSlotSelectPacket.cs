@@ -2,12 +2,12 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public class SiloSlotSelectPacket : IPacket
+public sealed class SiloSlotSelectPacket : IPacket
 {
     public byte Side;
     public byte Index;
     public string ID;
-    
+
     public PacketType Type => PacketType.SiloSlotSelect;
     public PacketReliability Reliability => PacketReliability.Reliable;
 

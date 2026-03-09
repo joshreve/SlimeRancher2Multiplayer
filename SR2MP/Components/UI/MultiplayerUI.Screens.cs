@@ -74,7 +74,7 @@ public sealed partial class MultiplayerUI
     {
         DrawText("Failed to connect to server!");
         DrawText(connectionFailedReason!);
-    
+
         if (GUI.Button(CalculateButtonLayout(6), "Close"))
             viewingSettings = true;
     }
@@ -87,7 +87,6 @@ public sealed partial class MultiplayerUI
         DrawText("You must be in a save to host or connect!");
         DrawText("Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
     }
-
 
     private void InGameScreen()
     {
@@ -141,9 +140,7 @@ public sealed partial class MultiplayerUI
         DrawText($"You are the hosting on port: {Main.Server.Port}");
         DrawText("All players:");
 
-        var players = playerManager.GetAllPlayers();
-
-        foreach (var player in players)
+        foreach (var player in playerManager.GetAllPlayers())
         {
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }
@@ -157,8 +154,7 @@ public sealed partial class MultiplayerUI
         DrawText("You are connected to the server.");
         DrawText("All players:");
 
-        var players = playerManager.GetAllPlayers();
-        foreach (var player in players)
+        foreach (var player in playerManager.GetAllPlayers())
         {
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }

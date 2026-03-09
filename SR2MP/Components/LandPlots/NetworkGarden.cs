@@ -5,7 +5,7 @@ using SR2MP.Packets.LandPlots;
 namespace SR2MP.Components.LandPlots;
 
 [RegisterTypeInIl2Cpp(false)]
-public class NetworkGarden : MonoBehaviour
+public sealed class NetworkGarden : MonoBehaviour
 {
     private SpawnResource garden;
     private RegionMember regionMember;
@@ -25,32 +25,33 @@ public class NetworkGarden : MonoBehaviour
 
         if (garden != null && !string.IsNullOrEmpty(garden._id))
             Gardens[garden._id] = this;
-        
+
         LocallyOwned = true;
 
-        if (Main.Client.IsConnected) LocallyOwned = false;
+        if (Main.Client.IsConnected)
+            LocallyOwned = false;
     }
 
     private void Start()
     {
-        if (regionMember != null)
+        if (regionMember == null)
+            return;
+
+        try
         {
-            try
-            {
-                regionMember.add_BeforeHibernationChanged(
-                    Il2CppSystem.Delegate.CreateDelegate(
-                        Il2CppSystem.Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                            .GetEvent("BeforeHibernationChanged").EventHandlerType,
-                        Cast<Il2CppSystem.Object>(),
-                        nameof(OnHibernationChanged),
-                        true
-                    ).Cast<RegionMember.OnHibernationChange>()
-                );
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
-            }
+            regionMember.add_BeforeHibernationChanged(
+                Il2CppSystem.Delegate.CreateDelegate(
+                    Il2CppSystem.Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+                        .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                    Cast<Il2CppSystem.Object>(),
+                    nameof(OnHibernationChanged),
+                    true
+                ).Cast<RegionMember.OnHibernationChange>()
+            );
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
         }
     }
 
@@ -90,17 +91,17 @@ public class NetworkGarden : MonoBehaviour
 
         syncTimer = 0;
 
-        if (Main.Server.IsRunning() || Main.Client.IsConnected)
+        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+            return;
+
+        var packet = new GardenUpdatePacket
         {
-            var packet = new GardenUpdatePacket
-            {
-                GardenID = garden._id,
-                NextSpawnTime = garden._model.nextSpawnTime,
-                StoredWater = garden._model.storedWater,
-                NextSpawnRipens = garden._model.nextSpawnRipens
-            };
-            Main.SendToAllOrServer(packet);
-        }
+            GardenID = garden._id,
+            NextSpawnTime = garden._model.nextSpawnTime,
+            StoredWater = garden._model.storedWater,
+            NextSpawnRipens = garden._model.nextSpawnRipens
+        };
+        Main.SendToAllOrServer(packet);
     }
 
     private void OnDestroy()

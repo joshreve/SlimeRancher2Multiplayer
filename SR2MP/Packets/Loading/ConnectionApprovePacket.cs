@@ -35,6 +35,7 @@ public sealed class ConnectionApprovePacket : IPacket
 
         PlayerId = reader.ReadString();
         OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
+
         Money = reader.ReadPackedInt();
         RainbowMoney = reader.ReadPackedInt();
     }

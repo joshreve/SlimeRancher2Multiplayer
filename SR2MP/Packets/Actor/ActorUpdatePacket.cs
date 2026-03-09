@@ -29,7 +29,7 @@ public struct ActorUpdatePacket : IPacket
 
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WritePackedLong(ActorId.Value);
+        writer.WriteLong(ActorId.Value);
         writer.WriteEnum(UpdateType);
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
@@ -53,7 +53,7 @@ public struct ActorUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ActorId = new ActorId(reader.ReadPackedLong());
+        ActorId = new ActorId(reader.ReadLong());
         UpdateType = reader.ReadEnum<ActorUpdateType>();
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();

@@ -262,7 +262,7 @@ public sealed class SR2MPClient
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
 
             var splitResult = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
-            
+
             if (reliability != PacketReliability.Unreliable)
                 reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
 
@@ -286,10 +286,10 @@ public sealed class SR2MPClient
     }
 
     // Sends raw data without reliability tracking (used for resends)
-    private void SendRaw(ArraySegment<byte> data, IPEndPoint _)
+    private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
     {
         if (data.Array == null) return;
-        udpClient?.Client.Send(data.Array, data.Offset, data.Count, SocketFlags.None);
+        udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
     }
 
     // Handle acknowledgement from server, used in client packet manager
@@ -358,7 +358,7 @@ public sealed class SR2MPClient
                 var playerId = player.PlayerId;
                 if (!playerObjects.TryGetValue(playerId, out var playerObject))
                     continue;
-                
+
                 if (playerObject)
                 {
                     Object.Destroy(playerObject);

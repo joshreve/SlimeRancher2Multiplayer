@@ -2,23 +2,23 @@
 
 namespace SR2MP.Packets.TreasurePod;
 
-public class InitialTreasurePodsPacket : IPacket
+public sealed class InitialTreasurePodsPacket : IPacket
 {
-    public Dictionary<int, Il2Cpp.TreasurePod.State> TreasurePods = new();
+    public Dictionary<int, Il2Cpp.TreasurePod.State> TreasurePods;
 
     public PacketType Type => PacketType.InitialTreasurePods;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
     public void Serialise(PacketWriter writer) =>
-        writer.WriteDictionary<int, Il2Cpp.TreasurePod.State>(
+        writer.WriteDictionary(
             TreasurePods,
-            PacketWriterDels.Int32,
-            PacketWriterDels.Enum<Il2Cpp.TreasurePod.State>.Func
+            PacketWriterDels.PackedInt32,
+            PacketWriterDels.PackedEnum<Il2Cpp.TreasurePod.State>.Func
         );
 
     public void Deserialise(PacketReader reader) =>
-        TreasurePods = reader.ReadDictionary<int, Il2Cpp.TreasurePod.State>(
-            PacketReaderDels.Int32,
-            PacketReaderDels.Enum<Il2Cpp.TreasurePod.State>.Func
+        TreasurePods = reader.ReadDictionary(
+            PacketReaderDels.PackedInt32,
+            PacketReaderDels.PackedEnum<Il2Cpp.TreasurePod.State>.Func
         );
 }

@@ -1,4 +1,3 @@
-using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Utils;
 using Unity.Mathematics;
 
@@ -28,11 +27,11 @@ public sealed partial class InitialActorsPacket
 
     private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
     {
-        { ActorType.Basic, typeof(ActorBase) },
-        { ActorType.Slime, typeof(Slime) },
-        { ActorType.Plort, typeof(Plort) },
-        { ActorType.Resource, typeof(Resource) },
-        { ActorType.Gadget, typeof(ActorBase) },
+        { ActorType.Basic,    typeof(ActorBase) },
+        { ActorType.Slime,    typeof(Slime)     },
+        { ActorType.Plort,    typeof(Plort)     },
+        { ActorType.Resource, typeof(Resource)  },
+        { ActorType.Gadget,   typeof(ActorBase) },
     };
 
     public class ActorBase : INetObject
@@ -87,7 +86,7 @@ public sealed partial class InitialActorsPacket
     public sealed class LinkedGadget : ActorBase
     {
         public long LinkedActorId;
-        
+
         protected override ActorType Type => ActorType.LinkedGadget;
 
         public override void Serialise(PacketWriter writer)
@@ -124,7 +123,7 @@ public sealed partial class InitialActorsPacket
     {
         public double ProgressTime;
         public ResourceCycle.State ResourceState;
-        
+
         public int JointIndex = -1;
         public string PlotID = string.Empty;
         public Vector3 SpawnerPosition;

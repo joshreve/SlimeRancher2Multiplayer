@@ -88,8 +88,7 @@ public sealed class ClientManager
 
     public void RemoveTimedOutClients()
     {
-        var timedOut = GetTimedOutClients();
-        foreach (var client in timedOut)
+        foreach (var client in GetTimedOutClients())
         {
             RemoveClient(client.GetClientInfo());
         }

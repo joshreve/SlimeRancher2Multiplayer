@@ -14,8 +14,8 @@ public static class ReplaceLandPlot
 
         var packet = new NewLandPlotPacket
         {
-            ID = __instance._id,
-            PlotType = replacementPrefab.GetComponent<LandPlot>().TypeId
+            PlotID = __instance._id,
+            ID = replacementPrefab.GetComponent<LandPlot>().TypeId
         };
 
         Main.SendToAllOrServer(packet);

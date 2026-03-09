@@ -19,8 +19,8 @@ public sealed class InitialGordosPacket : IPacket
             writer.WritePackedInt(EatenCount);
             writer.WritePackedInt(RequiredEatCount);
             writer.WritePackedInt(GordoSlimeType);
-            writer.WriteBool(WasSeen);
-            // writer.WriteBool(Popped);
+            writer.WritePackedBool(WasSeen);
+            // writer.WritePackedBool(Popped);
         }
 
         public void Deserialise(PacketReader reader)
@@ -29,8 +29,8 @@ public sealed class InitialGordosPacket : IPacket
             EatenCount = reader.ReadPackedInt();
             RequiredEatCount = reader.ReadPackedInt();
             GordoSlimeType = reader.ReadPackedInt();
-            WasSeen = reader.ReadBool();
-            // Popped = reader.ReadBool();
+            WasSeen = reader.ReadPackedBool();
+            // Popped = reader.ReadPackedBool();
         }
     }
 

@@ -1,6 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.Util.Extensions;
-using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.Player;
 using SR2MP.Shared.Managers;
 using static SR2MP.Shared.Utils.Timers;
@@ -86,11 +85,9 @@ public partial class NetworkPlayer
             return;
 
         if (IsLocal)
-        {
             UpdateLocalGadgetMode();
-            return;
-        }
-        UpdateOnlineGadgetMode();
+        else
+            UpdateOnlineGadgetMode();
     }
 
     private Material GetFootprintMaterial(bool isValidPlacement)

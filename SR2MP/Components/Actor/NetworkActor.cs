@@ -4,7 +4,6 @@ using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
-using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Utils;
@@ -23,7 +22,7 @@ public sealed class NetworkActor : MonoBehaviour
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
     private PlortModel plortModel;
-    
+
     public float syncTimer = Timers.ActorTimer;
     private bool? CycleReleasing => cycle?._preparingToRelease;
     private bool? cachedCycleReleasing;
@@ -33,7 +32,7 @@ public sealed class NetworkActor : MonoBehaviour
     public bool isDestroyed;
     public byte attemptedGetIdentifiable;
     public bool cachedLocallyOwned;
-    
+
     private Vector3 SavedVelocity { get; set; }
     public Vector3 previousPosition;
     public Vector3 nextPosition;
@@ -41,7 +40,7 @@ public sealed class NetworkActor : MonoBehaviour
     public Quaternion nextRotation;
     public float interpolationStart;
     public float interpolationEnd;
-    
+
     private bool isSlime;
     private bool isResource;
     private bool isPlort;
@@ -108,16 +107,16 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
-            
+
             emotions = GetComponent<SlimeEmotions>();
             rigidbody = GetComponent<Rigidbody>();
             identifiable = GetComponent<Identifiable>();
             cycle = GetComponent<ResourceCycle>();
             regionMember = GetComponent<RegionMember>();
             cachedLocallyOwned = LocallyOwned;
-            
+
             GetActorType();
-            
+
             if (regionMember != null)
                 SetupHibernationEvent();
         }
@@ -329,8 +328,8 @@ public sealed class NetworkActor : MonoBehaviour
         var packet = new ActorUpdatePacket
         {
             ActorId = actorId,
-            Position = transform.position,
-            Rotation = transform.rotation,
+            Position = nextPosition,
+            Rotation = nextRotation,
             Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
         };
 
@@ -351,7 +350,7 @@ public sealed class NetworkActor : MonoBehaviour
         else if (isPlort)
         {
             packet.UpdateType = ActorUpdateType.Plort;
-            
+
             plortModel ??= GetComponent<PlortModel>();
 
             packet.Invulnerable = plortModel?._invulnerability?.IsInvulnerable ?? false;
@@ -453,15 +452,16 @@ public sealed class NetworkActor : MonoBehaviour
         if (gameObject.transform.localScale.x < cycle._defaultScale.x)
             gameObject.transform.localScale = cycle._defaultScale;
 
-        if (cycle._joint != null)
+        if (cycle._joint == null)
+            return;
+
+        if (rigidbody)
         {
-            if (rigidbody)
-            {
-                rigidbody.isKinematic = false;
-                rigidbody.WakeUp();
-            }
-            cycle.DetachFromJoint();
+            rigidbody.isKinematic = false;
+            rigidbody.WakeUp();
         }
+
+        cycle.DetachFromJoint();
     }
 
     private void HandleEdibleState()
