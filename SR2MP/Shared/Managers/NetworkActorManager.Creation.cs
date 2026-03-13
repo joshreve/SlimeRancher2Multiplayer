@@ -80,19 +80,19 @@ public sealed partial class NetworkActorManager
             PlotID = string.Empty,
             SpawnerPosition = Vector3.zero
         };
-        
+
         var obj = model.GetGameObject();
         if (!obj) return packet;
 
         var cycle = obj.GetComponent<ResourceCycle>();
         if (!cycle || cycle._joint == null) return packet;
-        
+
         var joint = cycle._joint.Joint;
         if (!joint) return packet;
 
         var spawner = joint.gameObject.GetComponentInParent<SpawnResource>();
         if (!spawner) return packet;
-        
+
         packet.JointIndex = spawner.SpawnJoints.IndexOf(joint);
         packet.SpawnerPosition = spawner.transform.position;
         packet.PlotID = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
@@ -108,7 +108,7 @@ public sealed partial class NetworkActorManager
             return ActorUpdateType.Resource;
         if (model.TryCast<PlortModel>() != null)
             return ActorUpdateType.Plort;
-        
+
         return ActorUpdateType.Actor;
     }
 }

@@ -24,7 +24,7 @@ public static class OnGadgetSpawn
 
         var gadget = result.GetComponent<Il2CppMonomiPark.SlimeRancher.World.Gadget>();
         var type = NetworkActorManager.GetPersistentID(gadget.identType);
-        
+
         var packet = new ActorSpawnPacket()
         {
             ActorId = gadget.GetActorId(),
@@ -34,20 +34,17 @@ public static class OnGadgetSpawn
             Rotation = rotation,
             Emotions = float4.zero
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
-    
+
     public static void Postfix(
         GameObject __result,
-        GameObject original,
         SceneGroup sceneGroup,
         Vector3 position,
         Quaternion rotation)
     {
-        if (handlingPacket)
-            return;
-        
-        MelonCoroutines.Start(SpawnOverNetwork(__result, sceneGroup, position, rotation));
+        if (!handlingPacket)
+            MelonCoroutines.Start(SpawnOverNetwork(__result, sceneGroup, position, rotation));
     }
 }

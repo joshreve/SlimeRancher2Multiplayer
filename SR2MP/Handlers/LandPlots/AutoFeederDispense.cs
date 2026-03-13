@@ -12,7 +12,7 @@ public sealed class AutoFeederDispenseHandler : BasePacketHandler<AutoFeederDisp
     {
         var model = GameState.landPlots[packet.ID];
         var feeder = model.gameObj.GetComponentInChildren<SlimeFeeder>();
-        
+
         feeder._nextEject = packet.NextTime;
         return true;
     }

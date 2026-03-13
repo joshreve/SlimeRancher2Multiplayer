@@ -16,7 +16,7 @@ public static class OnFeederEject
             ID = __instance.gameObject.GetComponentInParent<LandPlotLocation>()._id,
             NextTime = __instance._nextEject,
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

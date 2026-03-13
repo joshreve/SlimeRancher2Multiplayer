@@ -21,7 +21,7 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
             // SrLogger.LogError($"Tried to destroy actor that doesn't exist!\n\tID: {packet.ActorId}", SrLogTarget.Both);
             return false;
         }
-        
+
         GameState.identifiables.Remove(packet.ActorId);
         GameState.identifiablesByIdent[actor.ident].Remove(actor);
         GameState.DestroyIdentifiableModel(actor);

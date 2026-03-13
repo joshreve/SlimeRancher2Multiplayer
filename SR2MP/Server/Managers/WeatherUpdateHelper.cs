@@ -17,9 +17,9 @@ public static class WeatherUpdateHelper
     public static IEnumerator CreateWeatherPatternLookup(WeatherRegistry registry)
     {
         isInitializing = true;
-        
+
         yield return new WaitFrames(3);
-        
+
         if (registry == null)
         {
             SrLogger.LogError("WeatherRegistry is null in CreateWeatherPatternLookup", SrLogTarget.Both);

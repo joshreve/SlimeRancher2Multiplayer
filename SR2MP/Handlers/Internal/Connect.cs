@@ -19,14 +19,14 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
 
         Main.Server.clientManager.AddClient(clientEp, packet.PlayerId);
-        
+
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
         var rainbowMoney = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>());
 
         var diff = false;
-        
+
         var mods = Mods.ToList().ConvertAll(mod => mod.Hash());
         foreach (var mod in mods)
         {
@@ -67,11 +67,11 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             RainbowMoney = rainbowMoney,
             AllowCheats = Main.AllowCheats
         };
-        
+
         // The connectAck is different because of initialJoin, otherwise another PlayerJoin request will be sent
-        
+
         Main.Server.SendToClient(ackPacket, clientEp);
-        
+
         Main.Server.reSyncManager.SynchronizeClient(packet.PlayerId, clientEp);
 
         SrLogger.LogMessage(

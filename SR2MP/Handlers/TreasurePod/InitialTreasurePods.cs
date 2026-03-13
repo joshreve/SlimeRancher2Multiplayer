@@ -13,7 +13,7 @@ public sealed class InitialTreasurePodsHandler : BasePacketHandler<InitialTreasu
         foreach (var (podId, podState) in packet.TreasurePods)
         {
             var identifier = $"pod{podId}";
-            
+
             if (!GameState.pods.TryGetValue(identifier, out var model))
                 continue;
 
@@ -25,7 +25,7 @@ public sealed class InitialTreasurePodsHandler : BasePacketHandler<InitialTreasu
             }
             model.state = new ObservableValue<Il2Cpp.TreasurePod.State>(podState);
         }
-        
+
         return true;
     }
 }

@@ -19,7 +19,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
             if (model.gameObj)
             {
                 var plot = model.gameObj.GetComponentInChildren<LandPlot>();
-                
+
                 handlingPacket = true;
                 plot.DestroyAttached();
                 handlingPacket = false;

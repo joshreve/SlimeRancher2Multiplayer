@@ -90,7 +90,7 @@ public sealed class ReSyncManager
     public void SynchronizeAll()
     {
         var clients = Main.Server.clientManager.GetAllClients().ToList();
-        
+
         var gordosPacket          = CreateGordoSlimesPacket();
         var switchesPacket        = CreateSwitchesPacket();
         var plotsPacket           = CreatePlotsPacket();
@@ -106,9 +106,9 @@ public sealed class ReSyncManager
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
         var rainbowMoney = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>());
-        
+
         SrLogger.LogMessage("Resyncing all players...");
-        
+
         foreach (var client in clients)
         {
             var approvePacket = new ConnectionApprovePacket
@@ -133,9 +133,9 @@ public sealed class ReSyncManager
             Main.Server.SendToClient(accessDoorsPacket,     client.EndPoint);
             Main.Server.SendToClient(treasurePodsPacket,    client.EndPoint);
             Main.Server.SendToClient(pricesPacket,          client.EndPoint);
-            
+
             SendWeatherPacket(client.EndPoint);
-            
+
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
 
             SrLogger.LogPacketSize($"Player {client.PlayerId} resynced!");

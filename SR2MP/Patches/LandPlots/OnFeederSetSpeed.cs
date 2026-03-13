@@ -15,7 +15,7 @@ public static class OnFeederSetSpeed
             Speed = speed,
             ID = __instance.gameObject.GetComponentInParent<LandPlotLocation>()._id
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

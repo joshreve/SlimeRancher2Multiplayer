@@ -67,5 +67,4 @@ public struct NetworkAmmoSlot : INetObject
         // _isUnlockedValue = new NullableFloatProperty(1),
         // _maxCountValue = new NullableFloatProperty(MaxCount),
     };
-
 }

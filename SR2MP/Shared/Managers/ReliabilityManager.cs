@@ -19,7 +19,7 @@ public sealed class ReliabilityManager
         public DateTime LastSendTime;
         public int SendCount;
         public ushort SequenceNumber;
-        
+
         public bool IsRecycled { get; set; }
 
         public void Initialize(SplitResult splitData, IPEndPoint destination, ushort packetId,
@@ -50,7 +50,7 @@ public sealed class ReliabilityManager
             packet.Initialize(splitData, destination, packetId, packetType, reliability, sequenceNumber);
             return packet;
         }
-        
+
         public static void Return(PendingPacket packet) => RecyclePool<PendingPacket>.Return(packet);
     }
 

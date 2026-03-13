@@ -9,13 +9,13 @@ public static class OnFeederNextSpeed
     public static void Postfix(SlimeFeeder __instance)
     {
         if (handlingPacket) return;
-        
+
         var packet = new AutoFeederSpeedPacket()
         {
             Speed = __instance._model.feederCycleSpeed,
             ID = __instance.gameObject.GetComponentInParent<LandPlotLocation>()._id
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

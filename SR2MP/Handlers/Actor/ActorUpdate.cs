@@ -23,13 +23,13 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
         SlimeModel? slime = null;
         ProduceModel? resource = null;
         PlortModel? plort = null;
-        
+
         var actorId = packet.ActorId;
         if (actorId.Value != 0 && GameState.identifiables.TryGetValue(actorId, out var identModel))
         {
             if (identModel == null)
                 SrLogger.LogWarning("IdentifiableModel is null in update handler!");
-            
+
             slime = identModel!.TryCast<SlimeModel>();
             resource = identModel!.TryCast<ProduceModel>();
             plort = identModel!.TryCast<PlortModel>();
@@ -37,7 +37,7 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
             return false;
-        
+
         networkComponent.OnNetworkUpdate(packet);
 
         if (networkComponent.regionMember?._hibernating == true)
@@ -55,12 +55,12 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
                     slimeEmotions.SetAll(packet.Emotions);
                 break;
             }
-            
+
             case ActorUpdateType.Resource when resource != null:
             {
                 resource.state = packet.ResourceState;
                 resource.progressTime = packet.ResourceProgress;
-                
+
                 networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress);
                 break;
             }

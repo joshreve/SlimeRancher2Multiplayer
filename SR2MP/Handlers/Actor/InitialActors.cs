@@ -17,7 +17,7 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             GameState.identifiables
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
-        
+
         handlingPacket = true;
         foreach (var (_, value) in toRemove)
         {
@@ -30,7 +30,7 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
                 Destroyer.DestroyAny(gameObject, "SR2MP.InitialActors");
         }
         handlingPacket = false;
-        
+
         GameState._actorIdProvider._nextActorId =
             packet.StartingActorID;
         GameState.world.worldTime = packet.WorldTime;

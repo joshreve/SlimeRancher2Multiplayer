@@ -18,11 +18,11 @@ public sealed class WaitForSceneGroupLoad : MpYieldInstruction
 {
     private readonly bool state;
     private SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
-    
+
     protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
 
     public WaitForSceneGroupLoad(bool state = true) => this.state = state;
-    
+
     public override void Reset() => sceneLoader = SystemContext.Instance.SceneLoader; // Attempts to fetch the newest instance
 }
 
@@ -30,7 +30,7 @@ public sealed class WaitFrames : MpYieldInstruction
 {
     private readonly byte frames;
     private byte waited;
-    
+
     protected override bool ShouldWait
     {
         get

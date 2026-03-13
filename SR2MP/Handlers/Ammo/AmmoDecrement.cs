@@ -12,13 +12,13 @@ public sealed class AmmoDecrementHandler : BasePacketHandler<AmmoDecrementPacket
     protected override bool Handle(AmmoDecrementPacket packet, IPEndPoint? _)
     {
         var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
-        
+
         if (ammo == null) return false;
-        
+
         handlingPacket = true;
         ammo.Decrement(packet.SlotIndex, packet.Count);
         handlingPacket = false;
-        
+
         return true;
     }
 }

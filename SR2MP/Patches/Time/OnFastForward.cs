@@ -17,7 +17,7 @@ public static class OnFastForward
             Type = PacketType.FastForward,
             Time = fastForwardUntil
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

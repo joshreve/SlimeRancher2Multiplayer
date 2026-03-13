@@ -13,7 +13,7 @@ public sealed class ModSyncHandler : BasePacketHandler<EmptyPacket>
         var mods = Mods.ToDictionary(x => x.Hash(), x => x);
         var modSyncPacket = new ModSyncPacket() { Mods = mods };
         Main.Client.SendPacket(modSyncPacket);
-        
+
         return false;
     }
 }

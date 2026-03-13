@@ -1,5 +1,4 @@
 using System.Net;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
@@ -9,10 +8,8 @@ namespace SR2MP.Handlers.LandPlots;
 [PacketHandler((byte)PacketType.InitialLandPlots, HandlerType.Client)]
 public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlotsPacket>
 {
-    private static InitialLandPlotsPacket prev;
     protected override bool Handle(InitialLandPlotsPacket packet, IPEndPoint? _)
     {
-        prev = packet;
         foreach (var plot in packet.LandPlots)
         {
             var model = GameState.landPlots[plot.ID];
@@ -45,7 +42,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                     handlingPacket = false;
                     break;
                 }
-                
+
                 case InitialLandPlotsPacket.GardenData garden:
                 {
                     var actor = actorManager.ActorTypes[garden.Crop];
@@ -56,14 +53,14 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
 
                     if (!model.gameObj)
                         continue;
-                    
+
                     var gardenCatcher = model.gameObj.GetComponentInChildren<GardenCatcher>();
-                    
+
                     handlingPacket = true;
                     if (gardenCatcher.CanAccept(actor))
                     {
                         var plantedObject = gardenCatcher.Plant(actor, true);
-                        
+
                         if (plantedObject != null)
                         {
                             var spawnResource = plantedObject.GetComponent<SpawnResource>();
@@ -71,64 +68,62 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                             {
                                 foreach (var joint in spawnResource.SpawnJoints)
                                 {
-                                    if (joint != null && joint.connectedBody != null)
-                                    {
-                                        var connectedObj = joint.connectedBody.gameObject;
-                                        Destroyer.Destroy(connectedObj, "InitialLandPlotsHandler.OnDestroy");
-                                    }
+                                    if (joint == null || joint.connectedBody == null)
+                                        continue;
+
+                                    var connectedObj = joint.connectedBody.gameObject;
+                                    Destroyer.Destroy(connectedObj, "InitialLandPlotsHandler.OnDestroy");
                                 }
-                                
+
                                 spawnResource._model.nextSpawnTime = double.MaxValue;
                             }
                         }
                     }
-                    handlingPacket = false; 
+                    handlingPacket = false;
                     break;
                 }
-                
+
                 case InitialLandPlotsPacket.SiloData silo:
 
                     var ammo = silo.Ammo.ToGameAmmo();
                     model.siloAmmo[SiloAmmo] = ammo._ammoModel;
-                    model.siloStorageIndices =
-                        new Il2CppStructArray<int>(
-                            Array.ConvertAll(silo.SelectedSlots.ToArray(), input => (int)input));
-                    
+                    model.siloStorageIndices = Array.ConvertAll(silo.SelectedSlots.ToArray(), input => (int)input);
+
                     if (!model.gameObj) break;
-                    
-                    var storage = model.gameObj.GetComponentInChildren<SiloStorage>();  
+
+                    var storage = model.gameObj.GetComponentInChildren<SiloStorage>();
                     storage.Ammo = ammo;
                     storage.SetModel(model);
-                    
+
                     foreach (var activator in model.gameObj.GetComponentsInChildren<SiloStorageActivator>())
                         activator.OnActiveSlotChanged();
-                    
+
                     break;
-                
+
                 case InitialLandPlotsPacket.CoopPondData pond:
                     var ammoType = plot.Type == LandPlot.Id.COOP
                         ? FeederAmmo
                         : PlortCollectorAmmo;
                     var collectorAmmo = pond.CollectorAmmo.ToGameAmmo();
                     model.siloAmmo[ammoType] = collectorAmmo._ammoModel;
-                    
+
                     if (!model.gameObj) break;
-                    
-                    var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>();  
+
+                    var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>();
                     pondStorage.Ammo = collectorAmmo;
                     pondStorage.SetModel(model);
                     break;
-                
+
                 case InitialLandPlotsPacket.CorralData corral:
 
                     var plortCollectorAmmo = corral.PlortCollectorAmmo.ToGameAmmo();
                     model.siloAmmo[PlortCollectorAmmo] = plortCollectorAmmo._ammoModel;
-                    
+
                     var feederAmmo = corral.AutoFeederAmmo.ToGameAmmo();
                     model.siloAmmo[FeederAmmo] = feederAmmo._ammoModel;
 
                     model.feederCycleSpeed = (SlimeFeeder.FeedSpeed)corral.AutoFeederSpeed;
-                       
+
                     if (!model.gameObj) break;
 
                     foreach (var corralStorage in model.gameObj.GetComponentsInChildren<SiloStorage>())
@@ -138,7 +133,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                             case PlortCollectorAmmo:
                                 corralStorage.Ammo = plortCollectorAmmo;
                                 break;
-                            
+
                             case FeederAmmo:
                                 corralStorage.Ammo = feederAmmo;
                                 break;
@@ -157,26 +152,26 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                         SrLogger.LogError($"Feeder for {plot.ID} is null, tried to set it to {(SlimeFeeder.FeedSpeed)corral.AutoFeederSpeed}");
                         break;
                     }
-                    
+
                     handlingPacket = true;
                     feeder?.SetFeederSpeed((SlimeFeeder.FeedSpeed)corral.AutoFeederSpeed);
                     feeder?.SetFeederSpeedIcon((SlimeFeeder.FeedSpeed)corral.AutoFeederSpeed);
                     handlingPacket = false;
-                    
+
                     break;
-                
+
                 case InitialLandPlotsPacket.IncineratorData incinerator:
                     var incineratorAmmo = incinerator.PlortCollectorAmmo.ToGameAmmo();
                     model.siloAmmo[PlortCollectorAmmo] = incineratorAmmo._ammoModel;
-                    
+
                     model.ashUnits = incinerator.AshLevel;
-                    
+
                     if (!model.gameObj) break;
-                    
-                    var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>();  
+
+                    var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>();
                     incineratorStorage.Ammo = incineratorAmmo;
                     incineratorStorage.SetModel(model);
-                    
+
                     model.gameObj.GetComponentInChildren<FillableAshSource>().SetModel(model);
                     break;
             }

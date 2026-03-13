@@ -121,7 +121,7 @@ public sealed class Main : SR2EExpansionV3
         actorManager.Initialize(gameContext);
         NetworkSceneManager.Initialize(gameContext);
         NetworkAmmoManager.Initialize();
-        
+
         // Automatically inserts just by running the constructor.
         //new CustomPauseMenuButton(
         //    SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),

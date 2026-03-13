@@ -12,13 +12,13 @@ public sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
     protected override bool Handle(AmmoAddPacket packet, IPEndPoint? _)
     {
         var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
-        
+
         if (ammo == null) return false;
         var ident = actorManager.ActorTypes[packet.Identifiable];
         handlingPacket = true;
         ammo.MaybeAddToSpecificSlot(ident, null, ammo.GetNextSlot(ident));
         handlingPacket = false;
-        
+
         return true;
     }
 }

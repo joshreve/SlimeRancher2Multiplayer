@@ -9,13 +9,13 @@ public static class OnPlortCollection
     public static void Postfix(PlortCollector __instance)
     {
         if (handlingPacket) return;
-        
+
         var packet = new PlortCollectionPacket()
         {
             ID = __instance.gameObject.GetComponentInParent<LandPlotLocation>()._id,
             EndTime = __instance._endCollectAt,
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

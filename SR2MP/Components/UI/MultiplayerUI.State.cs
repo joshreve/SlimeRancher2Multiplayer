@@ -32,9 +32,9 @@ public sealed partial class MultiplayerUI
             errorState = ErrorType.ConnectionDeny;
             return MenuState.Error;
         }
-        
+
         errorState = ErrorType.None;
-        
+
         if (loading) return MenuState.Hidden;
         if (firstTime) return MenuState.SettingsInitial;
         if (viewingSettings) return MenuState.SettingsMain;

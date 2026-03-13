@@ -21,9 +21,9 @@ public sealed partial class NetworkActorManager
 
         foreach (var type in context.AutoSaveDirector._saveReferenceTranslation._identifiableTypeLookup)
             ActorTypes.TryAdd(GetPersistentID(type.value), type.value);
-        
+
         ActorTypes[-1] = null!;
-        
+
         MelonCoroutines.Start(ZoneLoadingLoop());
     }
 

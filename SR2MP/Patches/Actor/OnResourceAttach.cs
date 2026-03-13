@@ -27,9 +27,9 @@ public static class ResourceCycleAttachPatch
         if (jointIndex < 0) return;
 
         var plotId = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
-        
+
         var spawnModel = spawner._model ?? new SpawnResourceModel();
-        
+
         var packet = new ResourceAttachPacket
         {
             ActorId = actorId,

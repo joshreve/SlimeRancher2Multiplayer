@@ -44,7 +44,7 @@ public static class OnActorSpawn
 
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
-        
+
         actorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
             __result.GetComponent<IdentifiableActor>()._model;
 

@@ -30,10 +30,10 @@ public static class OnActorDestroy
             return true;
 
         actorManager.Actors.Remove(actor.GetActorId().Value);
-        
+
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
             return true;
-        
+
         try
         {
             var packet = new ActorDestroyPacket { ActorId = actor.GetActorId() };

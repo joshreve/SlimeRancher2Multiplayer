@@ -16,7 +16,7 @@ public static class OnSiloSlotSelect
             Side = (byte)__instance.ActivatorIdx,
             Index = (byte)__instance._landPlotModel.siloStorageIndices[__instance.ActivatorIdx]
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

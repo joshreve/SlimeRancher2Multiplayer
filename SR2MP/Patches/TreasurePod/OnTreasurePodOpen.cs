@@ -10,12 +10,12 @@ internal static class OnTreasurePodOpen
     {
         if (handlingPacket)
             return;
-            
+
         var packet = new TreasurePodPacket()
         {
             ID = int.Parse(__instance._id.Replace("pod",""))
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

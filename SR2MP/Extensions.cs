@@ -12,7 +12,7 @@ public static class Extensions
             number = (ushort)((number << 5) + number + c);
         return number;
     }
-    
+
     public static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
     {
         var gameObject = actor.GetGameObject();

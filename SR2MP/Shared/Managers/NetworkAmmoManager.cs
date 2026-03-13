@@ -20,7 +20,7 @@ public static class NetworkAmmoManager
         foreach (var def in Resources.FindObjectsOfTypeAll<AmmoSlotDefinition>())
             slotDefinitions[def.name.Hash()] = def;
     }
-    
+
     public static int GetNextSlot(this AmmoSlotManager ammo, IdentifiableType id)
     {
         for (int i = 0; i < ammo._ammoModel.Slots.Count; i++)
@@ -39,7 +39,7 @@ public static class NetworkAmmoManager
     }
 
     private static readonly Dictionary<ushort, AmmoSlotDefinition> slotDefinitions = new();
-    
+
     private static readonly Dictionary<IntPtr, string> ammoToID = new();
     private static readonly Dictionary<string, AmmoSlotManager> IDToAmmo = new();
     private static readonly Dictionary<IntPtr, (AmmoSlotManager ammo, int index)> slotToAmmo = new();
@@ -69,7 +69,7 @@ public static class NetworkAmmoManager
     {
         if (slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple))
             return ammoTuple.ammo;
-        
+
         return null;
     }
     public static AmmoSlotManager? GetAmmo(string id)

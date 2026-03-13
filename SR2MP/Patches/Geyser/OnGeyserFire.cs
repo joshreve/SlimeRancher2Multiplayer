@@ -16,8 +16,8 @@ public static class OnGeyserFire
 
         var packet = new GeyserTriggerPacket
         {
-             ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath(),
-             Duration = __instance.duration
+            ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath(),
+            Duration = __instance.duration
         };
 
         Main.SendToAllOrServer(packet);

@@ -16,7 +16,7 @@ public static class OnAmmoSlotDecrement
 
         var index = __instance.GetNextSlot();
         if (index == null) return;
-        
+
         var packet = new AmmoDecrementPacket()
         {
             SlotIndex = (int)index,

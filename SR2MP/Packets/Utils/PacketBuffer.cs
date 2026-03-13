@@ -14,7 +14,7 @@ public abstract class PacketBuffer : IRecyclable
     private readonly int startingIndex;
 
     public int Position => position;
-    
+
     public bool IsRecycled { get; set; }
 
     public abstract int DataSize { get; }

@@ -18,7 +18,7 @@ public static class RefineryUpdate
             ItemID = (ushort)GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
                 ._identifiableTypeToPersistenceId.GetPersistenceId(type)
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

@@ -14,19 +14,19 @@ public static class OnAmmoAddToAny
     public static void Postfix(AmmoSlotManager __instance, ref bool __result, IdentifiableType id)
     {
         if ((!Main.Client.IsConnected && !Main.Server.IsRunning()) || handlingPacket) return;
-        
-        if (__result)
+
+        if (!__result)
+            return;
+
+        var packet = new AmmoAddPacket()
         {
-            var packet = new AmmoAddPacket()
-            {
-                Identifiable = NetworkActorManager.GetPersistentID(id),
-                Count = 1,
-                ID = __instance.GetPlotID()!,
-            };
-            
-            if (packet.ID == null) return;
-            
-            Main.SendToAllOrServer(packet);
-        }
+            Identifiable = NetworkActorManager.GetPersistentID(id),
+            Count = 1,
+            ID = __instance.GetPlotID()!,
+        };
+
+        if (packet.ID == null) return;
+
+        Main.SendToAllOrServer(packet);
     }
 }

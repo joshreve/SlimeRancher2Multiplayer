@@ -20,17 +20,17 @@ public sealed partial class NetworkActorManager
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
         model.eulerRotation = rotation.eulerAngles;
-        
+
         handlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
         handlingPacket = false;
-        
+
         gadget.transform.SetPositionAndRotation(position, rotation);
-        
+
         identModel = model.Cast<IdentifiableModel>();
         return true;
     }
-    
+
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model)
     {
         model = null;
@@ -83,7 +83,7 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -128,7 +128,7 @@ public sealed partial class NetworkActorManager
         
         return true;
     }
-    
+
     public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
     {
         model = null;
@@ -356,7 +356,7 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -427,7 +427,7 @@ public sealed partial class NetworkActorManager
                 $"Resource Actor failed to initialize: Did not create a ProduceModel successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
             return false;
         }
-        
+
         produceModel.destroyTime = destroyTime;
         produceModel.state = state;
         produceModel.progressTime = progress;
@@ -450,7 +450,7 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -461,7 +461,7 @@ public sealed partial class NetworkActorManager
         actorManager.Actors[actorId.Value] = model;
 
         var cycle = actor.GetComponent<ResourceCycle>();
-        
+
         if (actorData.JointIndex >= 0 && cycle != null)
         {
             Joint? targetJoint = null;
@@ -494,12 +494,12 @@ public sealed partial class NetworkActorManager
                 handlingPacket = true;
                 cycle.Attach(targetJoint);
                 handlingPacket = false;
-                
+
                 produceModel.state = state;
                 produceModel.progressTime = progress;
             }
         }
-        
+
         if (cycle != null)
         {
             if (state == ResourceCycle.State.UNRIPE)
