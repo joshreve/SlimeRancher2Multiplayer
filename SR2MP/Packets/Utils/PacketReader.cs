@@ -202,7 +202,15 @@ public sealed class PacketReader : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadPacket<T>() where T : IPacket, new()
+    internal T ReadPacket<T>() where T : IPacket, new()
+    {
+        EnsureReadable(1);
+        position++; // The byte header is already read, so we skip this byte
+        return ReadNetObject<T>();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal T ReadCustomPacket<T>() where T : ICustomPacket, new()
     {
         EnsureReadable(1);
         position++; // The byte header is already read, so we skip this byte
@@ -451,7 +459,7 @@ public static class PacketReaderDels
         [typeof(Quaternion)] = nameof(PacketReader.ReadQuaternion),
     });
 
-    private static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
+    public static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
     {
         var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
         var readCalls = new Expression[componentTypes.Length];
@@ -475,6 +483,8 @@ public static class PacketReaderDels
             method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
         else if (typeof(IPacket).IsAssignableFrom(type))
             method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
+        else if (typeof(ICustomPacket).IsAssignableFrom(type))
+            method = Method(nameof(PacketReader.ReadCustomPacket)).MakeGenericMethod(type);
         else if (typeof(INetObject).IsAssignableFrom(type))
             method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
 

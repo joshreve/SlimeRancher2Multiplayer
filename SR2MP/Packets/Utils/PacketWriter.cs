@@ -106,9 +106,16 @@ public sealed class PacketWriter : PacketBuffer
     public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WritePacket<T>(T value) where T : IPacket
+    internal void WritePacket<T>(T value) where T : IPacket
     {
         WriteByte((byte)value.Type);
+        value.Serialise(this);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteCustomPacket<T>(T value) where T : ICustomPacket
+    {
+        WriteByte(value.PacketHeader);
         value.Serialise(this);
     }
 
@@ -452,7 +459,7 @@ public static class PacketWriterDels
         [typeof(Quaternion)] = nameof(PacketWriter.WriteQuaternion),
     });
 
-    private static Action<PacketWriter, TTuple> CreateTupleWriter<TTuple>(params Type[] componentTypes)
+    public static Action<PacketWriter, TTuple> CreateTupleWriter<TTuple>(params Type[] componentTypes)
     {
         var writerParam = Expression.Parameter(typeof(PacketWriter), "writer");
         var tupleParam = Expression.Parameter(typeof(TTuple), "value");
@@ -477,6 +484,8 @@ public static class PacketWriterDels
             method = Method(nameof(PacketWriter.WriteEnum)).MakeGenericMethod(type);
         else if (typeof(IPacket).IsAssignableFrom(type))
             method = Method(nameof(PacketWriter.WritePacket)).MakeGenericMethod(type);
+        else if (typeof(ICustomPacket).IsAssignableFrom(type))
+            method = Method(nameof(PacketWriter.WriteCustomPacket)).MakeGenericMethod(type);
         else if (typeof(INetObject).IsAssignableFrom(type))
             method = Method(nameof(PacketWriter.WriteNetObject)).MakeGenericMethod(type);
 

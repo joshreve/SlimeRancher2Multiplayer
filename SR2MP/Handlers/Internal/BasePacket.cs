@@ -8,13 +8,14 @@ public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacket
 {
     public bool IsServerSide { protected get; set; }
 
-    public void Handle(PacketReader reader)
+    // Do NOT override these! Only the ApiHandler class should be dealing with this!
+    public virtual void Handle(PacketReader reader)
     {
         if (!IsServerSide)
             ProcessPacket(reader, null);
     }
 
-    public void Handle(PacketReader reader, IPEndPoint? clientEp)
+    public virtual void Handle(PacketReader reader, IPEndPoint? clientEp)
     {
         if (IsServerSide)
             ProcessPacket(reader, clientEp);

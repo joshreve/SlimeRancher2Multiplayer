@@ -5,6 +5,7 @@ using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
+using SR2MP.Packets.Api;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
@@ -241,6 +242,17 @@ public sealed class SR2MPClient
     // }
 
     internal void SendPacket<T>(T packet) where T : IPacket
+        => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, SerialiseInternalPacket<T>.Func);
+
+    public void SendData<T>(T data) where T : ICustomPacket
+    {
+        var apiHeader = new ApiPacket(data.Reliability);
+        PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Func);
+    }
+
+    internal delegate void PacketWriterDelegate<TState>(PacketWriter writer, TState state);
+
+    private void PrepareAndSend<TState>(TState state, PacketReliability reliability, byte packetType, PacketWriterDelegate<TState> writeAction)
     {
         if (udpClient == null || serverEndPoint == null || !isConnected)
         {
@@ -252,17 +264,15 @@ public sealed class SR2MPClient
 
         try
         {
-            writer.WritePacket(packet);
+            writeAction(writer, state);
             var data = writer.ToSpan();
-
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
 
-            var reliability = packet.Reliability;
             ushort sequenceNumber = 0;
 
             // Get sequence number for ordered packets (pass packet type)
             if (reliability == PacketReliability.ReliableOrdered)
-                sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(packetType) ?? 0;
 
             var splitResult = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
 
@@ -287,8 +297,6 @@ public sealed class SR2MPClient
             PacketWriter.Return(writer);
         }
     }
-
-    public void SendData<T>(T data) where T : IReliabilityNetObject, new() => SendPacket(new ApiPacket<T>() { Data = data });
 
     // Sends raw data without reliability tracking (used for resends)
     private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
@@ -407,4 +415,18 @@ public sealed class SR2MPClient
     }
 
     public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
+
+    private static class SerialiseApiPacket<T> where T : ICustomPacket
+    {
+        public static readonly PacketWriterDelegate<(ApiPacket Packet, T Data)> Func = (writer, state) =>
+        {
+            writer.WritePacket(state.Packet);
+            writer.WriteCustomPacket(state.Data);
+        };
+    }
+
+    private static class SerialiseInternalPacket<T> where T : IPacket
+    {
+        public static readonly PacketWriterDelegate<T> Func = (writer, packet) => writer.WritePacket(packet);
+    }
 }
