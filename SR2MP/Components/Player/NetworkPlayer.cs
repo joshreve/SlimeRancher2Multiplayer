@@ -134,6 +134,7 @@ public partial class NetworkPlayer : MonoBehaviour
                 usernamePanel.transform;
 
             SetUsername(model.Username);
+            SetupMarker();
 
             return;
         }

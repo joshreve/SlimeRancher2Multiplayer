@@ -21,6 +21,8 @@ public static class GlobalVariables
 
     internal static GameObject playerPrefab;
 
+    internal static GameObject markerPrefab;
+
     public static Dictionary<string, GameObject> playerObjects = new();
 
     public static RemotePlayerManager playerManager = new();

@@ -42,5 +42,7 @@
       <None Remove="THIRD-PARTY-NOTICES.txt" />
 
       <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" />
+
+      <EmbeddedResource Include="Assets\PlayerMarker.png" />
     </ItemGroup>
 </Project>

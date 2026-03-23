@@ -3,6 +3,7 @@ using Il2CppTMPro;
 using MelonLoader;
 using MelonLoader.Utils;
 using SR2E.Expansion;
+using SR2E.Utils;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
@@ -12,6 +13,7 @@ using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 using SR2MP.Client;
 using SR2MP.Server;
+using UnityEngine.UI;
 
 namespace SR2MP;
 
@@ -138,6 +140,19 @@ public sealed class Main : SR2EExpansionV3
                 playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
 
                 Object.DontDestroyOnLoad(playerPrefab);
+
+                markerPrefab = new GameObject("PlayerCompassMarker");
+                markerPrefab.SetActive(false);
+                markerPrefab.transform.localPosition = Vector3.zero;
+                markerPrefab.transform.localRotation = Quaternion.identity;
+                markerPrefab.transform.localScale = Vector3.one;
+                markerPrefab.AddComponent<Image>().sprite = EmbeddedResourceEUtil.LoadSprite("Assets.PlayerMarker.png").CopyWithoutMipmaps();
+                var rectTransform = markerPrefab.GetComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0.5f, 0.0f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.0f);
+                rectTransform.sizeDelta = new Vector2Int(32, 32);
+
+                Object.DontDestroyOnLoad(markerPrefab);
 
                 break;
         }
