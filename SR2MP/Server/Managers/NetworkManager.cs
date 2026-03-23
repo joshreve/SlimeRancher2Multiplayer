@@ -1,8 +1,8 @@
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
-using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
-using System.Buffers;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Managers;
 
@@ -123,7 +123,7 @@ public sealed class NetworkManager
             var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out var packetId);
 
             if (packetReliability != PacketReliability.Unreliable)
-                reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability, sequenceNumber);
+                reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability);
 
             for (var i = 0; i < splitResult.Count; i++)
                 SendRaw(splitResult.Chunks[i], endPoint);
@@ -161,7 +161,7 @@ public sealed class NetworkManager
             {
                 // Track for reliability if needed
                 if (packetReliability != PacketReliability.Unreliable)
-                    reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability, sequenceNumber);
+                    reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability);
 
                 for (var i = 0; i < splitResult.Count; i++)
                     SendRaw(splitResult.Chunks[i], endPoint);

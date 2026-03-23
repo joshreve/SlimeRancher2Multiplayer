@@ -1,6 +1,7 @@
 using System.Net;
 using SR2MP.Packets.Internal;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Internal;
 
@@ -27,7 +28,7 @@ public sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket
         }
 
         resyncManager.MarkResynced(clientEp);
-        resyncManager.SynchronizeClient(clientInfo!.PlayerId, clientEp);
+        ReSyncManager.SynchronizeClient(clientInfo!.PlayerId, clientEp);
         resyncManager.LogResyncRequest(clientInfo.PlayerId, clientEp);
         resyncManager.SendSuccessMessage(clientEp);
 

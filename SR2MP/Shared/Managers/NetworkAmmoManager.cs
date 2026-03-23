@@ -7,9 +7,7 @@ public static class NetworkAmmoManager
 {
     public static void Initialize()
     {
-        IDToAmmo.Clear();
-        ammoToID.Clear();
-        slotToAmmo.Clear();
+        ClearAmmoCache();
         slotDefinitions.Clear();
 
         // Right now, I don't know where the definitions are actually stored,
@@ -44,21 +42,10 @@ public static class NetworkAmmoManager
     private static readonly Dictionary<string, AmmoSlotManager> IDToAmmo = new();
     private static readonly Dictionary<IntPtr, (AmmoSlotManager ammo, int index)> slotToAmmo = new();
 
-    public static string? GetPlotID(this AmmoSlotManager ammo)
-    {
-        if (ammoToID.TryGetValue(ammo.Pointer, out var id))
-            return id;
-
-        return null;
-    }
+    public static string? GetPlotID(this AmmoSlotManager ammo) => ammoToID.GetValueOrDefault(ammo.Pointer);
 
     public static string? GetPlotID(this AmmoSlot slot)
-    {
-        if (slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple))
-            return ammoTuple.ammo.GetPlotID();
-
-        return null;
-    }
+        => slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple) ? ammoTuple.ammo.GetPlotID() : null;
 
     public static int? GetNextSlot(this AmmoSlot slot)
     {
@@ -68,21 +55,10 @@ public static class NetworkAmmoManager
         return null;
     }
 
-    public static AmmoSlotManager? GetAmmo(this AmmoSlot slot)
-    {
-        if (slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple))
-            return ammoTuple.ammo;
+    // public static AmmoSlotManager? GetAmmo(this AmmoSlot slot)
+    //     => slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple) ? ammoTuple.ammo : null;
 
-        return null;
-    }
-
-    public static AmmoSlotManager? GetAmmo(string id)
-    {
-        if (IDToAmmo.TryGetValue(id, out var ammo))
-            return ammo;
-
-        return null;
-    }
+    public static AmmoSlotManager? GetAmmo(string id) => IDToAmmo.GetValueOrDefault(id);
 
     public static void ClearAmmoCache()
     {
@@ -134,10 +110,7 @@ public static class NetworkAmmoManager
             SrLogger.LogWarning($"SiloStorage has no known parent type: {silo.name}");
     }
 
-    public static AmmoSlotDefinition GetSlotDefinition(ushort id)
-    {
-        return slotDefinitions[id];
-    }
+    public static AmmoSlotDefinition GetSlotDefinition(ushort id) => slotDefinitions[id];
 
     public static ushort GetId(AmmoSlotDefinition def)
     {

@@ -1,12 +1,12 @@
-using System.Reflection;
+using System.Buffers;
 using System.Net;
-using SR2MP.Packets.Utils;
+using System.Reflection;
+using HarmonyLib;
 using SR2MP.Packets.Internal;
+using SR2MP.Packets.Utils;
+using SR2MP.Shared;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
-using System.Buffers;
-using SR2MP.Shared;
-using HarmonyLib;
 
 namespace SR2MP.Client.Managers;
 

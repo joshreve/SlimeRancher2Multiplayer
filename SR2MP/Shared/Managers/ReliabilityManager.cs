@@ -14,23 +14,19 @@ public sealed class ReliabilityManager
         public IPEndPoint Destination = null!;
         public ushort PacketId;
         public byte PacketType;
-        public PacketReliability Reliability;
         public DateTime FirstSendTime;
         public DateTime LastSendTime;
         public int SendCount;
-        public ushort SequenceNumber;
 
         public bool IsRecycled { get; set; }
 
-        public void Initialize(SplitResult splitData, IPEndPoint destination, ushort packetId,
-            byte packetType, PacketReliability reliability, ushort sequenceNumber)
+        private void Initialize(SplitResult splitData, IPEndPoint destination, ushort packetId,
+            byte packetType)
         {
             SplitData = splitData;
             Destination = destination;
             PacketId = packetId;
             PacketType = packetType;
-            Reliability = reliability;
-            SequenceNumber = sequenceNumber;
 
             FirstSendTime = DateTime.UtcNow;
             LastSendTime = DateTime.UtcNow;
@@ -44,10 +40,10 @@ public sealed class ReliabilityManager
         }
 
         public static PendingPacket Borrow(SplitResult splitData, IPEndPoint destination, ushort packetId,
-            byte packetType, PacketReliability reliability, ushort sequenceNumber)
+            byte packetType)
         {
             var packet = RecyclePool<PendingPacket>.Borrow();
-            packet.Initialize(splitData, destination, packetId, packetType, reliability, sequenceNumber);
+            packet.Initialize(splitData, destination, packetId, packetType);
             return packet;
         }
 
@@ -106,13 +102,13 @@ public sealed class ReliabilityManager
     }
 
     public void TrackPacket(SplitResult splitData, IPEndPoint destination, ushort packetId,
-        byte packetType, PacketReliability reliability, ushort sequenceNumber)
+        byte packetType, PacketReliability reliability)
     {
         if (reliability == PacketReliability.Unreliable)
             return;
 
         var key = new PacketKey(packetType, packetId, destination);
-        pendingPackets[key] = PendingPacket.Borrow(splitData, destination, packetId, packetType, reliability, sequenceNumber);;
+        pendingPackets[key] = PendingPacket.Borrow(splitData, destination, packetId, packetType);
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)

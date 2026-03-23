@@ -1,9 +1,9 @@
-using SR2MP.Packets.Utils;
-using System.Collections.Concurrent;
-using LZ4ps;
 using System.Buffers;
-using SR2MP.Shared.Utils;
+using System.Collections.Concurrent;
 using System.Net;
+using LZ4ps;
+using SR2MP.Packets.Utils;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
@@ -11,43 +11,48 @@ public static class PacketChunkManager
 {
     private sealed class IncompletePacket : IRecyclable
     {
-        public byte[][] chunks = null!;
-        public int[] chunkLengths = null!;
-        public bool[] received = null!;
+        public byte[]?[]? Chunks;
+        public int[]? ChunkLengths;
+        public bool[]? Received;
 
-        public ushort totalChunks;
-        public int receivedCount;
-        public DateTime lastChunkTime;
-        public PacketReliability reliability;
-        public ushort sequenceNumber;
+        public ushort TotalChunks;
+        public int ReceivedCount;
+        public DateTime LastChunkTime;
+        public PacketReliability Reliability;
+        public ushort SequenceNumber;
 
         public bool IsRecycled { get; set; }
 
         private void Initialize(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
         {
-            this.totalChunks = totalChunks;
-            this.reliability = reliability;
-            this.sequenceNumber = sequenceNumber;
+            TotalChunks = totalChunks;
+            Reliability = reliability;
+            SequenceNumber = sequenceNumber;
 
-            receivedCount = 0;
-            lastChunkTime = DateTime.UtcNow;
+            ReceivedCount = 0;
+            LastChunkTime = DateTime.UtcNow;
 
-            chunks = ArrayPool<byte[]>.Shared.Rent(totalChunks);
-            chunkLengths = ArrayPool<int>.Shared.Rent(totalChunks);
-            received = ArrayPool<bool>.Shared.Rent(totalChunks);
+            Chunks = ArrayPool<byte[]>.Shared.Rent(totalChunks);
+            ChunkLengths = ArrayPool<int>.Shared.Rent(totalChunks);
+            Received = ArrayPool<bool>.Shared.Rent(totalChunks);
 
-            Array.Clear(received, 0, totalChunks);
+            Array.Clear(Received, 0, totalChunks);
         }
 
         public void Recycle()
         {
-            if (chunks != null) ArrayPool<byte[]>.Shared.Return(chunks, true);
-            if (chunkLengths != null) ArrayPool<int>.Shared.Return(chunkLengths);
-            if (received != null) ArrayPool<bool>.Shared.Return(received);
+            if (Chunks != null)
+                ArrayPool<byte[]?>.Shared.Return(Chunks, true);
 
-            chunks = null!;
-            chunkLengths = null!;
-            received = null!;
+            if (ChunkLengths != null)
+                ArrayPool<int>.Shared.Return(ChunkLengths);
+
+            if (Received != null)
+                ArrayPool<bool>.Shared.Return(Received);
+
+            Chunks = null!;
+            ChunkLengths = null!;
+            Received = null!;
         }
 
         public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
@@ -100,44 +105,44 @@ public static class PacketChunkManager
         var packet = IncompletePackets.GetOrAdd(key, _ =>
             IncompletePacket.Borrow(totalChunks, reliability, sequenceNumber));
 
-        if (packet.totalChunks != totalChunks)
+        if (packet.TotalChunks != totalChunks)
         {
-            SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.totalChunks} got={totalChunks}");
+            SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.TotalChunks} got={totalChunks}");
             IncompletePackets.TryRemove(key, out _);
             return false;
         }
 
         // Store chunks
-        if (!packet.received[chunkIndex])
+        if (!packet.Received![chunkIndex])
         {
-            packet.chunks[chunkIndex] = data;
-            packet.chunkLengths[chunkIndex] = chunkLength;
-            packet.received[chunkIndex] = true;
-            packet.receivedCount++;
-            packet.lastChunkTime = DateTime.UtcNow;
+            packet.Chunks![chunkIndex] = data;
+            packet.ChunkLengths![chunkIndex] = chunkLength;
+            packet.Received[chunkIndex] = true;
+            packet.ReceivedCount++;
+            packet.LastChunkTime = DateTime.UtcNow;
         }
 
         // Wait for all chunks
-        if (packet.receivedCount != totalChunks)
+        if (packet.ReceivedCount != totalChunks)
             return false;
 
         // Merge chunks
         var totalSize = 0;
         for (var i = 0; i < totalChunks; i++)
-            totalSize += packet.chunkLengths[i];
+            totalSize += packet.ChunkLengths![i];
 
         var assemblyBuffer = ArrayPool<byte>.Shared.Rent(totalSize);
         var offset = 0;
 
         for (var i = 0; i < totalChunks; i++)
         {
-            packet.chunks[i].AsSpan(0, packet.chunkLengths[i]).CopyTo(assemblyBuffer.AsSpan(offset));
-            offset += packet.chunkLengths[i];
-            ArrayPool<byte>.Shared.Return(packet.chunks[i]);
+            packet.Chunks![i].AsSpan(0, packet.ChunkLengths![i]).CopyTo(assemblyBuffer.AsSpan(offset));
+            offset += packet.ChunkLengths[i];
+            ArrayPool<byte>.Shared.Return(packet.Chunks![i]!);
         }
 
-        outReliability = packet.reliability;
-        outSequenceNumber = packet.sequenceNumber;
+        outReliability = packet.Reliability;
+        outSequenceNumber = packet.SequenceNumber;
 
         IncompletePackets.TryRemove(key, out _);
 
@@ -264,7 +269,7 @@ public static class PacketChunkManager
 
         foreach (var kvp in IncompletePackets)
         {
-            if (now - kvp.Value.lastChunkTime > PacketTimeout)
+            if (now - kvp.Value.LastChunkTime > PacketTimeout)
                 keysToRemove[removeCount++] = kvp.Key;
         }
 
@@ -275,15 +280,15 @@ public static class PacketChunkManager
             if (!IncompletePackets.TryRemove(key, out var packet))
                 continue;
 
-            SrLogger.LogWarning($"Timeout: {key.PacketType} from {key.EndPoint} ({packet.receivedCount}/{packet.totalChunks} chunks)");
+            SrLogger.LogWarning($"Timeout: {key.PacketType} from {key.EndPoint} ({packet.ReceivedCount}/{packet.TotalChunks} chunks)");
 
-            for (var c = 0; c < packet.totalChunks; c++)
+            for (var c = 0; c < packet.TotalChunks; c++)
             {
-                if (!packet.received[c] || packet.chunks[c] == null)
+                if (!packet.Received![c] || packet.Chunks?[c] == null)
                     continue;
 
-                ArrayPool<byte>.Shared.Return(packet.chunks[c]);
-                packet.chunks[c] = null!;
+                ArrayPool<byte>.Shared.Return(packet.Chunks![c]!);
+                packet.Chunks[c] = null!;
             }
 
             IncompletePacket.Return(packet);

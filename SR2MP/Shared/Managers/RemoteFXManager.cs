@@ -164,10 +164,10 @@ public sealed class RemoteFXManager
         return false;
     }
 
-    public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, bool loop = false)
-    {
-        SECTR_AudioSystem.Play(cue, position, loop);
-    }
+    // public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, bool loop = false)
+    // {
+    //     SECTR_AudioSystem.Play(cue, position, loop);
+    // }
 
     public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, float volume, bool loop = false)
     {

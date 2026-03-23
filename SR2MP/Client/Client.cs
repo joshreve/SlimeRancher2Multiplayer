@@ -282,7 +282,7 @@ public sealed class SR2MPClient
             var splitResult = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
 
             if (reliability != PacketReliability.Unreliable)
-                reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
+                reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability);
 
             for (var i = 0; i < splitResult.Count; i++)
                 SendRaw(splitResult.Chunks[i], serverEndPoint);

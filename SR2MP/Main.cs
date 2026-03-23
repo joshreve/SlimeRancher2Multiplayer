@@ -3,15 +3,15 @@ using Il2CppTMPro;
 using MelonLoader;
 using MelonLoader.Utils;
 using SR2E.Expansion;
+using SR2MP.Client;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
 using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
+using SR2MP.Server;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
-using SR2MP.Client;
-using SR2MP.Server;
 
 namespace SR2MP;
 

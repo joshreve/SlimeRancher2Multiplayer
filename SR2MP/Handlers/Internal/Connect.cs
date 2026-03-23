@@ -3,6 +3,7 @@ using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Packets;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Internal;
 
@@ -72,7 +73,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
         Main.Server.SendToClient(ackPacket, clientEp);
 
-        Main.Server.ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp);
+        ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp);
 
         SrLogger.LogMessage(
             $"Player {packet.PlayerId} successfully connected",

@@ -1,6 +1,6 @@
+using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
-using System.Collections;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
