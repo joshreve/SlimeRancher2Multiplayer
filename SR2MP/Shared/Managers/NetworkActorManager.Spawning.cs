@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Drone;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Loading;
@@ -107,8 +108,8 @@ public sealed partial class NetworkActorManager
                 return TrySpawnInitialAmmoGadget(linkedAmmoData, out identifiableModel);
             case InitialActorsPacket.LinkedGadget linkedData: // i dont know how to set this up for linked gadgets to work, but its possible they auto work
                 return TrySpawnInitialLinkedGadget(linkedData, out identifiableModel);
-            case InitialActorsPacket.Resource resourceData:
-                return TrySpawnInitialResource(resourceData, out identifiableModel);
+            case InitialActorsPacket.DroneStation stationData:
+                return TrySpawnInitialDroneStation(stationData, out identifiableModel);
         }
         identifiableModel = null;
         
@@ -163,6 +164,48 @@ public sealed partial class NetworkActorManager
         
         handlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
+        handlingPacket = false;
+        
+        gadget.transform.SetPositionAndRotation(position, rotation);
+        
+        return true;
+    }
+    
+    private bool TrySpawnInitialDroneStation(InitialActorsPacket.DroneStation actorData, out IdentifiableModel? identifiableModel)
+    {
+        identifiableModel = null;
+        
+        var sceneId = actorData.Scene;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var typeId = actorData.ActorTypeId;
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
+            return false;
+        }
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position).Cast<DroneStationGadgetModel>();
+        model.eulerRotation = rotation.eulerAngles;
+        
+        model.SetEnergy(SceneContext.Instance.TimeDirector, 0.8333f, actorData.Charge);
+        model.IsDroneAtStation._value = actorData.DroneInStation;
+        model._type = actorData.DroneType;
+        model._taskData = new DroneTaskData()
+        {
+            SinkType = actorData.Task.Sink,
+            SourceType = actorData.Task.Source,
+            TargetType = actorData.Task.Target,
+            TargetIdentType = ActorTypes[actorData.Task.TargetIdent],
+        };
+        
+        identifiableModel = model.Cast<IdentifiableModel>();
+        
+        handlingPacket = true;
+        var gadget = GadgetDirector.InstantiateGadgetFromModel(model.Cast<GadgetModel>());
         handlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
@@ -230,6 +273,10 @@ public sealed partial class NetworkActorManager
                 return TrySpawnInitialPlort(plortData, out model);
             case InitialActorsPacket.Resource resourceData:
                 return TrySpawnInitialResource(resourceData, out model);
+            case InitialActorsPacket.RanchDrone ranchDroneData:
+                return TrySpawnInitialRanchDrone(ranchDroneData, out model);
+            case InitialActorsPacket.ExplorerDrone droneData:
+                return TrySpawnInitialDrone(droneData, out model);
         }
 
         var sceneId = actorData.Scene;
@@ -331,6 +378,148 @@ public sealed partial class NetworkActorManager
             return false;
 
         model.Cast<SlimeModel>().Emotions = emotions;
+
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(model);
+        }
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+
+        handlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        handlingPacket = false;
+
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        actorManager.Actors[actorId.Value] = model;
+
+        return true;
+    }
+    private bool TrySpawnInitialDrone(InitialActorsPacket.ExplorerDrone actorData, out IdentifiableModel? model)
+    {
+        model = null;
+
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var station = actorData.Station;
+
+        if (Main.RockPlortBug)
+            typeId = 25;
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+
+        if (!type.prefab)
+            return false;
+
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+
+        model = GameState.CreateActorModel(
+            actorId,
+            type,
+            scene,
+            position,
+            rotation);
+
+        if (model == null)
+            return false;
+
+        model.Cast<ExplorerDroneModel>().StationId = station;
+
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(model);
+        }
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+
+        handlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        handlingPacket = false;
+
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        actorManager.Actors[actorId.Value] = model;
+
+        return true;
+    }
+    private bool TrySpawnInitialRanchDrone(InitialActorsPacket.RanchDrone actorData, out IdentifiableModel? model)
+    {
+        model = null;
+
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var station = actorData.Station;
+        var ammo = actorData.Ammo;
+
+        if (Main.RockPlortBug)
+            typeId = 25;
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+
+        if (!type.prefab)
+            return false;
+
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+
+        model = GameState.CreateActorModel(
+            actorId,
+            type,
+            scene,
+            position,
+            rotation);
+
+        if (model == null)
+            return false;
+        var droneModel = model.Cast<RanchDroneModel>();
+        droneModel.StationId = station;
+        droneModel.Ammo = ammo.ToGameAmmo()._ammoModel;
 
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))

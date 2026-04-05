@@ -65,7 +65,14 @@ public sealed partial class NetworkActorManager
         DroneInStation = model._isDroneAtStation,
         // 0.8333 is looking quite random, but i couldnt find an actual const or variable that gave the correct output.
         // This number was taken from a UE Hook on GetCurrEnergy on DroneStationGadgetModel.
-        Charge = model.GetCurrEnergy(SceneContext.Instance.TimeDirector, 0.8333f)  
+        Charge = model.GetCurrEnergy(SceneContext.Instance.TimeDirector, 0.8333f),
+        Task = new InitialActorsPacket.DroneTask
+        {
+            TargetIdent = GetPersistentID(model._taskData.TargetIdentType),
+            Sink = model._taskData.SinkType,
+            Target = model._taskData.TargetType,
+            Source = model._taskData.SourceType,
+        }
     };
 
     private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new()
