@@ -16,11 +16,6 @@ public enum CountType : byte
     UShort,
 
     /// <summary>
-    /// Serialise as a uint.
-    /// </summary>
-    UInt,
-
-    /// <summary>
     /// Serialise as a packed uint.
     /// </summary>
     VarUInt

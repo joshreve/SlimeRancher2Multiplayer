@@ -5,19 +5,34 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Packets.Utils;
 
 /// <summary>
-/// Represents a recyclable packet buffer abstraction that tracks cursor state,
-/// supports bit-packing operations, and provides movement semantics for derived buffers.
+/// Base class implementations for packet buffers.
 /// </summary>
 [PublicAPI]
 public abstract class PacketBuffer : IRecyclable
 {
+    /// <summary>
+    /// The underlying buffer.
+    /// </summary>
     protected byte[]? buffer;
 
+    /// <summary>
+    /// The current packed byte.
+    /// </summary>
     protected byte currentPackedByte;
+
+    /// <summary>
+    /// The current packing bit index.
+    /// </summary>
     protected int currentBitIndex;
 
+    /// <summary>
+    /// The current cursor position.
+    /// </summary>
     protected int position;
 
+    /// <summary>
+    /// The starting bit packing index.
+    /// </summary>
     private readonly int startingIndex;
 
     /// <summary>
@@ -36,10 +51,8 @@ public abstract class PacketBuffer : IRecyclable
     /// <summary>
     /// Initializes a new instance of the <see cref="PacketBuffer"/> class.
     /// </summary>
-    /// <param name="starting">
-    /// The starting bit index used when packing booleans and when resetting state in <see cref="Clear"/>.
-    /// </param>
-    protected internal PacketBuffer(int starting) => startingIndex = currentBitIndex = starting;
+    /// <param name="startingBitIndex">The starting bit index used when packing booleans and when resetting state in <see cref="Clear"/>.</param>
+    protected internal PacketBuffer(int startingBitIndex) => startingIndex = currentBitIndex = startingBitIndex;
 
     /// <summary>
     /// Gets the byte at the specified index.
@@ -54,8 +67,16 @@ public abstract class PacketBuffer : IRecyclable
             ? throw new ArgumentOutOfRangeException(nameof(index), "Index must be within the bounds of the data size.")
             : buffer![index];
 
+    /// <summary>
+    /// Called when the buffer is recycled.
+    /// </summary>
     protected virtual void OnRecycle() { }
 
+    /// <summary>
+    /// Ensures that the buffer has enough bounds to write the specified number of bytes.
+    /// </summary>
+    /// <param name="count">The number of bytes to write.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the buffer has already been recycled.</exception>
     protected abstract void EnsureBounds(int count);
 
     /// <summary>
@@ -79,9 +100,7 @@ public abstract class PacketBuffer : IRecyclable
     /// </summary>
     public abstract void EndPackingBools();
 
-    /// <summary>
-    /// Recycles this buffer instance, allowing implementations to release resources and clear backing storage.
-    /// </summary>
+    /// <inheritdoc cref="IRecyclable.Recycle"/>
     public void Recycle()
     {
         OnRecycle();

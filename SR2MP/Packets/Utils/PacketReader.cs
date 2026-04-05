@@ -707,7 +707,6 @@ public sealed class PacketReader : PacketBuffer
     {
         CountType.Byte => ReadByte(),
         CountType.UShort => ReadUShort(),
-        CountType.UInt => (int)ReadUInt(),
         CountType.VarUInt => (int)ReadPackedUInt(),
         _ => throw new ArgumentOutOfRangeException(nameof(countType), countType, "Unsupported count type.")
     };
@@ -883,8 +882,8 @@ public static class PacketReaderDels
 
     private static readonly ReadOnlyDictionary<Type, string> ReadMethodMap = new(new Dictionary<Type, string>()
     {
-        [typeof(byte)] = nameof(PacketReader.ReadByte),
         [typeof(int)] = nameof(PacketReader.ReadInt),
+        [typeof(byte)] = nameof(PacketReader.ReadByte),
         [typeof(bool)] = nameof(PacketReader.ReadBool),
         [typeof(uint)] = nameof(PacketReader.ReadUInt),
         [typeof(long)] = nameof(PacketReader.ReadLong),
@@ -901,59 +900,13 @@ public static class PacketReaderDels
     });
 
     /// <summary>
-    /// Generates a reader function for custom tuples based on component types.
-    /// </summary>
-    /// <typeparam name="TTuple">The tuple type.</typeparam>
-    /// <param name="componentTypes">The types making up the tuple.</param>
-    /// <returns>A compiled function to read the tuple.</returns>
-    public static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
-    {
-        var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
-        var readCalls = new Expression[componentTypes.Length];
-
-        for (var i = 0; i < componentTypes.Length; i++)
-            readCalls[i] = Expression.Call(readerParam, GetReadExpression(componentTypes[i]));
-
-        var constructor = typeof(TTuple).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(TTuple)}");
-        var newTuple = Expression.New(constructor, readCalls);
-        return Expression.Lambda<Func<PacketReader, TTuple>>(newTuple, readerParam).Compile();
-    }
-
-    private static MethodInfo GetReadExpression(Type type)
-    {
-        if (TypeReadCache.TryGetValue(type, out var method))
-            return method;
-
-        if (ReadMethodMap.TryGetValue(type, out var methodName))
-            method = Method(methodName);
-        else if (type.IsEnum)
-            method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
-        else if (typeof(IPacket).IsAssignableFrom(type))
-            method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
-        else if (typeof(ICustomPacket).IsAssignableFrom(type))
-            method = Method(nameof(PacketReader.ReadCustomPacket)).MakeGenericMethod(type);
-        else if (typeof(INetObject).IsAssignableFrom(type))
-            method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
-
-        if (method == null)
-            throw new NotSupportedException($"Type {type.Name} is not supported in automatic deserialization.");
-
-        TypeReadCache[type] = method;
-        return method;
-    }
-
-    private static MethodInfo Method(string name) =>
-        typeof(PacketReader).GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-        ?? throw new MissingMethodException($"PacketReader missing method: {name}");
-
-    /// <summary>
-    /// Caches a factory method for instantiating objects implementing INetObject.
+    /// Caches a factory method for instantiating objects implementing <see cref="INetObject"/>.
     /// </summary>
     /// <typeparam name="T">The type to construct.</typeparam>
     public static class NetObjectFactory<T> where T : INetObject, new()
     {
         /// <summary>
-        /// A delegate that returns a new instance of T.
+        /// A delegate that returns a new instance of <typeparamref name="T"/>.
         /// </summary>
         public static readonly Func<T> Factory = CreateFactory();
 
@@ -1015,4 +968,50 @@ public static class PacketReaderDels
         /// </summary>
         public static readonly Action<CppCollections.HashSet<T>, T> Add = (set, item) => set.Add(item);
     }
+
+    /// <summary>
+    /// Generates a reader function for custom tuples based on component types.
+    /// </summary>
+    /// <typeparam name="TTuple">The tuple type.</typeparam>
+    /// <param name="componentTypes">The types making up the tuple.</param>
+    /// <returns>A compiled function to read the tuple.</returns>
+    public static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
+    {
+        var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
+        var readCalls = new Expression[componentTypes.Length];
+
+        for (var i = 0; i < componentTypes.Length; i++)
+            readCalls[i] = Expression.Call(readerParam, GetReadExpression(componentTypes[i]));
+
+        var constructor = typeof(TTuple).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(TTuple)}");
+        var newTuple = Expression.New(constructor, readCalls);
+        return Expression.Lambda<Func<PacketReader, TTuple>>(newTuple, readerParam).Compile();
+    }
+
+    private static MethodInfo GetReadExpression(Type type)
+    {
+        if (TypeReadCache.TryGetValue(type, out var method))
+            return method;
+
+        if (ReadMethodMap.TryGetValue(type, out var methodName))
+            method = Method(methodName);
+        else if (type.IsEnum)
+            method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
+        else if (typeof(IPacket).IsAssignableFrom(type))
+            method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
+        else if (typeof(ICustomPacket).IsAssignableFrom(type))
+            method = Method(nameof(PacketReader.ReadCustomPacket)).MakeGenericMethod(type);
+        else if (typeof(INetObject).IsAssignableFrom(type))
+            method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
+
+        if (method == null)
+            throw new NotSupportedException($"Type {type.Name} is not supported in automatic deserialization.");
+
+        TypeReadCache[type] = method;
+        return method;
+    }
+
+    private static MethodInfo Method(string name) =>
+        typeof(PacketReader).GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        ?? throw new MissingMethodException($"PacketReader missing method: {name}");
 }
