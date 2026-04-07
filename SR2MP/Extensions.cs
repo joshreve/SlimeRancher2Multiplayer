@@ -5,14 +5,6 @@ namespace SR2MP;
 
 internal static class Extensions
 {
-    public static ushort Hash(this string defName)
-    {
-        ushort number = 65535;
-        foreach (var c in defName)
-            number = (ushort)((number << 5) + number + c);
-        return number;
-    }
-
     internal static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
     {
         var gameObject = actor.GetGameObject();

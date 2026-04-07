@@ -125,8 +125,7 @@ public sealed class SR2MPClient
             var connectPacket = new ConnectPacket
             {
                 PlayerId = PlayerId,
-                Username = Main.Username,
-                ModHashes = Mods.ToList().ConvertAll(mod => mod.Hash())
+                Username = Main.Username
             };
 
             SendPacket(connectPacket);
@@ -253,7 +252,7 @@ public sealed class SR2MPClient
     [PublicAPI]
     public void SendData<T>(T data) where T : ICustomPacket
     {
-        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
         {
             SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
             return;
@@ -395,6 +394,7 @@ public sealed class SR2MPClient
 
             PlayerManager.Clear();
             NetworkStringPool.Clear();
+            ApiHandlers.ClearNetIds();
 
             SrLogger.LogMessage("Disconnected from server");
             OnDisconnected?.Invoke();

@@ -149,8 +149,7 @@ public sealed class Main : SR2EExpansionV3
 
     internal static void SetConfigValue<T>(string key, T value)
     {
-        var pref = preferences.GetEntry<T>(key);
-        pref.Value = value;
+        preferences.GetEntry<T>(key).Value = value;
         MelonPreferences.Save();
     }
 

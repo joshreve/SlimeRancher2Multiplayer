@@ -38,7 +38,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
         {
             ID = reader.ReadPooledString()!;
             Type = reader.ReadPackedEnum<LandPlot.Id>();
-            Upgrades = reader.ReadCppSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Reader)!;
+            Upgrades = reader.ReadCppHashSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Reader)!;
 
             if (!DataTypes.TryGetValue(Type, out var dataType))
             {

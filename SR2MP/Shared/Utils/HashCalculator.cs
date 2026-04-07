@@ -5,7 +5,7 @@ internal static class HashCalculator
     private const uint Offset = 2166136261u;
     private const uint Prime = 16777619u;
 
-    public static ushort FoldHash(uint hash) => (ushort)(hash ^ (hash >> 16));
+    // public static ushort FoldHash(uint hash) => (ushort)(hash ^ (hash >> 16));
 
     public static uint ComputeHashOfBytes(Span<byte> bytes)
     {
@@ -37,5 +37,13 @@ internal static class HashCalculator
 
             return hash;
         }
+    }
+
+    public static ushort Hash(this string defName)
+    {
+        ushort number = 65535;
+        foreach (var c in defName)
+            number = (ushort)((number << 5) + number + c);
+        return number;
     }
 }

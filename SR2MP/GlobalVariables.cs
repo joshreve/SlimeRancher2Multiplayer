@@ -67,6 +67,4 @@ public static class GlobalVariables
 
     // Shortcut Properties
     public static GameModel GameState => SceneContext.Instance.GameModel;
-
-    public static string[] Mods { get; internal set; }
 }

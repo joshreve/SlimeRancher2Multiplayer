@@ -191,6 +191,7 @@ public sealed class SR2MPServer
             PlayerManager.Clear();
             NetworkManager.Stop();
             NetworkStringPool.Clear();
+            ApiHandlers.ClearNetIds();
 
             SrLogger.LogMessage("Server closed");
         }
@@ -211,7 +212,7 @@ public sealed class SR2MPServer
     /// <param name="endPoint">The endpoint of the client to receive the packet.</param>
     public void SendDataToClient<T>(T data, IPEndPoint endPoint) where T : ICustomPacket
     {
-        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
         {
             SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
             return;
@@ -263,7 +264,7 @@ public sealed class SR2MPServer
     /// <param name="data">The packet data to send.</param>
     public void SendDataToAll<T>(T data) where T : ICustomPacket
     {
-        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
         {
             SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
             return;
@@ -305,7 +306,7 @@ public sealed class SR2MPServer
     /// <param name="excludedClientInfo">The client info string to exclude from the broadcast.</param>
     public void SendDataToAllExcept<T>(T data, string excludedClientInfo) where T : ICustomPacket
     {
-        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
         {
             SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
             return;

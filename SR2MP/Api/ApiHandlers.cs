@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using HarmonyLib;
 using JetBrains.Annotations;
+using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 
@@ -12,15 +13,15 @@ namespace SR2MP.Api;
 /// </summary>
 internal sealed class ApiHolder
 {
-    public readonly Assembly Assembly;
-    public readonly ushort ModId;
+    public readonly MelonMod Mod;
+    public readonly uint ModId;
 
     public readonly ConcurrentDictionary<byte, IClientPacketHandler> ClientHandlers = new();
     public readonly ConcurrentDictionary<byte, IServerPacketHandler> ServerHandlers = new();
 
-    public ApiHolder(Assembly assembly, ushort modId)
+    public ApiHolder(MelonMod mod, uint modId)
     {
-        Assembly = assembly;
+        Mod = mod;
         ModId = modId;
     }
 }
@@ -31,63 +32,66 @@ internal sealed class ApiHolder
 [PublicAPI]
 public static class ApiHandlers
 {
-    internal static readonly ConcurrentDictionary<ushort, ApiHolder> Holders = new();
-    internal static readonly ConcurrentDictionary<Type, ushort> PacketTypeMap = new();
-    internal static readonly ConcurrentDictionary<string, ushort> AssemblyIdMap = new(StringComparer.Ordinal);
+    internal static readonly ConcurrentDictionary<uint, ApiHolder> Holders = new();
+    internal static readonly ConcurrentDictionary<Type, uint> PacketTypeMap = new();
+    internal static readonly ConcurrentDictionary<byte, uint> CurrentNetIdMapping = new();
+    internal static readonly ConcurrentDictionary<uint, byte> CurrentNetIdMappingReverse = new();
+    internal static readonly ConcurrentDictionary<Type, byte> CurrentNetIdMapping2 = new();
+
+    private static byte NextNetId;
+
+    internal static readonly HashSet<uint> SharedSideMods = new();
 
     private static readonly HashSet<Type> RegisteredTypes = new();
 
     /// <summary>
     /// Registers all custom packet handlers and types to the multiplayer API for the given assembly.
     /// </summary>
-    /// <param name="assembly">The assembly to register handlers and packet types from.</param>
-    /// <returns>The registered assembly's network id.</returns>
-    public static ushort RegisterHandlers(Assembly assembly)
+    /// <param name="mod">The mod to register handlers and packet types from.</param>
+    /// <param name="modSide">The network side on which the mod operates.</param>
+    /// <returns>The registered mod's network id.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if a collision occurs.</exception>
+    public static uint RegisterMod(MelonMod mod, ModSide modSide = ModSide.Shared)
     {
-        var gotName = assembly.GetName();
-        var name = gotName.Name;
-        var fullName = assembly.FullName ?? gotName.FullName;
-        var modId = HashCalculator.FoldHash(HashCalculator.ComputeHashOfString(fullName));
+        var name = mod.Info.Name;
+        var assembly = mod.MelonAssembly.Assembly;
 
-        // Fast path: assembly already registered with same id
+        var modId = HashCalculator.ComputeHashOfString(mod.MelonAssembly.Hash);
+
+        // Assembly already registered with same id
         if (Holders.TryGetValue(modId, out var existingHolder))
         {
-            if (ReferenceEquals(existingHolder.Assembly, assembly) ||
-                string.Equals(existingHolder.Assembly.FullName, fullName, StringComparison.Ordinal))
-            {
-                RegisterCustomPackets(AccessTools.GetTypesFromAssembly(assembly).Where(type => !type.IsAbstract), existingHolder);
+            // Check if it's actually the same assembly or a true collision
+            if (existingHolder.Mod.MelonAssembly.Assembly != assembly)
+                throw new InvalidOperationException($"Hash Collision: {name} vs {existingHolder.Mod.Info.Name}");
 
-                SrLogger.LogMessage(
-                    $"[{name}] API handlers already registered for ModId {modId}; refreshed custom packet mappings.");
-                return modId;
-            }
-
-            // Rare deterministic hash collision against a different assembly
-            // Keep deterministic behavior and fail loudly for safety
-            throw new InvalidOperationException(
-                $"ModId collision detected for id {modId}. " +
-                $"Assembly '{fullName}' collides with already registered assembly '{existingHolder.Assembly.FullName}'. " +
-                "Please change assembly identity (name/version/public key token) to avoid collision.");
+            return modId; // Already registered
         }
 
-        var holder = new ApiHolder(assembly, modId);
+        var holder = new ApiHolder(mod, modId);
 
         // Ensure only one thread wins registration for this ModId.
         if (!Holders.TryAdd(modId, holder))
             return modId;
 
-        AssemblyIdMap[fullName] = modId;
-
-        var allTypes = AccessTools.GetTypesFromAssembly(assembly)
-            .Where(type => !type.IsAbstract)
-            .ToArray();
-
-        RegisterPacketHandlers(allTypes, holder);
-        RegisterCustomPackets(allTypes, holder);
+        if (modSide is ModSide.Shared or ModSide.None) // None = Assume shared
+            SharedSideMods.Add(modId);
 
         SrLogger.LogMessage($"[{name}] ModId: {modId}");
-        SrLogger.LogMessage($"[{name}] Client handlers registered: {holder.ClientHandlers.Count}");
-        SrLogger.LogMessage($"[{name}] Server handlers registered: {holder.ServerHandlers.Count}");
+
+        if (modSide != ModSide.None) // None = not voluntarily registered; do not register types if that is the case
+        {
+            var allTypes = AccessTools.GetTypesFromAssembly(assembly)
+                .Where(type => !type.IsAbstract)
+                .ToArray();
+
+            RegisterPacketHandlers(allTypes, holder);
+            RegisterCustomPackets(allTypes, holder);
+
+            SrLogger.LogMessage($"[{name}] Client handlers registered: {holder.ClientHandlers.Count}");
+            SrLogger.LogMessage($"[{name}] Server handlers registered: {holder.ServerHandlers.Count}");
+        }
+
         return modId;
     }
 
@@ -106,7 +110,40 @@ public static class ApiHandlers
         PacketWriterDels.Object<T>.Writer = writer;
     }
 
-    private static void RegisterPacketHandlers(IEnumerable<Type> allTypes, ApiHolder holder)
+    internal static byte GetOrIncrementNetId(uint modId)
+    {
+        if (CurrentNetIdMappingReverse.TryGetValue(modId, out var netId))
+            return netId;
+
+        netId = NextNetId++;
+        CurrentNetIdMapping[netId] = modId;
+        CurrentNetIdMappingReverse[modId] = netId;
+        return netId;
+    }
+
+    internal static void SetNetId(uint modId, byte netId)
+    {
+        CurrentNetIdMapping[netId] = modId;
+        CurrentNetIdMappingReverse[modId] = netId;
+    }
+
+    internal static void RefreshPacketMapping()
+    {
+        foreach (var (type, modId) in PacketTypeMap)
+        {
+            CurrentNetIdMapping2[type] = CurrentNetIdMappingReverse[modId];
+        }
+    }
+
+    internal static void ClearNetIds()
+    {
+        NextNetId = 0;
+        CurrentNetIdMapping.Clear();
+        CurrentNetIdMapping2.Clear();
+        CurrentNetIdMappingReverse.Clear();
+    }
+
+    private static void RegisterPacketHandlers(Type[] allTypes, ApiHolder holder)
     {
         foreach (var type in allTypes.Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null))
         {
@@ -124,7 +161,7 @@ public static class ApiHandlers
         }
     }
 
-    private static void RegisterCustomPackets(IEnumerable<Type> allTypes, ApiHolder holder)
+    private static void RegisterCustomPackets(Type[] allTypes, ApiHolder holder)
     {
         var customPacketTypes = allTypes.Where(type =>
             typeof(ICustomPacket).IsAssignableFrom(type) &&

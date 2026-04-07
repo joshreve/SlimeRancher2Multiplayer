@@ -20,7 +20,7 @@ internal sealed class ApiHandler : BasePacketHandler<ApiPacket>
             return;
 
         if (!holder.ClientHandlers.TryGetValue(packetSubType, out var handler))
-            SrLogger.LogWarning($"No client API handler found for ModId {apiPacket.ModId}, packet subtype {packetSubType}.");
+            SrLogger.LogWarning($"No client API handler found for ModId {apiPacket.NetId}, packet subtype {packetSubType}.");
         else
             handler.Handle(reader);
     }
@@ -34,7 +34,7 @@ internal sealed class ApiHandler : BasePacketHandler<ApiPacket>
             return;
 
         if (!holder.ServerHandlers.TryGetValue(packetSubType, out var handler))
-            SrLogger.LogWarning($"No server API handler found for ModId {apiPacket.ModId}, packet subtype {packetSubType}.");
+            SrLogger.LogWarning($"No server API handler found for ModId {apiPacket.NetId}, packet subtype {packetSubType}.");
         else
             handler.Handle(reader, clientEp);
     }
@@ -44,11 +44,12 @@ internal sealed class ApiHandler : BasePacketHandler<ApiPacket>
         apiPacket = reader.ReadPacket<ApiPacket>();
         packetSubType = reader.ReadByte();
 
-        if (ApiHandlers.Holders.TryGetValue(apiPacket.ModId, out holder!))
+        if (ApiHandlers.CurrentNetIdMappingReverse.TryGetValue(apiPacket.NetId, out var modId) && ApiHandlers.Holders.TryGetValue(modId, out holder!))
             return true;
 
+        holder = null!;
         var side = isServerSide ? "server" : "client";
-        SrLogger.LogWarning($"No API holder registered for ModId {apiPacket.ModId} ({side}-side).");
+        SrLogger.LogWarning($"No API holder registered for ModId {apiPacket.NetId} ({side}-side).");
         return false;
     }
 }

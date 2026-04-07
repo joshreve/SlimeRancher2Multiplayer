@@ -4,6 +4,7 @@ using Il2CppTMPro;
 using MelonLoader;
 using SR2E;
 using SR2E.Expansion;
+using SR2MP.Api;
 using UnityEngine.UI;
 
 // Don't modify beyond this point - Finn
@@ -375,7 +376,10 @@ internal sealed class EntryPoint : MelonMod
 
     public override void OnLateInitializeMelon()
     {
-        Mods = Array.ConvertAll(RegisteredMelons.ToArray(),
-            input => $"{input.Info.Name} ({input.Info.Version})");
+        foreach (var melon in RegisteredMelons)
+        {
+            if (melon != this)
+                ApiHandlers.RegisterMod(melon, ModSide.None);
+        }
     }
 }

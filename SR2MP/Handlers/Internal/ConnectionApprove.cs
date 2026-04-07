@@ -1,5 +1,6 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Economy;
+using SR2MP.Api;
 using SR2MP.Components.Player;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
@@ -37,6 +38,13 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
 
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
+
+        foreach (var data in packet.NetData)
+        {
+            ApiHandlers.SetNetId(data.ModId, data.NetId);
+        }
+
+        ApiHandlers.RefreshPacketMapping();
 
         return false;
     }

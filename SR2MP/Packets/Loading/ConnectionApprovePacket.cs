@@ -13,6 +13,8 @@ internal sealed class ConnectionApprovePacket : IPacket
     public int RainbowMoney;
     public bool AllowCheats;
 
+    public List<ModNetData> NetData;
+
     public PacketType Type => PacketType.ConnectionApprove;
     public PacketReliability Reliability => PacketReliability.Reliable;
 
@@ -34,6 +36,8 @@ internal sealed class ConnectionApprovePacket : IPacket
 
         writer.WritePackedInt(Money);
         writer.WritePackedInt(RainbowMoney);
+
+        writer.WriteList(NetData, PacketWriterDels.NetObject<ModNetData>.Writer);
     }
 
     public void Deserialise(PacketReader reader)
@@ -51,5 +55,25 @@ internal sealed class ConnectionApprovePacket : IPacket
 
         Money = reader.ReadPackedInt();
         RainbowMoney = reader.ReadPackedInt();
+
+        NetData = reader.ReadList(PacketReaderDels.NetObject<ModNetData>.Reader)!;
+    }
+}
+
+internal struct ModNetData : INetObject
+{
+    public uint ModId;
+    public byte NetId;
+
+    public readonly void Serialise(PacketWriter writer)
+    {
+        writer.WriteUInt(ModId);
+        writer.WriteByte(NetId);
+    }
+
+    public void Deserialise(PacketReader reader)
+    {
+        ModId = reader.ReadUInt();
+        NetId = reader.ReadByte();
     }
 }

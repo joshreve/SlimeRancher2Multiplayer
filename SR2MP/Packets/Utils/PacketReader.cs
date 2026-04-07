@@ -443,9 +443,9 @@ public sealed class PacketReader : PacketBuffer
     /// Reads a hash set prefixed by its length.
     /// </summary>
     /// <param name="countType">The header type used to store set length.</param>
-    /// <inheritdoc cref="ReadSetOfSize"/>
+    /// <inheritdoc cref="ReadHashSetOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public HashSet<T>? ReadSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
+    public HashSet<T>? ReadHashSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
         => ReadCollection(PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
@@ -455,16 +455,16 @@ public sealed class PacketReader : PacketBuffer
     /// <returns>The read hash set.</returns>
     /// <inheritdoc cref="ReadCollectionOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public HashSet<T>? ReadSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+    public HashSet<T>? ReadHashSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
         => ReadCollectionOfSize(count, PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, returnNullOnZero);
 
     /// <summary>
     /// Reads an il2cpp hash set prefixed by its length.
     /// </summary>
     /// <param name="countType">The header type used to store set length.</param>
-    /// <inheritdoc cref="ReadCppSetOfSize"/>
+    /// <inheritdoc cref="ReadHashCppSetOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CppCollections.HashSet<T>? ReadCppSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
+    public CppCollections.HashSet<T>? ReadCppHashSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
         => ReadCollection(PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
@@ -474,7 +474,7 @@ public sealed class PacketReader : PacketBuffer
     /// <returns>The read il2cpp hash set.</returns>
     /// <inheritdoc cref="ReadCollectionOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CppCollections.HashSet<T>? ReadCppSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+    public CppCollections.HashSet<T>? ReadHashCppSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
         => ReadCollectionOfSize(count, PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, returnNullOnZero);
 
     /// <summary>
