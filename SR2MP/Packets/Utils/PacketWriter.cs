@@ -166,6 +166,28 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteHalf(Half value) => BinaryPrimitives.WriteHalfLittleEndian(WriteAlloc(2), value);
 
+    /// <summary>
+    /// Writes a char.
+    /// </summary>
+    /// <param name="value">The char to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteChar(char value) => BinaryPrimitives.WriteUInt16LittleEndian(WriteAlloc(2), value);
+
+    /// <summary>
+    /// Writes a Color32.
+    /// </summary>
+    /// <param name="value">The Color32 to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    public void WriteColor32(Color32 value)
+    {
+        var span = WriteAlloc(4);
+        span[0] = value.r;
+        span[1] = value.g;
+        span[2] = value.b;
+        span[3] = value.a;
+    }
+
     private void WriteFloats(ReadOnlySpan<float> values)
     {
         var span = WriteAlloc(values.Length * 4);
@@ -205,6 +227,35 @@ public sealed class PacketWriter : PacketBuffer
     /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat4(float4 value) => WriteFloats(stackalloc float[4] { value.x, value.y, value.z, value.w });
+
+    /// <summary>
+    /// Writes a Color.
+    /// </summary>
+    /// <param name="value">The Color to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteColor(Color value) => WriteFloats(stackalloc float[4] { value.r, value.g, value.b, value.a });
+
+    /// <summary>
+    /// Writes a DateTime.
+    /// </summary>
+    /// <param name="value">The DateTime to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    public void WriteDateTime(DateTime value) => WriteLong(value.Ticks);
+
+    /// <summary>
+    /// Writes a TimeSpan.
+    /// </summary>
+    /// <param name="value">The TimeSpan to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    public void WriteTimeSpan(TimeSpan value) => WriteLong(value.Ticks);
+
+    /// <summary>
+    /// Writes a Guid.
+    /// </summary>
+    /// <param name="value">The Guid to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    public void WriteGuid(Guid guid) => guid.TryWriteBytes(WriteAlloc(16));
 
     /// <summary>
     /// Writes an enum value.
@@ -464,10 +515,13 @@ public sealed class PacketWriter : PacketBuffer
     /// <inheritdoc cref="WriteCount"/>
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter, CountType countType = CountType.UShort) where TKey : notnull
     {
-        WriteCount(dict?.Count ?? 0, countType);
-
         if (dict == null)
+        {
+            WriteCount(0, countType);
             return;
+        }
+
+        WriteCount(dict.Count, countType);
 
         foreach (var (key, value) in dict)
         {
@@ -946,6 +1000,36 @@ public static class PacketWriterDels
     public static readonly Action<PacketWriter, decimal> Decimal = (writer, value) => writer.WriteDecimal(value);
 
     /// <summary>
+    /// A delegate to write a Color.
+    /// </summary>
+    public static readonly Action<PacketWriter, Color> Color = (writer, value) => writer.WriteColor(value);
+
+    /// <summary>
+    /// A delegate to write a Color32.
+    /// </summary>
+    public static readonly Action<PacketWriter, Color32> Color32 = (writer, value) => writer.WriteColor32(value);
+
+    /// <summary>
+    /// A delegate to write a DateTime.
+    /// </summary>
+    public static readonly Action<PacketWriter, DateTime> DateTime = (writer, value) => writer.WriteDateTime(value);
+
+    /// <summary>
+    /// A delegate to write a TimeSpan.
+    /// </summary>
+    public static readonly Action<PacketWriter, TimeSpan> TimeSpan = (writer, value) => writer.WriteTimeSpan(value);
+
+    /// <summary>
+    /// A delegate to write a Guid.
+    /// </summary>
+    public static readonly Action<PacketWriter, Guid> Guid = (writer, value) => writer.WriteGuid(value);
+
+    /// <summary>
+    /// A delegate to write a char.
+    /// </summary>
+    public static readonly Action<PacketWriter, char> Char = (writer, value) => writer.WriteChar(value);
+
+    /// <summary>
     /// Caches a writing delegate for types implementing <see cref="INetObject"/>.
     /// </summary>
     /// <typeparam name="T">The net object type.</typeparam>
@@ -1089,16 +1173,22 @@ public static class PacketWriterDels
         [typeof(long)] = nameof(PacketWriter.WriteLong),
         [typeof(bool)] = nameof(PacketWriter.WriteBool),
         [typeof(Half)] = nameof(PacketWriter.WriteHalf),
+        [typeof(Guid)] = nameof(PacketWriter.WriteGuid),
+        [typeof(char)] = nameof(PacketWriter.WriteChar),
         [typeof(short)] = nameof(PacketWriter.WriteShort),
         [typeof(ulong)] = nameof(PacketWriter.WriteULong),
         [typeof(sbyte)] = nameof(PacketWriter.WriteSByte),
         [typeof(float)] = nameof(PacketWriter.WriteFloat),
+        [typeof(Color)] = nameof(PacketWriter.WriteColor),
         [typeof(ushort)] = nameof(PacketWriter.WriteUShort),
         [typeof(double)] = nameof(PacketWriter.WriteDouble),
         [typeof(string)] = nameof(PacketWriter.WriteString),
         [typeof(float4)] = nameof(PacketWriter.WriteFloat4),
         [typeof(decimal)] = nameof(PacketWriter.WriteDecimal),
         [typeof(Vector3)] = nameof(PacketWriter.WriteVector3),
+        [typeof(Color32)] = nameof(PacketWriter.WriteColor32),
+        [typeof(DateTime)] = nameof(PacketWriter.WriteDateTime),
+        [typeof(TimeSpan)] = nameof(PacketWriter.WriteTimeSpan),
         [typeof(Quaternion)] = nameof(PacketWriter.WriteQuaternion),
     });
 

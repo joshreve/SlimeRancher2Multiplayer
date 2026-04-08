@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
+using Unity.Mathematics;
 
 namespace SR2MP.Api;
 
@@ -42,7 +44,27 @@ public static class ApiHandlers
 
     internal static readonly HashSet<uint> SharedSideMods = new();
 
-    private static readonly HashSet<Type> RegisteredTypes = new();
+    private static readonly HashSet<Type> RegisteredTypes = new()
+    {
+        // C# Primitives & Basic Types
+        typeof(bool), typeof(byte), typeof(sbyte),
+        typeof(short), typeof(ushort),
+        typeof(int), typeof(uint),
+        typeof(long), typeof(ulong),
+        typeof(float), typeof(double),
+        typeof(char), typeof(string),
+        typeof(decimal),
+
+        // System Structs
+        typeof(DateTime), typeof(TimeSpan),
+        typeof(Guid),
+        typeof(Half),
+
+        // Unity & Mathematics Types
+        typeof(Vector2), typeof(Vector3),
+        typeof(Quaternion), typeof(float4),
+        typeof(Color), typeof(Color32)
+    };
 
     /// <summary>
     /// Registers all custom packet handlers and types to the multiplayer API for the given assembly.
@@ -98,11 +120,23 @@ public static class ApiHandlers
     /// <summary>
     /// Registers custom serialization logic for a type, allowing third-party types to be used seamlessly. Use PacketWriterDels.Object and PacketReaderDels.Object to access the logic.
     /// </summary>
+    /// <typeparam name="T">The type whose logic is being registered.</typeparam>
+    /// <param name="reader">The reader delegate.</param>
+    /// <param name="writer">The writer delegate.</param>
+    /// <remarks>If you have a special way to serialise a value that's already registered or supported natively, it's recommended that you create a simple wrapper struct and serialise that instead!</remark>
     public static void RegisterCustomTypeSerialisation<T>(Func<PacketReader, T> reader, Action<PacketWriter, T> writer)
     {
-        if (!RegisteredTypes.Add(typeof(T)))
+        var type = typeof(T);
+
+        if (type.IsEnum || typeof(INetObject).IsAssignableFrom(type) || typeof(ITuple).IsAssignableFrom(type))
         {
-            SrLogger.LogWarning(typeof(T).Name + " is already registered!");
+            SrLogger.LogWarning($"Cannot register {type.Name}. Enums, INetObjects, and Tuples are already handled natively!");
+            return;
+        }
+
+        if (!RegisteredTypes.Add(type))
+        {
+            SrLogger.LogWarning(type.Name + " is already registered! If you need custom serialisation for an existing type, wrap it in a custom struct or INetObject instead.");
             return;
         }
 

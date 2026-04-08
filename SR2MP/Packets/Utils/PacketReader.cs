@@ -268,6 +268,58 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
+    /// Reads a char.
+    /// </summary>
+    /// <returns>The read char.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public char ReadChar() => (char)BinaryPrimitives.ReadUInt16LittleEndian(ReadRequest(2));
+
+    /// <summary>
+    /// Reads a Color32.
+    /// </summary>
+    /// <returns>The read Color32.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public Color32 ReadColor32()
+    {
+        var span = ReadRequest(4);
+        return new(span[0], span[1], span[2], span[3]);
+    }
+
+    /// <summary>
+    /// Reads a Color.
+    /// </summary>
+    /// <returns>The read Color.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public Color ReadColor()
+    {
+        Span<float> v = stackalloc float[4];
+        ReadFloats(v);
+        return new(v[0], v[1], v[2], v[3]);
+    }
+
+    /// <summary>
+    /// Reads a DateTime.
+    /// </summary>
+    /// <returns>The read DateTime.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public DateTime ReadDateTime() => new(ReadLong());
+
+    /// <summary>
+    /// Reads a TimeSpan.
+    /// </summary>
+    /// <returns>The read TimeSpan.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public TimeSpan ReadTimeSpan() => new(ReadLong());
+
+    /// <summary>
+    /// Reads a Guid.
+    /// </summary>
+    /// <returns>The read Guid.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public Guid ReadGuid() => new(ReadRequest(16));
+
+    /// <summary>
     /// Reads an enum value.
     /// </summary>
     /// <typeparam name="T">The type of the enum.</typeparam>
@@ -861,6 +913,36 @@ public static class PacketReaderDels
     public static readonly Func<PacketReader, decimal> Decimal = reader => reader.ReadDecimal();
 
     /// <summary>
+    /// A delegate to read a Color.
+    /// </summary>
+    public static readonly Func<PacketReader, Color> Color = reader => reader.ReadColor();
+
+    /// <summary>
+    /// A delegate to read a Color32.
+    /// </summary>
+    public static readonly Func<PacketReader, Color32> Color32 = reader => reader.ReadColor32();
+
+    /// <summary>
+    /// A delegate to read a DateTime.
+    /// </summary>
+    public static readonly Func<PacketReader, DateTime> DateTime = reader => reader.ReadDateTime();
+
+    /// <summary>
+    /// A delegate to read a TimeSpan.
+    /// </summary>
+    public static readonly Func<PacketReader, TimeSpan> TimeSpan = reader => reader.ReadTimeSpan();
+
+    /// <summary>
+    /// A delegate to read a Guid.
+    /// </summary>
+    public static readonly Func<PacketReader, Guid> Guid = reader => reader.ReadGuid();
+
+    /// <summary>
+    /// A delegate to read a char.
+    /// </summary>
+    public static readonly Func<PacketReader, char> Char = reader => reader.ReadChar();
+
+    /// <summary>
     /// Caches a reading delegate for types implementing INetObject.
     /// </summary>
     /// <typeparam name="T">The net object type.</typeparam>
@@ -1042,6 +1124,9 @@ public static class PacketReaderDels
         [typeof(uint)] = nameof(PacketReader.ReadUInt),
         [typeof(long)] = nameof(PacketReader.ReadLong),
         [typeof(Half)] = nameof(PacketReader.ReadHalf),
+        [typeof(Guid)] = nameof(PacketReader.ReadGuid),
+        [typeof(char)] = nameof(PacketReader.ReadChar),
+        [typeof(Color)] = nameof(PacketReader.ReadColor),
         [typeof(sbyte)] = nameof(PacketReader.ReadSByte),
         [typeof(short)] = nameof(PacketReader.ReadShort),
         [typeof(ulong)] = nameof(PacketReader.ReadULong),
@@ -1052,6 +1137,9 @@ public static class PacketReaderDels
         [typeof(float4)] = nameof(PacketReader.ReadFloat4),
         [typeof(decimal)] = nameof(PacketReader.ReadDecimal),
         [typeof(Vector3)] = nameof(PacketReader.ReadVector3),
+        [typeof(Color32)] = nameof(PacketReader.ReadColor32),
+        [typeof(DateTime)] = nameof(PacketReader.ReadDateTime),
+        [typeof(TimeSpan)] = nameof(PacketReader.ReadTimeSpan),
         [typeof(Quaternion)] = nameof(PacketReader.ReadQuaternion),
     });
 
