@@ -60,7 +60,7 @@ public sealed class Main : SR2EExpansionV3
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");
 
-        InsertLicensesFile();
+        // InsertLicensesFile();
 
         Client = new SR2MPClient();
         Server = new SR2MPServer();
@@ -77,9 +77,7 @@ public sealed class Main : SR2EExpansionV3
             Client.SendPacket(packet);
 
         if (Server.IsRunning)
-        {
             Server.SendToAll(packet);
-        }
     }
 
     /// <summary>
@@ -92,12 +90,11 @@ public sealed class Main : SR2EExpansionV3
         if (Client.IsConnected)
         {
             Client.SendData(packet);
+            return;
         }
 
         if (Server.IsRunning)
-        {
             Server.SendDataToAll(packet);
-        }
     }
 
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
