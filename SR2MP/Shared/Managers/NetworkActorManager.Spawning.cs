@@ -748,6 +748,7 @@ public sealed partial class NetworkActorManager
                     {
                         if (actorData.JointIndex < spawner.SpawnJoints.Count)
                             targetJoint = spawner.SpawnJoints[actorData.JointIndex];
+                        
                         break;
                     }
                 }
