@@ -128,6 +128,7 @@ internal sealed class ReliabilityManager
             return;
 
         var latency = DateTime.UtcNow - packet.FirstSendTime;
+        PendingPacket.Return(packet);
         SrLogger.LogPacketSize(
             $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms");
     }
@@ -261,7 +262,7 @@ internal sealed class ReliabilityManager
                     if (now - packet.LastSendTime > ResendInterval)
                     {
                         for (var i = 0; i < packet.SplitData.Count; i++)
-                            sendRawCallback(packet.SplitData.Chunks[i], packet.Destination);
+                            sendRawCallback(packet.SplitData.GetChunk(i), packet.Destination);
 
                         packet.LastSendTime = now;
                         packet.SendCount++;

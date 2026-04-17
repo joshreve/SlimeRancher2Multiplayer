@@ -146,12 +146,28 @@ internal partial class NetworkPlayer : MonoBehaviour
         if (!IsLocal)
         {
             var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
-            timer = Mathf.Clamp01(timer);
 
-            transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
+            var networkPosition = Vector3.LerpUnclamped(previousPosition, nextPosition, timer);
+            var networkLookY = Mathf.LerpAngle(previousRotation.y, nextRotation.y, timer);
+            var networkYaw = Mathf.LerpAngle(previousRotation.x, nextRotation.x, timer);
 
-            ReceivedLookY = Mathf.LerpAngle(previousRotation.y, nextRotation.y, timer);
-            transform.eulerAngles = new Vector3(0,  Mathf.LerpAngle(previousRotation.x, nextRotation.x, timer), 0);
+            if (Vector3.SqrMagnitude(transform.position - networkPosition) > 9f)
+            {
+                transform.position = networkPosition;
+                transform.eulerAngles = new Vector3(0, networkYaw, 0);
+                ReceivedLookY = networkLookY;
+            }
+            else
+            {
+                var blendSpeed = UnityEngine.Time.unscaledDeltaTime * 15f;
+
+                transform.position = Vector3.Lerp(transform.position, networkPosition, blendSpeed);
+
+                ReceivedLookY = Mathf.LerpAngle(ReceivedLookY, networkLookY, blendSpeed);
+
+                var targetRot = Quaternion.Euler(0, networkYaw, 0);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, blendSpeed);
+            }
         }
 
         ReloadMeshTransform();
@@ -197,10 +213,11 @@ internal partial class NetworkPlayer : MonoBehaviour
                 }
             }
 
+            previousPosition = nextPosition;
             nextPosition = model.Position;
-            previousPosition = transform.position;
-            nextRotation = new Vector2(model.Rotation, model.LookY);
+
             previousRotation = new Vector2(transform.eulerAngles.y, model.LastLookY);
+            nextRotation = new Vector2(model.Rotation, model.LookY);
 
             interpolationStart = UnityEngine.Time.unscaledTime;
             interpolationEnd = UnityEngine.Time.unscaledTime + PlayerTimer;
