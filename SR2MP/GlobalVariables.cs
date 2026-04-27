@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.UI;
+using SR2MP.Components.Player;
 using SR2MP.Shared.Managers;
 using PriceDictionary = Il2CppSystem.Collections.Generic.Dictionary<Il2Cpp.IdentifiableType, Il2CppMonomiPark.SlimeRancher.Economy.PlortEconomyDirector.CurrValueEntry>;
 
@@ -27,7 +28,14 @@ public static class GlobalVariables
     /// </summary>
     public static bool CheatsEnabled { get; internal set; }
 
-    internal static GameObject markerPrefab;
+    /// <summary>
+    /// Gets or sets the Unity GameObject prefab used for the <see cref="NetworkPlayer"/> compass marker.
+    /// </summary>
+    public static GameObject PlayerCompassPrefab  { get; internal set; }
+    /// <summary>
+    /// Gets or sets the Unity GameObject prefab used for the <see cref="NetworkPlayer"/> map marker.
+    /// </summary>
+    public static GameObject PlayerMapPrefab  { get; internal set; }
 
     public static Dictionary<string, GameObject> playerObjects = new();
     /// <summary>

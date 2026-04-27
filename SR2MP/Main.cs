@@ -261,17 +261,32 @@ public sealed class Main : SR2EExpansionV3
 
         Object.DontDestroyOnLoad(PlayerPrefab);
         
-        markerPrefab = new GameObject("PlayerCompassMarker");
-        markerPrefab.SetActive(false);
-        markerPrefab.transform.localPosition = Vector3.zero;
-        markerPrefab.transform.localRotation = Quaternion.identity;
-        markerPrefab.transform.localScale = Vector3.one;
-        markerPrefab.AddComponent<Image>().sprite = EmbeddedResourceEUtil.LoadSprite("Assets.PlayerMarker.png").CopyWithoutMipmaps();
-        var rectTransform = markerPrefab.GetComponent<RectTransform>();
+        PlayerCompassPrefab = new GameObject("PlayerCompassMarker");
+        PlayerCompassPrefab.SetActive(false);
+        PlayerCompassPrefab.transform.localPosition = Vector3.zero;
+        PlayerCompassPrefab.transform.localRotation = Quaternion.identity;
+        PlayerCompassPrefab.transform.localScale = Vector3.one;
+        PlayerCompassPrefab.AddComponent<Image>().sprite = EmbeddedResourceEUtil.LoadSprite("Assets.PlayerMarker.png").CopyWithoutMipmaps();
+        var rectTransform = PlayerCompassPrefab.GetComponent<RectTransform>();
         rectTransform.anchorMin = new Vector2(0.5f, 0.0f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.0f);
         rectTransform.sizeDelta = new Vector2Int(32, 32);
-
-        Object.DontDestroyOnLoad(markerPrefab);
+        PlayerMapPrefab = Object.Instantiate(PlayerCompassPrefab);
+        PlayerMapPrefab.name = "PlayerMapMarker";
+        var label = new GameObject("NameLabel")
+        {
+            transform =
+            {
+                parent = PlayerCompassPrefab.transform,
+                localPosition = Vector3.up * 47.5f,
+                localScale = Vector3.one * 0.55f
+            }
+        };
+        var gui = label.AddComponent<TextMeshProUGUI>();
+        gui.alignment = TextAlignmentOptions.Center;
+        gui.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
+        
+        Object.DontDestroyOnLoad(PlayerCompassPrefab);
     }
+    private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
 }

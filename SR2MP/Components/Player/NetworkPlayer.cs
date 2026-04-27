@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
+using Il2CppMonomiPark.SlimeRancher.UI;
 using Il2CppTMPro;
 using JetBrains.Annotations;
 using MelonLoader;
@@ -29,6 +30,8 @@ internal partial class NetworkPlayer : MonoBehaviour
     // private MeshRenderer[] renderers;
     private Collider collider;
 
+    public int previousScene;
+    
     public Vector3 previousPosition;
     public Vector3 nextPosition;
 
@@ -70,6 +73,13 @@ internal partial class NetworkPlayer : MonoBehaviour
             UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
                 UsernamePanel.transform;
         }
+        
+        GetComponent<RadarTrackedPointOfInterest>()
+            ._compassRadarPrefab
+            .transform
+            .GetChild(0)
+            .GetComponent<TextMeshProUGUI>()
+            .SetText(username);
     }
 
     [UsedImplicitly]
@@ -136,8 +146,8 @@ internal partial class NetworkPlayer : MonoBehaviour
             UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
                 UsernamePanel.transform;
 
-            SetUsername(model.Username);
             SetupMarker();
+            SetUsername(model.Username);
 
             return;
         }
