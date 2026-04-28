@@ -25,6 +25,10 @@ namespace SR2MP;
 public sealed class Main : SR2EExpansionV3
 {
     /// <summary>
+    /// The random parts of the mod. Please pass in a seed that can be the same between clients before attempting to randomize.
+    /// </summary>
+    public static Randoms modRandomization = new(); 
+    /// <summary>
     /// Gets the active multiplayer client instance.
     /// </summary>
     public static SR2MPClient Client { get; private set; }
@@ -278,8 +282,8 @@ public sealed class Main : SR2EExpansionV3
             transform =
             {
                 parent = PlayerCompassPrefab.transform,
-                localPosition = Vector3.up * 47.5f,
-                localScale = Vector3.one * 0.55f
+                localPosition = Vector3.down * 40f,
+                localScale = Vector3.one * 0.585f
             }
         };
         var gui = label.AddComponent<TextMeshProUGUI>();

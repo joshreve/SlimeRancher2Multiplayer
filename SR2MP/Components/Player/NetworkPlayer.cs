@@ -1,3 +1,4 @@
+using Il2CppMonomiPark.SlimeRancher.Map;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.UI;
@@ -16,6 +17,7 @@ using static SR2MP.Shared.Utils.Timers;
 namespace SR2MP.Components.Player;
 
 [RegisterTypeInIl2Cpp(false)]
+//[RegisterTypeInIl2CppWithInterfaces(false, typeof(IMapMarkerSource))]
 internal partial class NetworkPlayer : MonoBehaviour
 {
     private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
@@ -58,6 +60,8 @@ internal partial class NetworkPlayer : MonoBehaviour
 
     private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
 
+    internal TMP_FontAsset usernameFont;
+    
     public void SetUsername(string username)
     {
         username = username.Trim();
@@ -68,6 +72,8 @@ internal partial class NetworkPlayer : MonoBehaviour
         UsernamePanel.fontSize = 3;
         UsernamePanel.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
 
+        usernameFont = UsernamePanel.font;
+        
         if (!UsernamePanel.GetComponent<TransformLookAtCamera>())
         {
             UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
@@ -106,6 +112,10 @@ internal partial class NetworkPlayer : MonoBehaviour
         {
             camera = GetComponent<SRCharacterController>()._cameraController.transform;
             GetComponent<PlayerItemController>()._vacuumItem.AddComponent<NetworkPlayerSound>();
+        }
+        else
+        {
+            PlayerMarkerTransforms[ID] = new();
         }
 
         UsernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
@@ -205,7 +215,8 @@ internal partial class NetworkPlayer : MonoBehaviour
                 horizontalSpeed: animator.GetFloat(HorizontalSpeed),
                 forwardSpeed: animator.GetFloat(ForwardSpeed),
                 sprinting: animator.GetBool(Sprinting),
-                lookY: camera.eulerAngles.x
+                lookY: camera.eulerAngles.x,
+                sceneGroup: NetworkSceneManager.GetPersistentID(SystemContext.Instance.SceneLoader._currentSceneGroup)
             );
         }
         else
