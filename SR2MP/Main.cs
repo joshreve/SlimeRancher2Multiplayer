@@ -3,6 +3,7 @@ using Il2CppTMPro;
 using MelonLoader;
 using MelonLoader.Utils;
 using SR2E.Expansion;
+using SR2E.Managers;
 using SR2MP.Client;
 using SR2E.Utils;
 using SR2MP.Components.FX;
@@ -66,11 +67,15 @@ public sealed class Main : SR2EExpansionV3
 
     // Made this because of a bug in the server handler of ActorSpawnPacket where TrySpawnNetworkActor
     // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
+    // 
+    // This was made back when the PacketType for ActorSpawn was 25.
     internal static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
 
     /// <inheritdoc/>
     public override void OnLateInitializeMelon()
     {
+        InitializeTranslations();
+        
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
@@ -97,6 +102,18 @@ public sealed class Main : SR2EExpansionV3
         Server = new SR2MPServer();
     }
 
+    private static void InitializeTranslations()
+    {
+        SR2ELanguageManger.AddLanguages(LoadCSVText("rpc-translations"));
+        //SR2ELanguageManger.AddLanguages(LoadCSVText("ui-translations"));
+        //SR2ELanguageManger.AddLanguages(LoadCSVText("startup-translations"));
+    }
+
+    private static string LoadCSVText(string file)
+    {
+        return EmbeddedResourceEUtil
+            .LoadString(file + ".csv");
+    }
     /// <inheritdoc/>
     public override void OnInitializeMelon() => LoadBundledAssemblies();
 

@@ -46,5 +46,9 @@
     <EmbeddedResource Include="Assets\PlayerMarker.png" />
 
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" Link="stylecop.json" Visible="false"/>
+
+    <None Remove="rpc-translations.csv" />
+
+    <EmbeddedResource Include="rpc-translations.csv" />
   </ItemGroup>
 </Project>

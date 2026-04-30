@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using DiscordRPC;
 using Il2CppMonomiPark.SlimeRancher.World;
+using SR2E.Managers;
 
 namespace SR2MP.Shared.Managers;
 
@@ -31,24 +32,24 @@ internal static class DiscordRPCManager
     private const string DiscordAppID = "1422276739026911262";
     private static DiscordRpcClient? rpcClient;
 
-    private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
+    private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatusKey =
         new(new Dictionary<Zone, string>
         {
-            {Zone.Unknown, "Exploring unknown areas"},
-            {Zone.Conservatory, "Ranching in the Conservatory"},
-            {Zone.RainbowFields, "Exploring the Rainbow Fields"},
-            {Zone.StarlightStand, "Amazed by the Starlight Strands"},
-            {Zone.EmberValley, "Finding Boom Slimes in the Ember Valley"},
-            {Zone.PowderfallBluffs, "Building snowmen in the Powderfall Bluffs"},
-            {Zone.LabyrinthTerrarium, "Exploring the mossy depths of the Terrarium"},
-            {Zone.LabyrinthLavaDepths, "Heating up in the Lava Depths"},
-            {Zone.LabyrinthWaterworks, "Splashing in the Waterworks"},
-            {Zone.LabyrinthDreamland, "Sleeping peacefully in the Dreamland"},
-            {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
-            {Zone.LabyrinthCore, "Inspecting the Core"},
-            {Zone.MainMenu, "Getting ready for adventures!"},
-            {Zone.FinalBoss, "||Fighting the *Final Boss*||..."}, // i guess we using markdown now
-            {Zone.Ending, "Relaxing after the end"}
+            {Zone.Unknown, "status.unknown"},
+            {Zone.Conservatory, "status.ranch"},
+            {Zone.RainbowFields, "status.fields"},
+            {Zone.StarlightStand, "status.strand"},
+            {Zone.EmberValley, "status.valley"},
+            {Zone.PowderfallBluffs, "status.bluffs"},
+            {Zone.LabyrinthTerrarium, "status.terrarium"},
+            {Zone.LabyrinthLavaDepths, "status.lavadepths"},
+            {Zone.LabyrinthWaterworks, "status.waterworks"},
+            {Zone.LabyrinthDreamland, "status.dreamland"},
+            {Zone.LabyrinthHub, "status.labyrinth"},
+            {Zone.LabyrinthCore, "status.core"},
+            {Zone.MainMenu, "status.menu"},
+            {Zone.FinalBoss, "status.boss"}, // this uses markdown
+            {Zone.Ending, "status.ending"}
         });
 
     private static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
@@ -93,10 +94,20 @@ internal static class DiscordRPCManager
             {Zone.Ending, "ending"}
         });
 
-    private const string DetailsStringOnline = "Playing in a group of {0} players";
-    private const string DetailsStringOnlineSolo = "Playing online, waiting for others";
-    private const string DetailsStringOffline = "Playing offline";
+    private const string DetailsStringOnlineKey = "details.online";
+    private const string DetailsStringOnlineSoloKey = "details.solo";
+    private const string DetailsStringOfflineKey = "details.offline";
 
+    private static string DetailsStringOnline
+        => SR2ELanguageManger.translation(DetailsStringOnlineKey);
+    private static string DetailsStringOnlineSolo
+        => SR2ELanguageManger.translation(DetailsStringOnlineSoloKey);
+    private static string DetailsStringOffline
+        => SR2ELanguageManger.translation(DetailsStringOfflineKey);
+    private static string GetStatus(Zone zone)
+        => SR2ELanguageManger.translation(ZoneToStatusKey[zone]);
+    
+    
     public static void Initialize()
     {
         rpcClient = new DiscordRpcClient(DiscordAppID);
@@ -133,7 +144,7 @@ internal static class DiscordRPCManager
         if (IsInEndingCutscene)
             currentLocation = Zone.Ending;
 
-        var status = ZoneToStatus[currentLocation];
+        var status = GetStatus(currentLocation);
         var icon = ZoneToIcon[currentLocation];
 
         rpcClient?.SetPresence(new RichPresence
