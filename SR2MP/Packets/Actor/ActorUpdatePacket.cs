@@ -64,20 +64,22 @@ internal struct ActorUpdatePacket : IPacket
         Rotation = reader.ReadQuaternion();
         Velocity = reader.ReadVector3();
 
-        if (UpdateType == ActorUpdateType.Slime)
+        switch (UpdateType)
         {
-            Emotions = reader.ReadFloat4();
-            Sleeping = reader.ReadBool();
-        }
-        else if (UpdateType == ActorUpdateType.Resource)
-        {
-            ResourceProgress = reader.ReadDouble();
-            ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
-        }
-        else if (UpdateType == ActorUpdateType.Plort)
-        {
-            Invulnerable = reader.ReadBool();
-            InvulnerablePeriod = reader.ReadFloat();
+            case ActorUpdateType.Slime:
+                Emotions = reader.ReadFloat4();
+                Sleeping = reader.ReadBool();
+                break;
+            
+            case ActorUpdateType.Resource:
+                ResourceProgress = reader.ReadDouble();
+                ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
+                break;
+            
+            case ActorUpdateType.Plort:
+                Invulnerable = reader.ReadBool();
+                InvulnerablePeriod = reader.ReadFloat();
+                break;
         }
     }
 }
