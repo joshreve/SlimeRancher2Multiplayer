@@ -396,12 +396,10 @@ public sealed class PacketReader : PacketBuffer
                 return returnNullOnZero ? null : string.Empty;
         }
 
-        EnsureReadable(len);
-        var stringBytes = buffer.AsSpan(position, len);
+        var stringBytes = ReadRequest(len);
         var s = isPooled
             ? NetworkStringPool.GetOrAdd(stringBytes)
             : Encoding.UTF8.GetString(stringBytes);
-        position += len;
         return s;
     }
 
