@@ -1,6 +1,6 @@
 using System.Collections;
+using Il2CppMonomiPark.SlimeRancher.Caretaker;
 using Il2CppMonomiPark.SlimeRancher.Player;
-using MelonLoader;
 using SR2MP.Shared.Utils;
 // ReSharper disable InconsistentNaming
 
@@ -97,6 +97,7 @@ internal static class NetworkAmmoManager
         // needs to include inactive ones, don't question why
         var plot = siloStorage.GetComponentInParent<LandPlotLocation>(true);
         var gadget = siloStorage.GetComponentInParent<Gadget>(true);
+        var sprinkle = siloStorage.GetComponentInParent<SprinkleCanister>(true);
 
         if (plot != null)
         {
@@ -110,6 +111,12 @@ internal static class NetworkAmmoManager
             yield break;
         }
 
+        if (sprinkle != null)
+        {
+            siloStorage.Ammo.RegisterAmmoPointer($"{sprinkle.GetComponent<IdHandler>().Id}_{siloStorage.AmmoSetReference.name}");
+            yield break;
+        }
+
         SrLogger.LogWarning($"SiloStorage has no known parent type: {siloStorage.name}");
     }
 
@@ -117,6 +124,13 @@ internal static class NetworkAmmoManager
 
     public static ushort GetId(AmmoSlotDefinition def)
     {
+        if (def.name == null)
+        {
+            SrLogger.LogError("GetId called with a null definition name.");
+            return 0;
+        }
+
+        SrLogger.LogMessage(def.name);
         var hash = def.name.Hash16();
         slotDefinitions.TryAdd(hash, def);
         return hash;

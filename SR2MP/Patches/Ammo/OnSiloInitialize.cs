@@ -13,7 +13,7 @@ internal static class OnSiloInitialize
         StartCoroutine(Initialize(__instance));
     }
 
-    public static IEnumerator Initialize(SiloStorage siloStorage)
+    private static IEnumerator Initialize(SiloStorage siloStorage)
     {
         yield return new WaitFrames(3);
 
