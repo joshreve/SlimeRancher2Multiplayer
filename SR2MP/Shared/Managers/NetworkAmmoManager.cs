@@ -130,7 +130,6 @@ internal static class NetworkAmmoManager
             return 0;
         }
 
-        SrLogger.LogMessage(def.name);
         var hash = def.name.Hash16();
         slotDefinitions.TryAdd(hash, def);
         return hash;

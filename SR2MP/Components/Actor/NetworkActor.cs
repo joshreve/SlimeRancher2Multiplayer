@@ -136,6 +136,8 @@ internal sealed class NetworkActor : MonoBehaviour
             CachedLocallyOwned = LocallyOwned;
 
             GetActorType();
+            
+            SetRigidbodyState(LocallyOwned);
 
             if (RegionMember != null)
                 SetupHibernationEvent();

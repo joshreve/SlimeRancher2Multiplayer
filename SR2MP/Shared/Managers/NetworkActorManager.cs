@@ -132,7 +132,7 @@ internal sealed partial class NetworkActorManager
             if (!bounds.Contains(actor.Value.lastPosition))
                 continue;
 
-            if (actor.Value.TryGetNetworkComponent(out var netActor))
+            if (!actor.Value.TryGetNetworkComponent(out var netActor))
                 continue;
 
             if (netActor == null)
