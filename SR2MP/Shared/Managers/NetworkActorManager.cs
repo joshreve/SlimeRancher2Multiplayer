@@ -118,24 +118,19 @@ internal sealed partial class NetworkActorManager
 
     internal IEnumerator TakeOwnershipOfNearby()
     {
-        const int max = 12;
+        const int MAX = 12;
 
         var player = SceneContext.Instance.player;
         var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
-
+        
         var i = 0;
         foreach (var actor in Actors)
         {
             if (actor.Value == null)
                 continue;
-
             if (!bounds.Contains(actor.Value.lastPosition))
                 continue;
-
-            if (actor.Value.TryGetNetworkComponent(out var netActor))
-                continue;
-
-            if (netActor == null)
+            if (!actor.Value.TryGetNetworkComponent(out var netActor))
                 continue;
 
             netActor.LocallyOwned = true;
@@ -148,11 +143,13 @@ internal sealed partial class NetworkActorManager
             Main.SendToAllOrServer(packet);
             i++;
 
-            if (i <= max)
+            if (i <= MAX)
                 continue;
             
             yield return null;
             i = 0;
         }
     }
+    
+    
 }
