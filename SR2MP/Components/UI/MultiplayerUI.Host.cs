@@ -2,32 +2,32 @@
 
 internal sealed partial class MultiplayerUI
 {
-    private string hostLocalPortInput = "1919";
-    private string hostTunnelPortInput = string.Empty;
     private string hostIpInput = string.Empty;
-
-    private string hostAutoJoinCode = string.Empty;
-    private string hostAutoError = string.Empty;
-    private string hostAutoCopyStatus = string.Empty;
+    private string hostTunnelPortInput = string.Empty;
+    private string hostLocalPortInput = string.Empty;
+    
     private bool hostAutoInProgress;
-
-    private string hostManualJoinCode = string.Empty;
+    
+    private string hostJoinCode = string.Empty;
+    private string hostJoinCodeCopyStatus = string.Empty;
+    
+    private string hostAutoError = string.Empty;
     private string hostManualError = string.Empty;
-    private string hostManualCopyStatus = string.Empty;
 
     private void DrawHostSection()
     {
         DrawText("Host a world:");
-        DrawTabRow(ref hostTab, "Automatic", "Manual Code", "Manual Simple");
+        DrawTabRow(ref hostTab, "Automatic", "Manual");
 
         if (hostTab == 0)
             DrawHostAutomatic();
         else if (hostTab == 1)
-            DrawHostManualCode();
-        else
             DrawHostManualSimple();
+        else if (hostTab == 2)
+            DrawHostManualCode();
     }
 
+    internal void TriggerManualCode() => hostTab = 2;
     private void DrawHostManualCode()
     {
         DrawText("Tunnel IP:", 2);
@@ -68,7 +68,7 @@ internal sealed partial class MultiplayerUI
     private void DrawHostAutomatic()
     {
         if (hostAutoInProgress)
-            DrawText("Attempting UPnP...");
+            DrawText("Attempting Auto Host...");
 
         if (!string.IsNullOrWhiteSpace(hostAutoError))
             DrawText(hostAutoError);
@@ -119,11 +119,9 @@ internal sealed partial class MultiplayerUI
 
     private void DrawHostingJoinCode()
     {
-        if (hostTab == 2) return;
+        if (hostTab == 1) return;
 
-        var joinCode = !string.IsNullOrWhiteSpace(hostAutoJoinCode) ? hostAutoJoinCode : hostManualJoinCode;
-
-        if (string.IsNullOrWhiteSpace(joinCode))
+        if (string.IsNullOrWhiteSpace(hostJoinCode))
         {
             DrawText("Join code unavailable");
             return;
@@ -132,21 +130,18 @@ internal sealed partial class MultiplayerUI
         DrawText("Join code:");
 
         GUI.enabled = false;
-        DrawSafeTextInput("join_code_view", CalculateInputLayout(6, 2, 1), Main.StreamerMode ? "Streamer Mode" : joinCode);
+        DrawSafeTextInput("join_code_view", CalculateInputLayout(6, 2, 1), Main.StreamerMode ? "Streamer Mode" : hostJoinCode);
         GUI.enabled = true;
 
         if (GUI.Button(CalculateButtonLayout(6), "Copy Join Code"))
         {
-            GUIUtility.systemCopyBuffer = joinCode;
+            GUIUtility.systemCopyBuffer = hostJoinCode;
 
-            if (!string.IsNullOrWhiteSpace(hostAutoJoinCode))
-                hostAutoCopyStatus = "Join code copied.";
-            else
-                hostManualCopyStatus = "Join code copied.";
+            if (!string.IsNullOrWhiteSpace(hostJoinCode))
+                hostJoinCodeCopyStatus = "Join code copied.";
         }
-
-        var copyStatus = !string.IsNullOrWhiteSpace(hostAutoJoinCode) ? hostAutoCopyStatus : hostManualCopyStatus;
-        if (!string.IsNullOrWhiteSpace(copyStatus))
-            DrawText(copyStatus);
+        
+        if (!string.IsNullOrWhiteSpace(hostJoinCodeCopyStatus))
+            DrawText(hostJoinCodeCopyStatus);
     }
 }
