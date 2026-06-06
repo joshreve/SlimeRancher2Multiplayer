@@ -34,9 +34,9 @@ internal sealed partial class MultiplayerUI
 
     private void DrawJoinManual()
     {
-        DrawText("Tunnel IP:", 2);
+        DrawText("IP:", 2);
         joinIpInput = DrawSafeTextInput("tunnel_ip", CalculateInputLayout(6, 2, 1), joinIpInput);
-        DrawText("Tunnel Port:", 2);
+        DrawText("Port:", 2);
         joinPortInput = DrawSafeTextInput("tunnel_port", CalculateInputLayout(6, 2, 1), joinPortInput);
 
         if (!string.IsNullOrWhiteSpace(joinManualError))
