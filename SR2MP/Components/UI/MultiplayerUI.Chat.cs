@@ -1,5 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using Il2CppInterop.Runtime.Attributes;
 using SR2MP.Packets;
+using SR2MP.Server.Models;
+using SR2MP.Server.Managers;
 
 namespace SR2MP.Components.UI;
 
@@ -143,11 +149,156 @@ internal sealed partial class MultiplayerUI
         return rect;
     }
 
+    private string SystemMessageId() => $"SYSTEM_{Guid.NewGuid()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+
+    [HideFromIl2Cpp]
+    private System.Collections.IEnumerator SpawnInventoryFountain(PlayerData playerData)
+    {
+        var localPlayer = SceneContext.Instance?.player;
+        if (!localPlayer)
+        {
+            SrLogger.LogWarning("Cannot spawn inventory fountain: local player is null!");
+            yield break;
+        }
+
+        var sceneGroup = SystemContext.Instance.SceneLoader._currentSceneGroup;
+        var startPos = localPlayer.transform.position + localPlayer.transform.forward * 2f + Vector3.up * 1f;
+
+        var itemsToSpawn = new List<int>();
+        foreach (var slot in playerData.Inventory.Values)
+        {
+            if (slot.Identifiable != -1 && slot.Count > 0)
+            {
+                for (int i = 0; i < slot.Count; i++)
+                {
+                    itemsToSpawn.Add(slot.Identifiable);
+                }
+            }
+        }
+
+        if (itemsToSpawn.Count == 0)
+        {
+            RegisterSystemMessage($"Player {playerData.PlayerName} had an empty inventory.", SystemMessageId(), SystemMessageNormal);
+            yield break;
+        }
+
+        RegisterSystemMessage($"Spawning {itemsToSpawn.Count} items...", SystemMessageId(), SystemMessageConnect);
+
+        int spawnedCount = 0;
+        foreach (var typeId in itemsToSpawn)
+        {
+            if (GlobalVariables.ActorManager.ActorTypes.TryGetValue(typeId, out var type) && type && type.prefab)
+            {
+                var prefab = type.prefab;
+                var spread = UnityEngine.Random.insideUnitSphere * 0.2f;
+                spread.y = Math.Abs(spread.y);
+                var spawnPos = startPos + spread;
+
+                var rotation = UnityEngine.Random.rotation;
+
+                var spawnedObj = Il2CppMonomiPark.SlimeRancher.SceneManagement.InstantiationHelpers.InstantiateActor(
+                    prefab,
+                    sceneGroup,
+                    spawnPos,
+                    rotation,
+                    false,
+                    Il2CppMonomiPark.SlimeRancher.DataModel.SlimeAppearance.AppearanceSaveSet.NONE,
+                    Il2CppMonomiPark.SlimeRancher.DataModel.SlimeAppearance.AppearanceSaveSet.NONE,
+                    new Il2CppSystem.Nullable<Il2CppMonomiPark.SlimeRancher.Player.AmmoSlot.AmmoMetadata>(),
+                    false,
+                    false
+                );
+
+                if (spawnedObj)
+                {
+                    var rb = spawnedObj.GetComponent<Rigidbody>();
+                    if (rb)
+                    {
+                        var forceDir = localPlayer.transform.forward + UnityEngine.Random.insideUnitSphere * 0.3f;
+                        forceDir.y = Math.Abs(forceDir.y) + 0.5f;
+                        rb.velocity = forceDir.normalized * UnityEngine.Random.Range(3f, 6f);
+                    }
+                }
+            }
+
+            spawnedCount++;
+            if (spawnedCount % 2 == 0)
+            {
+                yield return null;
+            }
+        }
+
+        RegisterSystemMessage("All items successfully recovered!", SystemMessageId(), SystemMessageConnect);
+    }
+
     private void SendChatMessage(string message)
     {
         if (string.IsNullOrWhiteSpace(message)) return;
 
         message = message.Trim();
+
+        if (message.StartsWith("/recover"))
+        {
+            ClearChatInput();
+            if (!Main.Server.IsRunning)
+            {
+                RegisterSystemMessage("Only the host can run the /recover command.", SystemMessageId(), SystemMessageDisconnect);
+                return;
+            }
+
+            var parts = message.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+            {
+                var discPlayers = PlayerDataManager.Instance.GetDisconnectedPlayers();
+                if (discPlayers.Count == 0)
+                {
+                    RegisterSystemMessage("No disconnected players found in the database.", SystemMessageId(), SystemMessageDisconnect);
+                }
+                else
+                {
+                    RegisterSystemMessage("Disconnected players available for recovery:", SystemMessageId(), SystemMessageConnect);
+                    foreach (var p in discPlayers)
+                    {
+                        var timeStr = p.LastConnected != DateTime.MinValue ? p.LastConnected.ToLocalTime().ToString("g") : "Unknown";
+                        RegisterSystemMessage($"- {p.PlayerName} ({p.PlayerId}) - Last connected: {timeStr}", SystemMessageId(), SystemMessageNormal);
+                    }
+                    RegisterSystemMessage("Run '/recover <NameOrID>' to retrieve their inventory.", SystemMessageId(), SystemMessageNormal);
+                }
+            }
+            else
+            {
+                var target = parts[1].Trim();
+                var discPlayers = PlayerDataManager.Instance.GetDisconnectedPlayers();
+                var matches = discPlayers.Where(p => 
+                    p.PlayerId.Equals(target, StringComparison.OrdinalIgnoreCase) || 
+                    p.PlayerName.Equals(target, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+
+                if (matches.Count == 0)
+                {
+                    RegisterSystemMessage($"No disconnected player found matching '{target}'.", SystemMessageId(), SystemMessageDisconnect);
+                }
+                else if (matches.Count > 1)
+                {
+                    RegisterSystemMessage($"Multiple matches found for '{target}':", SystemMessageId(), SystemMessageDisconnect);
+                    foreach (var p in matches)
+                    {
+                        var timeStr = p.LastConnected != DateTime.MinValue ? p.LastConnected.ToLocalTime().ToString("g") : "Unknown";
+                        RegisterSystemMessage($"- {p.PlayerName} ({p.PlayerId}) - Last connected: {timeStr}", SystemMessageId(), SystemMessageNormal);
+                    }
+                    RegisterSystemMessage("Please recover using the specific Player ID.", SystemMessageId(), SystemMessageNormal);
+                }
+                else
+                {
+                    var targetPlayer = matches[0];
+                    RegisterSystemMessage($"Recovering inventory for {targetPlayer.PlayerName} ({targetPlayer.PlayerId}). Spawning items...", SystemMessageId(), SystemMessageConnect);
+                    
+                    MelonLoader.MelonCoroutines.Start(SpawnInventoryFountain(targetPlayer));
+                    PlayerDataManager.Instance.ClearInventory(targetPlayer.PlayerId);
+                }
+            }
+            return;
+        }
 
         var messageId = $"{Main.Username}_{message.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 

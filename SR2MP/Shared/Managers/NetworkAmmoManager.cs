@@ -70,7 +70,7 @@ internal static class NetworkAmmoManager
         slotToAmmo.Clear();
     }
 
-    private static void RegisterAmmoPointer(this AmmoSlotManager ammo, string id)
+    internal static void RegisterAmmoPointer(this AmmoSlotManager ammo, string id)
     {
         ammoToID[ammo.Pointer] = id;
         IDToAmmo[id] = ammo;

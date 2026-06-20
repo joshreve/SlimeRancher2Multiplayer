@@ -5,6 +5,7 @@ using SR2MP.Handlers.Internal;
 using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 
 namespace SR2MP.Handlers.Player;
 
@@ -59,6 +60,9 @@ internal sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
         var address = $"{clientEp!.Address}:{clientEp.Port}";
         SrLogger.LogMessage($"Player join request received (PlayerId: {packet.PlayerId})",
             $"Player join request from {address} (PlayerId: {packet.PlayerId})");
+
+        // Update database with player name and last connected time:
+        PlayerDataManager.Instance.GetOrCreatePlayerData(packet.PlayerId, packet.PlayerName ?? "Player");
 
         InstantiatePlayer(packet);
 

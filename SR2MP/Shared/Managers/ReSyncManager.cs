@@ -70,6 +70,18 @@ internal sealed class ReSyncManager
         SendPricesPacket(endPoint);
         SendWeatherPacket(endPoint);
 
+        // Send saved player inventory
+        var playerData = SR2MP.Server.Managers.PlayerDataManager.Instance.GetPlayerData(playerId);
+        if (playerData != null)
+        {
+            var syncPacket = new SR2MP.Packets.Player.PlayerInventorySyncPacket
+            {
+                Ammo = new NetworkAmmo { AmmoSlots = playerData.Inventory }
+            };
+            Main.Server.SendToClient(syncPacket, endPoint);
+            SrLogger.LogMessage($"Sent saved player inventory to {playerId}.");
+        }
+
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
 
