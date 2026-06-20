@@ -9,7 +9,7 @@ internal sealed class PlayerInventorySyncPacket : IPacket
 
     public PacketType Type => PacketType.PlayerInventorySync;
     public PacketReliability Reliability => PacketReliability.Reliable;
-    public NetworkChannel Channel => NetworkChannel.Player;
+    public NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer)
     {

@@ -2,6 +2,7 @@ using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Player;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Player;
+using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 

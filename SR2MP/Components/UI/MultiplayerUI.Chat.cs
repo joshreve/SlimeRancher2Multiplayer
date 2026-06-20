@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Il2CppInterop.Runtime.Attributes;
 using SR2MP.Packets;
-using SR2MP.Server.Models;
 using SR2MP.Server.Managers;
+using SR2MP.Server.Models;
+using UnityEngine;
 
 namespace SR2MP.Components.UI;
 
@@ -196,14 +196,14 @@ internal sealed partial class MultiplayerUI
 
                 var rotation = UnityEngine.Random.rotation;
 
-                var spawnedObj = Il2CppMonomiPark.SlimeRancher.SceneManagement.InstantiationHelpers.InstantiateActor(
+                var spawnedObj = InstantiationHelpers.InstantiateActor(
                     prefab,
                     sceneGroup,
                     spawnPos,
                     rotation,
                     false,
-                    Il2CppMonomiPark.SlimeRancher.DataModel.SlimeAppearance.AppearanceSaveSet.NONE,
-                    Il2CppMonomiPark.SlimeRancher.DataModel.SlimeAppearance.AppearanceSaveSet.NONE,
+                    SlimeAppearance.AppearanceSaveSet.NONE,
+                    SlimeAppearance.AppearanceSaveSet.NONE,
                     new Il2CppSystem.Nullable<Il2CppMonomiPark.SlimeRancher.Player.AmmoSlot.AmmoMetadata>(),
                     false,
                     false
@@ -269,8 +269,8 @@ internal sealed partial class MultiplayerUI
             {
                 var target = parts[1].Trim();
                 var discPlayers = PlayerDataManager.Instance.GetDisconnectedPlayers();
-                var matches = discPlayers.Where(p => 
-                    p.PlayerId.Equals(target, StringComparison.OrdinalIgnoreCase) || 
+                var matches = discPlayers.Where(p =>
+                    p.PlayerId.Equals(target, StringComparison.OrdinalIgnoreCase) ||
                     p.PlayerName.Equals(target, StringComparison.OrdinalIgnoreCase)
                 ).ToList();
 
@@ -292,7 +292,7 @@ internal sealed partial class MultiplayerUI
                 {
                     var targetPlayer = matches[0];
                     RegisterSystemMessage($"Recovering inventory for {targetPlayer.PlayerName} ({targetPlayer.PlayerId}). Spawning items...", SystemMessageId(), SystemMessageConnect);
-                    
+
                     MelonLoader.MelonCoroutines.Start(SpawnInventoryFountain(targetPlayer));
                     PlayerDataManager.Instance.ClearInventory(targetPlayer.PlayerId);
                 }
