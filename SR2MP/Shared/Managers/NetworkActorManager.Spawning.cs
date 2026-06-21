@@ -638,15 +638,30 @@ internal sealed partial class NetworkActorManager
             TargetIdentType = ActorTypes[actorData.Task.TargetIdent],
         };
         
+        var linkedModel = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId));
         if (droneModel._type == DroneType.RANCH_DRONE)
         {
             droneModel.InitializeForRancher(SceneContext.Instance.DroneDirector);
-            GameState.droneModel._ranchDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<RanchDroneModel>();
+            if (linkedModel != null)
+            {
+                var ranchModel = linkedModel.TryCast<RanchDroneModel>();
+                if (ranchModel != null)
+                {
+                    GameState.droneModel._ranchDrones[actorId] = ranchModel;
+                }
+            }
         }
         else
         {
             droneModel.InitializeForExplorer(SceneContext.Instance.DroneDirector, SceneContext.Instance.TimeDirector, SceneContext.Instance.DroneDirector.GetStationAreaResources(droneModel));
-            GameState.droneModel._explorerDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<ExplorerDroneModel>();
+            if (linkedModel != null)
+            {
+                var explorerModel = linkedModel.TryCast<ExplorerDroneModel>();
+                if (explorerModel != null)
+                {
+                    GameState.droneModel._explorerDrones[actorId] = explorerModel;
+                }
+            }
         }
         
         droneModel.Initialized = true;
