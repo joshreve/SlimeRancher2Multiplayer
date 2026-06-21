@@ -99,6 +99,10 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 
             var spiralRenderer = colorAnimator.SpiralRenderer;
             var mat = colorAnimator._vacSpiralMat;
+            if (mat == null && spiralRenderer != null)
+            {
+                mat = spiralRenderer.material;
+            }
 
             if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
             {
@@ -108,13 +112,28 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                 if (mat != null)
                 {
                     mat.SetColor(Il2Cpp.VacColorAnimator.PROPERTY_SPIRAL_COLOR, new Color(0.2f, 0.6f, 1.0f, 0.4f));
+                    mat.SetColor(Il2Cpp.VacColorAnimator.PROPERTY_AMMO_COLOR, new Color(0.2f, 0.6f, 1.0f, 0.4f));
+                    mat.SetFloat(Il2Cpp.VacColorAnimator.PROPERTY_AMMO_FULLNESS, 1.0f);
+                    mat.SetFloat(Il2Cpp.VacColorAnimator.PROPERTY_PARALLAX_HEIGHT, 1.0f);
                 }
             }
             else if (fx == PlayerFXType.VacRunningEnd)
             {
                 if (spiralRenderer != null)
                     spiralRenderer.gameObject.SetActive(false);
+
+                if (mat != null)
+                {
+                    mat.SetFloat(Il2Cpp.VacColorAnimator.PROPERTY_AMMO_FULLNESS, 0.0f);
+                    mat.SetFloat(Il2Cpp.VacColorAnimator.PROPERTY_PARALLAX_HEIGHT, 0.0f);
+                }
             }
+        }
+
+        var interactionFX = remotePlayer.GetComponentInChildren<Il2CppMonomiPark.SlimeRancher.VFX.EnvironmentInteraction.VacuumInteractionFX>();
+        if (interactionFX != null)
+        {
+            interactionFX.vacActive = (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning);
         }
     }
 
