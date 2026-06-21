@@ -42,16 +42,17 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                     playerAudio.Play();
                 }
 
-                var vacItem = PlayerObjects[packet.Player].GetComponentInChildren<VacuumItem>();
-                if (vacItem != null && vacItem.VacFX != null)
+                var remotePlayer = PlayerObjects[packet.Player];
+                var vacFX = GetOrCreateVacFX(remotePlayer);
+                if (vacFX != null)
                 {
                     if (packet.FX == PlayerFXType.VacRunningStart || packet.FX == PlayerFXType.VacRunning)
                     {
-                        vacItem.VacFX.SetActive(true);
+                        vacFX.SetActive(true);
                     }
                     else if (packet.FX == PlayerFXType.VacRunningEnd)
                     {
-                        vacItem.VacFX.SetActive(false);
+                        vacFX.SetActive(false);
                     }
                 }
             }
@@ -63,5 +64,42 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         }
 
         return true;
+    }
+
+    private static Transform? FindChildRecursive(Transform parent, string name)
+    {
+        if (parent.name == name) return parent;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var result = FindChildRecursive(parent.GetChild(i), name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private static GameObject? GetOrCreateVacFX(GameObject remotePlayer)
+    {
+        var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
+        if (vacStandard == null) return null;
+
+        var remoteVacFX = FindChildRecursive(vacStandard, "RemoteVacFX");
+        if (remoteVacFX != null) return remoteVacFX.gameObject;
+
+        if (SceneContext.Instance == null || SceneContext.Instance.Player == null) return null;
+        var pic = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
+        if (pic == null || pic._vacuumItem == null || pic._vacuumItem.VacFX == null) return null;
+
+        var localVacFX = pic._vacuumItem.VacFX;
+        var localParentName = localVacFX.transform.parent.name;
+
+        var targetParent = FindChildRecursive(remotePlayer.transform, localParentName) ?? vacStandard;
+
+        var clonedFX = Object.Instantiate(localVacFX, targetParent);
+        clonedFX.name = "RemoteVacFX";
+        clonedFX.transform.localPosition = localVacFX.transform.localPosition;
+        clonedFX.transform.localRotation = localVacFX.transform.localRotation;
+        clonedFX.transform.localScale = localVacFX.transform.localScale;
+
+        return clonedFX;
     }
 }
