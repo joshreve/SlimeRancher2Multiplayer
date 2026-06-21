@@ -1,4 +1,4 @@
-﻿using Il2CppMonomiPark.SlimeRancher.Regions;
+using Il2CppMonomiPark.SlimeRancher.Regions;
 using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.LandPlots;
@@ -69,9 +69,6 @@ internal sealed class NetworkGarden : MonoBehaviour
         }
         else
         {
-            if (garden?._model != null)
-                garden._model.nextSpawnTime = cachedNextSpawnTime;
-
             LocallyOwned = true;
 
             if (garden == null || string.IsNullOrEmpty(garden._id))

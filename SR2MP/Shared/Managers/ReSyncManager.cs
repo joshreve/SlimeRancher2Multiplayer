@@ -462,6 +462,29 @@ internal sealed class ReSyncManager
         return new InitialGordosPacket { GordoSlimes = gordoSlimeList };
     }
 
+    private static InitialLandPlotsPacket.GardenData GetGardenData(LandPlotModel plot)
+    {
+        var data = new InitialLandPlotsPacket.GardenData
+        {
+            Crop = plot.resourceGrowerDefinition == null
+                ? 9
+                : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
+        };
+
+        if (plot.gameObj != null)
+        {
+            var spawnResource = plot.gameObj.GetComponentInChildren<SpawnResource>();
+            if (spawnResource != null && spawnResource._model != null)
+            {
+                data.NextSpawnTime = spawnResource._model.nextSpawnTime;
+                data.StoredWater = spawnResource._model.storedWater;
+                data.NextSpawnRipens = spawnResource._model.nextSpawnRipens;
+            }
+        }
+
+        return data;
+    }
+
     private static void SendPlotsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePlotsPacket(), client);
 
@@ -473,12 +496,7 @@ internal sealed class ReSyncManager
         {
             INetObject? data = plot.typeId switch
             {
-                LandPlot.Id.GARDEN => new InitialLandPlotsPacket.GardenData
-                {
-                    Crop = plot.resourceGrowerDefinition == null
-                        ? 9
-                        : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
-                },
+                LandPlot.Id.GARDEN => GetGardenData(plot),
                 LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {
                     CollectorAmmo = SerializeAmmo(plot.siloAmmo, PlortCollectorAmmo)
