@@ -8,11 +8,17 @@ namespace SR2MP.Patches.FX;
 [HarmonyPatch(typeof(Il2Cpp.SplashOnTrigger), nameof(Il2Cpp.SplashOnTrigger.Awake))]
 internal static class SyncWaterSplashAwake
 {
+    public static GameObject? WaterSplashPrefab { get; private set; }
+
     public static void Postfix(Il2Cpp.SplashOnTrigger __instance)
     {
         if (__instance.playerSplashFX != null)
         {
-            FXManager.PlayerFXMap[PlayerFXType.WaterSplash] = __instance.playerSplashFX;
+            WaterSplashPrefab = __instance.playerSplashFX;
+            if (FXManager != null && FXManager.PlayerFXMap != null)
+            {
+                FXManager.PlayerFXMap[PlayerFXType.WaterSplash] = __instance.playerSplashFX;
+            }
         }
     }
 }
@@ -20,7 +26,7 @@ internal static class SyncWaterSplashAwake
 [HarmonyPatch(typeof(Il2Cpp.SplashOnTrigger), nameof(Il2Cpp.SplashOnTrigger.SpawnAndPlayFX))]
 internal static class SyncWaterSplashSpawnAndPlay
 {
-    public static void Postfix(Il2Cpp.SplashOnTrigger __instance, GameObject fxPrefab, Collider collider)
+    public static void Postfix(Il2Cpp.SplashOnTrigger __instance, GameObject prefab, Collider collider)
     {
         if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
         if (HandlingPacket) return;

@@ -70,7 +70,7 @@ internal sealed class RemoteFXManager
             { PlayerFXType.VacReject, AllFX["FX_vacReject"] },
             { PlayerFXType.VacAccept, AllFX["FX_vacAcquire"] },
             { PlayerFXType.VacShoot, AllFX["FX_VacpackShoot"] },
-            { PlayerFXType.WaterSplash, null! }
+            { PlayerFXType.WaterSplash, SR2MP.Patches.FX.SyncWaterSplashAwake.WaterSplashPrefab! }
         };
         PlayerAudioCueMap = new Dictionary<PlayerFXType, SECTR_AudioCue>
         {

@@ -134,6 +134,9 @@ internal static class NetworkAmmoManager
     {
         yield return new WaitFrames(3);
 
+        if (siloStorage == null || siloStorage.Ammo == null || siloStorage.AmmoSetReference == null)
+            yield break;
+
         // needs to include inactive ones, don't question why
         var plot = siloStorage.GetComponentInParent<LandPlotLocation>(true);
         var gadget = siloStorage.GetComponentInParent<Gadget>(true);
