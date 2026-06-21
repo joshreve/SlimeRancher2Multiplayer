@@ -74,6 +74,20 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 
     private static void UpdateVacAnimator(GameObject remotePlayer, PlayerFXType fx)
     {
+        if (!hasDumpedHierarchy)
+        {
+            hasDumpedHierarchy = true;
+            SrLogger.LogMessage("=== REMOTE PLAYER ROOT HIERARCHY DUMP ===");
+            DumpHierarchyToConsole(remotePlayer.transform, "");
+            
+            if (SceneContext.Instance != null && SceneContext.Instance.Player != null)
+            {
+                SrLogger.LogMessage("=== LOCAL PLAYER ROOT HIERARCHY DUMP ===");
+                DumpHierarchyToConsole(SceneContext.Instance.Player.transform, "");
+            }
+            SrLogger.LogMessage("=== END ROOT HIERARCHY DUMP ===");
+        }
+
         var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
         if (vacStandard == null) return;
 
@@ -111,24 +125,6 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 
             if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
             {
-                if (!hasDumpedHierarchy)
-                {
-                    hasDumpedHierarchy = true;
-                    SrLogger.LogMessage("=== REMOTE PLAYER VAC HIERARCHY DUMP ===");
-                    DumpHierarchyToConsole(vacStandard, "");
-                    
-                    if (SceneContext.Instance != null && SceneContext.Instance.Player != null)
-                    {
-                        var localVac = FindChildRecursive(SceneContext.Instance.Player.transform, "vacStandard");
-                        if (localVac != null)
-                        {
-                            SrLogger.LogMessage("=== LOCAL PLAYER VAC HIERARCHY DUMP ===");
-                            DumpHierarchyToConsole(localVac, "");
-                        }
-                    }
-                    SrLogger.LogMessage("=== END HIERARCHY DUMP ===");
-                }
-
                 if (spiralRenderer != null)
                     spiralRenderer.gameObject.SetActive(true);
 
