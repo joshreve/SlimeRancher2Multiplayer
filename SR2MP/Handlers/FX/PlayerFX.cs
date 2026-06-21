@@ -43,6 +43,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                 }
 
                 var remotePlayer = PlayerObjects[packet.Player];
+                UpdateVacAnimator(remotePlayer, packet.FX);
                 var vacFX = GetOrCreateVacFX(remotePlayer);
                 if (vacFX != null)
                 {
@@ -64,6 +65,47 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         }
 
         return true;
+    }
+
+    private static void UpdateVacAnimator(GameObject remotePlayer, PlayerFXType fx)
+    {
+        var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
+        if (vacStandard == null) return;
+
+        var animator = vacStandard.GetComponent<Animator>();
+        if (animator != null)
+        {
+            if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
+            {
+                animator.SetInteger("vacMode", 1);
+                animator.SetBool("active", true);
+            }
+            else if (fx == PlayerFXType.VacRunningEnd)
+            {
+                animator.SetInteger("vacMode", 0);
+                animator.SetBool("active", false);
+            }
+            else if (fx == PlayerFXType.VacShoot || fx == PlayerFXType.VacShootSound)
+            {
+                animator.SetInteger("vacMode", 2);
+                animator.SetBool("active", true);
+            }
+        }
+
+        var colorAnimator = vacStandard.GetComponent<Il2Cpp.VacColorAnimator>();
+        if (colorAnimator != null)
+        {
+            if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
+            {
+                colorAnimator.SetVacActive(true);
+                colorAnimator.SetVacMode(true);
+            }
+            else if (fx == PlayerFXType.VacRunningEnd)
+            {
+                colorAnimator.SetVacActive(false);
+                colorAnimator.SetVacMode(false);
+            }
+        }
     }
 
     private static Transform? FindChildRecursive(Transform parent, string name)

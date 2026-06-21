@@ -278,5 +278,30 @@ internal sealed partial class NetworkActor : MonoBehaviour
     {
         IsDestroyed = true;
         IsValid     = false;
+
+        if (LocallyOwned)
+        {
+            if (SystemContext.Instance != null && SystemContext.Instance.SceneLoader != null && SystemContext.Instance.SceneLoader.IsSceneLoadInProgress)
+                return;
+
+            try
+            {
+                var actorId = ActorId;
+                if (actorId.Value != 0)
+                {
+                    ActorManager.Actors.Remove(actorId.Value);
+
+                    if (Main.Server.IsRunning || Main.Client.IsConnected)
+                    {
+                        var packet = new ActorDestroyPacket { ActorId = actorId };
+                        Main.SendToAllOrServer(packet);
+                    }
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
     }
 }

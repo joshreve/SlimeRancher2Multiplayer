@@ -23,12 +23,14 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
     [UsedImplicitly]
     public void Awake()
     {
+        if (this == null) return;
         if (transform.childCount > 2)
             SpawnAtTransform = transform.GetChild(2);
     }
 
     private void TryInitializeParticles()
     {
+        if (this == null) return;
         if (footstepParticles != null) return;
 
         if (SpawnAtTransform == null && transform.childCount > 2)
@@ -36,16 +38,20 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
 
         if (SpawnAtTransform == null) return;
 
-        FootstepFX = FXManager.FootstepFX;
-        if (FootstepFX == null) return;
+        if (FXManager == null) return;
+        var fx = FXManager.FootstepFX;
+        if (fx == null) return;
 
+        FootstepFX = fx;
         FootstepFXInstance = Instantiate(FootstepFX, SpawnAtTransform.position, SpawnAtTransform.rotation);
+        if (FootstepFXInstance == null) return;
         FootstepFXInstance.transform.SetParent(SpawnAtTransform.transform);
         footstepParticles = FootstepFXInstance.GetComponentInChildren<ParticleSystem>();
     }
 
     public void UpdateFXState()
     {
+        if (this == null) return;
         TryInitializeParticles();
         if (footstepParticles == null) return;
 
@@ -58,6 +64,8 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
     [UsedImplicitly]
     public void OnTriggerEnter(Collider collider)
     {
+        if (this == null) return;
+        if (collider == null) return;
         if (!collider.CompareTag("Water") && collider.gameObject.layer != LayerMask.NameToLayer("Water"))
             return;
 
@@ -71,6 +79,8 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
     [UsedImplicitly]
     public void OnTriggerExit(Collider collider)
     {
+        if (this == null) return;
+        if (collider == null) return;
         if (!collider.CompareTag("Water") && collider.gameObject.layer != LayerMask.NameToLayer("Water"))
             return;
 
@@ -82,11 +92,15 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
     }
 
     private bool CheckGrounded(int layer)
-        => Physics.Raycast(transform.position, Vector3.down, GroundCheckDistance, layer);
+    {
+        if (this == null) return false;
+        return Physics.Raycast(transform.position, Vector3.down, GroundCheckDistance, layer);
+    }
 
     public void Update()
     {   // Don't change it, this is the LayerMask qwq
         // "Magic number that breaks everything if you change it"
+        if (this == null) return;
         var isGrounded = CheckGrounded(GroundedLayer);
 
         if (isGrounded == playerGrounded)

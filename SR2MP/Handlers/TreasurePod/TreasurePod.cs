@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.TreasurePod;
 using SR2MP.Packets.Utils;
@@ -13,8 +13,18 @@ internal sealed class TreasurePodHandler : BasePacketHandler<TreasurePodPacket>
         if (!GameState.pods.TryGetValue("pod" + packet.ID, out var model)) return true;
 
         HandlingPacket = true;
-        model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
-        HandlingPacket = false;
+        try
+        {
+            model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
+        }
+        catch (System.Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to activate treasure pod {packet.ID}: {ex.Message}");
+        }
+        finally
+        {
+            HandlingPacket = false;
+        }
 
         model.state = new ObservableValue<Il2Cpp.TreasurePod.State>(
             Il2Cpp.TreasurePod.State.OPEN

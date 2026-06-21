@@ -64,6 +64,13 @@ internal static class NetworkWeatherManager
 
     internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
     {
+        while (SceneContext.Instance == null || SceneContext.Instance.WeatherRegistry == null)
+        {
+            yield return null;
+        }
+
+        WeatherUpdateHelper.EnsureLookupInitialized();
+
         yield return new WaitFrames(3);
         HandlingPacket = true;
 
@@ -123,6 +130,12 @@ internal static class NetworkWeatherManager
             {
                 var pattern = WeatherUpdateHelper.GetPatternForZoneAndState(zoneKey, forecast.State.name);
                 yield return null;
+
+                if (pattern == null)
+                {
+                    SrLogger.LogWarning($"[NetworkWeather] Skipping forecast entry with null pattern for zone {zoneKey?.name} and state {forecast.State?.name}");
+                    continue;
+                }
 
                 zone.Forecast.Add(new WeatherModel.ForecastEntry
                 {

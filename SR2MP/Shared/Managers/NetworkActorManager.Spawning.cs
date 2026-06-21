@@ -80,6 +80,8 @@ internal sealed partial class NetworkActorManager
             return false;
         }
         
+        RemoveExistingGadgetModelIfAny(actorId);
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
         model.eulerRotation = rotation.eulerAngles;
@@ -533,8 +535,11 @@ internal sealed partial class NetworkActorManager
     {
         identifiableModel = null;
         
-        if (ActorIDAlreadyInUse(new ActorId(actorData.ActorId)))
+        var actorId = new ActorId(actorData.ActorId);
+        if (ActorIDAlreadyInUse(actorId))
             return false;
+        
+        RemoveExistingGadgetModelIfAny(actorId);
         
         switch (actorData)
         {
@@ -547,7 +552,6 @@ internal sealed partial class NetworkActorManager
         }
         
         var sceneId = actorData.Scene;
-        var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var typeId = actorData.ActorTypeId;
@@ -823,5 +827,32 @@ internal sealed partial class NetworkActorManager
         ActorManager.Actors[actorId.Value] = model;
         
         return true;
+    }
+
+    private static void RemoveExistingGadgetModelIfAny(ActorId actorId)
+    {
+        if (actorId.Value == 0) return;
+
+        try
+        {
+            var gameModel = GameState;
+            if (gameModel == null) return;
+
+            var gadgets = gameModel.AllGadgets();
+            if (gadgets == null) return;
+
+            foreach (var existingGadget in gadgets)
+            {
+                if (existingGadget != null && existingGadget.actorId.Value == actorId.Value)
+                {
+                    gameModel.DestroyGadgetModel(existingGadget);
+                    break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to remove existing gadget model for {actorId.Value}: {ex.Message}");
+        }
     }
 }
