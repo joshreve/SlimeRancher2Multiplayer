@@ -332,6 +332,12 @@ public sealed class SR2MPClient
         if (!isConnected)
             return;
 
+        if (!Main.IsMainThread)
+        {
+            MainThreadDispatcher.Instance?.Enqueue(() => Disconnect());
+            return;
+        }
+
         try
         {
             MultiplayerUI.Instance.ClearChatMessages();

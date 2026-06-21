@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Il2CppTMPro;
 using MelonLoader;
 using MelonLoader.Utils;
@@ -60,6 +60,16 @@ public sealed class Main : StarlightExpansionV01
     /// </summary>
     public static SR2MPServer Server { get; private set; }
 
+    /// <summary>
+    /// Gets the managed thread ID of the main thread.
+    /// </summary>
+    public static int MainThreadId { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the current thread is the main Unity thread.
+    /// </summary>
+    public static bool IsMainThread => System.Threading.Thread.CurrentThread.ManagedThreadId == MainThreadId;
+
     internal static readonly Assembly Core = typeof(Main).Assembly;
 
     private static MelonPreferences_Category preferences;
@@ -93,6 +103,7 @@ public sealed class Main : StarlightExpansionV01
     /// <inheritdoc/>
     public override void OnLateInitializeMelon()
     {
+        MainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);

@@ -82,6 +82,25 @@ internal static class NetworkAmmoManager
         }
     }
 
+    internal static void UnregisterAmmoPointer(string id)
+    {
+        if (IDToAmmo.Remove(id, out var ammo))
+        {
+            if (ammo != null)
+            {
+                ammoToID.Remove(ammo.Pointer);
+                for (var i = 0; i < ammo.Slots.Count; i++)
+                {
+                    var slot = ammo.Slots[i];
+                    if (slot != null)
+                    {
+                        slotToAmmo.Remove(slot.Pointer);
+                    }
+                }
+            }
+        }
+    }
+
     // todo: review
     // not sure about the whole coroutine and inactive stuff
 

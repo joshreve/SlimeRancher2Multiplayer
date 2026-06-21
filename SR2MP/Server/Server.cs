@@ -86,6 +86,7 @@ public sealed class SR2MPServer
             Application.quitting += new Action(Close);
             NetworkManager.Start(port, enableIPv6);
             Port = port;
+            timeoutTimer = new System.Threading.Timer(CheckClientTimeouts, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
             OnServerStarted?.Invoke();
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
@@ -99,10 +100,26 @@ public sealed class SR2MPServer
         }
     }
 
+    private void CheckClientTimeouts(object? state)
+    {
+        if (!NetworkManager.IsRunning)
+            return;
+
+        MainThreadDispatcher.Instance?.Enqueue(() =>
+        {
+            if (NetworkManager.IsRunning)
+            {
+                ClientManager.RemoveTimedOutClients();
+            }
+        });
+    }
+
     private void OnDataReceived(byte[] data, int receivedBytes, IPEndPoint clientEp)
     {
         SrLogger.LogPacketSize($"Received {receivedBytes} bytes from Client!",
             $"Received {receivedBytes} bytes from {clientEp}.");
+
+        ClientManager.UpdateHeartbeat(clientEp);
 
         try
         {
@@ -116,15 +133,54 @@ public sealed class SR2MPServer
 
     private void OnClientRemoved(ClientInfo client)
     {
+        var playerId = client.PlayerId;
+
+        // Check if the player actually joined fully (they will be in PlayerManager)
+        var player = PlayerManager.GetPlayer(playerId);
+        if (player == null)
+        {
+            SrLogger.LogMessage($"Client disconnected during connection handshake (PlayerId: {playerId})");
+            return;
+        }
+
+        var leaveUsername = player.Username;
+
+        PlayerManager.RemovePlayer(playerId);
+        NetworkAmmoManager.UnregisterAmmoPointer(playerId);
+
+        if (PlayerObjects.TryGetValue(playerId, out var playerObj))
+        {
+            if (playerObj)
+            {
+                Object.Destroy(playerObj);
+                SrLogger.LogMessage($"Destroyed player object for {playerId}");
+            }
+            PlayerObjects.Remove(playerId);
+        }
+
         var leavePacket = new PlayerLeavePacket
         {
             Type = PacketType.BroadcastPlayerLeave,
-            PlayerId = client.PlayerId
+            PlayerId = playerId
         };
-
         SendToAll(leavePacket);
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}");
+        SrLogger.LogMessage($"Player {playerId} left the server");
+
+        var leaveChatPacket = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = $"{leaveUsername} left the world!",
+            MessageID = $"SYSTEM_LEAVE_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageDisconnect
+        };
+        SendToAll(leaveChatPacket);
+
+        MultiplayerUI.Instance.RegisterSystemMessage(
+            $"{leaveUsername} left the world!",
+            $"SYSTEM_LEAVE_HOST_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MultiplayerUI.SystemMessageDisconnect
+        );
     }
 
     internal void Close()

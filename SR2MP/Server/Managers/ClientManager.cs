@@ -74,6 +74,12 @@ public sealed class ClientManager
         }
     }
 
+    public void UpdateHeartbeat(IPEndPoint endPoint)
+    {
+        var clientInfo = $"{endPoint.Address}:{endPoint.Port}";
+        UpdateHeartbeat(clientInfo);
+    }
+
     public ICollection<ClientInfo> GetAllClients()
     {
         return clients.Values;

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SR2MP.Components.UI;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets;
@@ -59,33 +59,9 @@ internal sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");
 
-        var leaveUsername = PlayerManager.GetPlayer(playerId)?.Username ?? "Unknown";
-
         if (Main.Server.ClientManager.RemoveClient(clientInfo))
         {
-            RemovePlayerData(playerId);
-
-            var leavePacket = new PlayerLeavePacket
-            {
-                Type = PacketType.BroadcastPlayerLeave,
-                PlayerId = playerId
-            };
-
-            Main.Server.SendToAll(leavePacket);
-
-            SrLogger.LogMessage($"Player {playerId} left the server",
-                $"Player {playerId} left from {clientInfo}");
-
-            var leaveChatPacket = new ChatMessagePacket
-            {
-                Username = "SYSTEM",
-                Message = $"{leaveUsername} left the world!",
-                MessageID = $"SYSTEM_LEAVE_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
-                MessageType = MultiplayerUI.SystemMessageDisconnect
-            };
-
-            Main.Server.SendToAll(leaveChatPacket);
-            MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
+            SrLogger.LogMessage($"Player {playerId} leave request handled via ClientManager removal");
         }
         else
         {
