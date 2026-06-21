@@ -37,7 +37,7 @@
 |        Map        |   🟨   |               Players on the Map and Locator bar, Weather icons missing       |
 |    Teleporters    |   🟩   |                               Fully functional                                |
 |      Weather      |   🟩   |                               Fully functional                                |
-|     Weather Events|   🟧   |                               Lightning has duplicate loot                    |
+|     Weather Events|   🟩   |                               Fully functional (Lightning sync & no duplicate loot) |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
