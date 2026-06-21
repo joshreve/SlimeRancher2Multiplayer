@@ -17,9 +17,9 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
         allowCheatsInput = Main.AllowCheats;
-        ipInput = Main.SavedConnectIP;
-        portInput = Main.SavedConnectPort;
-        hostPortInput = Main.SavedHostPort;
+        joinIpInput = Main.SavedConnectIP;
+        joinPortInput = Main.SavedConnectPort;
+        hostLocalPortInput = Main.SavedHostPort;
 
         if (Instance)
         {

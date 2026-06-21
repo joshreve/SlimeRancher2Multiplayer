@@ -215,6 +215,7 @@ internal partial class NetworkPlayer : MonoBehaviour
         ReloadMeshTransform();
 
         UpdateGadgetMode();
+        UpdateForceField();
 
         UpdateMarker();
         

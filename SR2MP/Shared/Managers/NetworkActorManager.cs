@@ -121,21 +121,18 @@ internal sealed partial class NetworkActorManager
         const int max = 12;
 
         var player = SceneContext.Instance.player;
-        var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
-
+        var bounds = new Bounds(player.transform.position, new Vector3(600, 1250, 600));
+        
         var i = 0;
         foreach (var actor in Actors)
         {
             if (actor.Value == null)
                 continue;
-
+            
             if (!bounds.Contains(actor.Value.lastPosition))
                 continue;
 
-            if (actor.Value.TryGetNetworkComponent(out var netActor))
-                continue;
-
-            if (netActor == null)
+            if (!actor.Value.TryGetNetworkComponent(out var netActor))
                 continue;
 
             netActor.LocallyOwned = true;

@@ -3,9 +3,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
-using Il2CppMonomiPark.SlimeRancher.Player;
 using Il2CppMonomiPark.SlimeRancher.Weather;
-using MelonLoader;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Ammo;
@@ -167,12 +165,8 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(prismaBarriersPacket,  client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
-
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
-
             SendWeatherPacket(client.EndPoint);
-
-            SrLogger.LogPacketSize($"Player {client.PlayerId} resynced!");
         }
 
         SrLogger.LogMessage($"Resynced {clients.Count} players!");
@@ -455,7 +449,7 @@ internal sealed class ReSyncManager
                 RequiredEatCount = gordoSlime.value.targetCount,
                 GordoSlimeType = NetworkActorManager.GetPersistentID(gordoSlime.value.identifiableType),
                 WasSeen = gordoSlime.value.GordoSeen
-                // Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
+                // Popped = gordoSlime.value.GordoEatenCount > gordoSlime.value.gordoEatCount
             });
         }
 
@@ -566,7 +560,6 @@ internal sealed class ReSyncManager
             return new NetworkAmmo { AmmoSlots = new Dictionary<int, NetworkAmmoSlot>() };
 
         var slots = siloAmmo[ammoKey].Slots;
-
         var ammoSlots = new Dictionary<int, NetworkAmmoSlot>();
 
         for (var i = 0; i < slots.Count; i++)
@@ -582,6 +575,7 @@ internal sealed class ReSyncManager
             ammoSlots[i] = new NetworkAmmoSlot
             {
                 Count = slot.Count,
+                MaxCount = slot.MaxCount,
                 Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                 SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
             };

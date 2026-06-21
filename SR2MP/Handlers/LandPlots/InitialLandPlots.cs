@@ -3,6 +3,7 @@ using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
 using SR2MP.Components.LandPlots;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.LandPlots;
 
@@ -92,7 +93,7 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                 }
 
                 case InitialLandPlotsPacket.SiloData silo:
-
+                {
                     var ammo = silo.Ammo.ToGameAmmo();
                     model.siloAmmo[SiloAmmo] = ammo._ammoModel;
                     model.siloStorageIndices = Array.ConvertAll(silo.SelectedSlots.ToArray(), input => (int)input);
@@ -102,13 +103,16 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                     var storage = model.gameObj.GetComponentInChildren<SiloStorage>();
                     storage.Ammo = ammo;
                     storage.SetModel(model);
+                    storage.Ammo.ApplySlotData(silo.Ammo);
 
                     foreach (var activator in model.gameObj.GetComponentsInChildren<SiloStorageActivator>())
                         activator.OnActiveSlotChanged();
 
                     break;
+                }
 
                 case InitialLandPlotsPacket.CoopPondData pond:
+                {
                     var ammoType = plot.Type == LandPlot.Id.COOP
                         ? FeederAmmo
                         : PlortCollectorAmmo;
@@ -118,16 +122,17 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                     if (!model.gameObj) break;
 
                     var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>(true);
-
                     if (pondStorage)
                     {
                         pondStorage.Ammo = collectorAmmo;
                         pondStorage.SetModel(model);
+                        pondStorage.Ammo.ApplySlotData(pond.CollectorAmmo);
                     }
                     break;
+                }
 
                 case InitialLandPlotsPacket.CorralData corral:
-
+                {
                     var plortCollectorAmmo = corral.PlortCollectorAmmo.ToGameAmmo();
                     model.siloAmmo[PlortCollectorAmmo] = plortCollectorAmmo._ammoModel;
 
@@ -144,13 +149,16 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                         {
                             case PlortCollectorAmmo:
                                 corralStorage.Ammo = plortCollectorAmmo;
+                                corralStorage.SetModel(model);
+                                corralStorage.Ammo.ApplySlotData(corral.PlortCollectorAmmo);
                                 break;
 
                             case FeederAmmo:
                                 corralStorage.Ammo = feederAmmo;
+                                corralStorage.SetModel(model);
+                                corralStorage.Ammo.ApplySlotData(corral.AutoFeederAmmo);
                                 break;
                         }
-                        corralStorage.SetModel(model);
                     }
 
                     var feeder = model.gameObj.GetComponentInChildren<FeederUpgrader>(true)
@@ -171,25 +179,27 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                     HandlingPacket = false;
 
                     break;
+                }
 
                 case InitialLandPlotsPacket.IncineratorData incinerator:
+                {
                     var incineratorAmmo = incinerator.PlortCollectorAmmo!.ToGameAmmo();
                     model.siloAmmo[PlortCollectorAmmo] = incineratorAmmo._ammoModel;
-
                     model.ashUnits = incinerator.AshLevel;
 
                     if (!model.gameObj) break;
 
                     var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>(true);
-
                     if (incineratorStorage)
                     {
                         incineratorStorage.Ammo = incineratorAmmo;
                         incineratorStorage.SetModel(model);
+                        incineratorStorage.Ammo.ApplySlotData(incinerator.PlortCollectorAmmo);
                     }
 
                     model.gameObj.GetComponentInChildren<FillableAshSource>().SetModel(model);
                     break;
+                }
             }
         }
 
