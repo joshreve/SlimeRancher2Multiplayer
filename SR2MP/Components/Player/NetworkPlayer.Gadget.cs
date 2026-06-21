@@ -5,11 +5,15 @@ using SR2MP.Packets.Player;
 using SR2MP.Shared.Managers;
 using static SR2MP.Shared.Utils.Timers;
 
+using Il2CppInterop.Runtime.Attributes;
+
 namespace SR2MP.Components.Player;
 
 internal partial class NetworkPlayer
 {
+    [HideFromIl2Cpp]
     public event Action<bool>? OnNetworkGadgetModeChanged;
+    [HideFromIl2Cpp]
     public event Action<int>? OnNetworkGadgetIDChanged;
 
     // private bool InGadgetMode => IsLocal ? PlayerItemController._gadgetItem.enabled : OnlineGadgetMode;
@@ -170,6 +174,7 @@ internal partial class NetworkPlayer
         Main.SendToAllOrServer(packet);
     }
 
+    [HideFromIl2Cpp]
     private void OnGadgetUpdate(string playerId, RemotePlayer player)
     {
         if (ID != playerId)
