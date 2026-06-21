@@ -45,7 +45,7 @@ internal static class AutoHost
 
     internal static void BeginAutoHost(Action<AutoHostResult> onCompleted)
     {
-        ArgumentNullException.ThrowIfNull(onCompleted, nameof(onCompleted));
+        ArgumentNullException.ThrowIfNull(onCompleted);
         Task.Run(() =>
         {
             StopRefresh();
@@ -198,8 +198,12 @@ internal static class AutoHost
         try
         {
             foreach (var iface in NetworkInterface.GetAllNetworkInterfaces())
-            foreach (var gateway in iface.GetIPProperties().GatewayAddresses)
-                gateways.Add(gateway.Address);
+            {
+                foreach (var gateway in iface.GetIPProperties().GatewayAddresses)
+                {
+                    gateways.Add(gateway.Address);
+                }
+            }
         }
         catch (Exception ex)
         {

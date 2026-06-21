@@ -64,7 +64,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         currentCycleStep = (currentCycleStep + 1) % 7;
     }
 
-    private void SyncMoneyAndUpgrades(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncMoneyAndUpgrades(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -90,7 +90,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
     }
 
-    private void SyncLandPlotsAndRefinery(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncLandPlotsAndRefinery(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var plotsPacket = ReSyncManager.CreatePlotsPacket();
         var refineryPacket = ReSyncManager.CreateRefineryPacket();
@@ -101,7 +101,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
     }
 
-    private void SyncSwitchesAndDoors(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncSwitchesAndDoors(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var switchesPacket = ReSyncManager.CreateSwitchesPacket();
         var accessDoorsPacket = ReSyncManager.CreateAccessDoorsPacket();
@@ -112,7 +112,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
     }
 
-    private void SyncGordosAndPods(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncGordosAndPods(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var gordosPacket = ReSyncManager.CreateGordoSlimesPacket();
         var treasurePodsPacket = ReSyncManager.CreateTreasurePodsPacket();
@@ -123,7 +123,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
     }
 
-    private void SyncGreyLabyrinth(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncGreyLabyrinth(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var puzzleSlotsPacket = ReSyncManager.CreatePuzzleSlotsPacket();
         var plortDepositorsPacket = ReSyncManager.CreatePlortDepositorsPacket();
@@ -136,7 +136,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
     }
 
-    private void SyncWeatherAndPrices(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncWeatherAndPrices(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var pricesPacket = ReSyncManager.CreatePricesPacket();
         foreach (var client in clients)
@@ -146,7 +146,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
     }
 
-    private void SyncPediaAndMap(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
+    private static void SyncPediaAndMap(System.Collections.Generic.List<Server.Models.ClientInfo> clients)
     {
         var pediaPacket = ReSyncManager.CreatePediaPacket();
         var mapPacket = ReSyncManager.CreateMapPacket();

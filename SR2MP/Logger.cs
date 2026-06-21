@@ -32,7 +32,7 @@ public static class Logger
         /// Do not log to any file target.
         /// </summary>
         /// <remarks>Required to follow the standard but PLEASE don't use this value!</remarks>
-        Neither = 0,
+        None = 0,
 
         /// <summary>
         /// Log to the main public log file.
@@ -125,7 +125,7 @@ public static class Logger
     /// <param name="melonAction">The MelonLoader logging action.</param>
     private static void LogInternal(object? message, LogLevel level, SrLogTarget target, Action<string>? sr2EAction, Action<string>? melonAction)
     {
-        if (target == SrLogTarget.Neither)
+        if (target == SrLogTarget.None)
             return;
 
         var msgString = message?.ToString() ?? "message was null!";

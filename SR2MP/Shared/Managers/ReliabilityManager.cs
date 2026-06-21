@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using SR2MP.Packets.Utils;
@@ -61,7 +61,7 @@ internal sealed class ReliabilityManager
 
     private readonly Action<ArraySegment<byte>, IPEndPoint> sendRawCallback;
 
-    private Thread? resendThread;
+
     private volatile bool isRunning;
 
     private static readonly TimeSpan ResendInterval = TimeSpan.FromMilliseconds(500);
@@ -80,12 +80,12 @@ internal sealed class ReliabilityManager
             return;
 
         isRunning = true;
-        resendThread = new Thread(new Action(ResendLoop))
+        var thread = new Thread(new Action(ResendLoop))
         {
             IsBackground = true,
             Name = "ReliabilityResendThread"
         };
-        resendThread.Start();
+        thread.Start();
 
         SrLogger.LogMessage("ReliabilityManager started");
     }

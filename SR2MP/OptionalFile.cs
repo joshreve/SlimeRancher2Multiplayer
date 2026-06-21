@@ -122,8 +122,11 @@ class OptionFileEntrypoint : MelonMod
                     if (tex == null) continue;
                     pillTex = tex;
                 } catch { /* ignored */ }
-            pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height),
-                new Vector2(0.5f, 0.5f), 1f);
+            if (pillTex != null)
+            {
+                pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height),
+                    new Vector2(0.5f, 0.5f), 1f);
+            }
         }
         catch { /* ignored */ }
         

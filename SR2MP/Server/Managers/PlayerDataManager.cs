@@ -17,7 +17,7 @@ internal sealed class PlayerDataManager
     public static PlayerDataManager Instance => instance ??= new PlayerDataManager();
 
     private readonly Dictionary<string, PlayerData> playerDataCache = new();
-    private string SavePath => Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP", "player_data.json");
+    private static string SavePath => Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP", "player_data.json");
 
     private PlayerDataManager()
     {

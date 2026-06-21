@@ -387,7 +387,7 @@ internal sealed class NetworkActor : MonoBehaviour
         if (isResource && cycle?._model != null)
         {
             return cycle._model.state != lastSentResourceState ||
-                   cycle._model.progressTime != lastSentResourceProgress;
+                   System.Math.Abs(cycle._model.progressTime - lastSentResourceProgress) > 0.0001;
         }
 
         if (isPlort)
@@ -397,7 +397,8 @@ internal sealed class NetworkActor : MonoBehaviour
             var invulnerable       = plortModel?._invulnerability?.IsInvulnerable    ?? false;
             var invulnerablePeriod = plortModel?._invulnerability?.InvulnerabilityPeriod ?? 0f;
 
-            return invulnerable != lastSentInvulnerable || invulnerablePeriod != lastSentInvulnerablePeriod;
+            return invulnerable != lastSentInvulnerable || 
+                   System.Math.Abs(invulnerablePeriod - lastSentInvulnerablePeriod) > 0.0001f;
         }
 
         return false;
@@ -417,7 +418,7 @@ internal sealed class NetworkActor : MonoBehaviour
         {
             packet.UpdateType = ActorUpdateType.Slime;
             packet.Emotions   = emotions ? emotions._model.Emotions : new float4(0, 0, 0, 0);
-            packet.Sleeping   = emotions ? emotions._model.isSleeping : false;
+            packet.Sleeping   = emotions && emotions._model.isSleeping;
             lastSentEmotions  = packet.Emotions;
             lastSentSleeping  = packet.Sleeping;
         }

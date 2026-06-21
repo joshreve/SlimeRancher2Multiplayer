@@ -11,5 +11,5 @@ public interface IPacketHandler
     /// <summary>
     /// Sets a value indicating whether this handler is currently executing on the server side.
     /// </summary>
-    bool IsServerSide { set; }
+    bool IsServerSide { get; set; }
 }

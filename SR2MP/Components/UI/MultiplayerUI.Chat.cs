@@ -162,7 +162,7 @@ internal sealed partial class MultiplayerUI
         }
 
         var sceneGroup = SystemContext.Instance.SceneLoader._currentSceneGroup;
-        var startPos = localPlayer.transform.position + localPlayer.transform.forward * 2f + Vector3.up * 1f;
+        var startPos = localPlayer!.transform.position + localPlayer.transform.forward * 2f + Vector3.up * 1f;
 
         var itemsToSpawn = new List<int>();
         foreach (var slot in playerData.Inventory.Values)

@@ -6,7 +6,7 @@ namespace SR2MP.Handlers.Internal;
 
 internal abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : IPacket, new()
 {
-    public bool IsServerSide { protected get; set; }
+    public bool IsServerSide { get; set; }
 
     // Do NOT override these! Only the ApiHandler class should be dealing with this!
     public virtual void Handle(PacketReader reader)

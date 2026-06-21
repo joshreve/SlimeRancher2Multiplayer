@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
@@ -18,7 +18,7 @@ internal sealed partial class NetworkActorManager
                 && model != x.value
                 && (model.ident.Cast<GadgetDefinition>().BuyInPairs
                     || model.ident.Cast<GadgetDefinition>().LinkedDefinition
-                    || model.ident.Cast<GadgetDefinition>().LinkedGadgetRange != 0f))?
+                    || System.Math.Abs(model.ident.Cast<GadgetDefinition>().LinkedGadgetRange) > 0.0001f))?
             .value.Cast<GadgetModel>()!;
     
     private static AmmoModel? GetAmmoFromGadget(GadgetModel model)

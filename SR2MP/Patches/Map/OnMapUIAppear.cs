@@ -45,7 +45,7 @@ internal class OnMapUIDestroy
         foreach (var pair in PlayerMarkerTransforms)
         {
             var marker = pair.Value;
-            if (marker.mainMarker)
+            if (marker.mainMarker != null)
             {
                 Object.Destroy(marker.mainMarker.gameObject);
             }

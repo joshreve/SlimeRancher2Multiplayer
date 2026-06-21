@@ -2,12 +2,12 @@ using System.Buffers;
 
 namespace SR2MP.Shared.Utils;
 
-public readonly struct SplitResult : IDisposable
+internal readonly struct SplitResult : IDisposable
 {
-    public readonly ArraySegment<byte>[] Chunks;
-    public readonly int Count;
+    internal readonly ArraySegment<byte>[] Chunks;
+    internal readonly int Count;
 
-    public SplitResult(ArraySegment<byte>[] chunks, int count)
+    internal SplitResult(ArraySegment<byte>[] chunks, int count)
     {
         Chunks = chunks;
         Count = count;

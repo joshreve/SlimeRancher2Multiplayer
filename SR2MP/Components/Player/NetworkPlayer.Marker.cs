@@ -46,7 +46,7 @@ internal partial class NetworkPlayer
 
         if (PlayerMarkerTransforms.TryGetValue(ID, out var existingMarker))
         {
-            if (existingMarker.mainMarker)
+            if (existingMarker.mainMarker != null)
             {
                 Destroy(existingMarker.mainMarker.gameObject);
             }
@@ -77,7 +77,7 @@ internal partial class NetworkPlayer
         };
         
         var textComponent = textObject.AddComponent<TextMeshProUGUI>();
-        textComponent.SetText(model.Username);
+        textComponent.SetText(model!.Username);
         textComponent.alpha = 0.6f;
         textComponent.alignment = TextAlignmentOptions.Center;
         textComponent.font = usernameFont;

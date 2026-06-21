@@ -14,7 +14,7 @@ public abstract class BaseCustomPacketHandler<T> : IClientPacketHandler, IServer
     /// <summary>
     /// Gets or sets a value indicating whether this handler is currently executing on the server side.
     /// </summary>
-    public bool IsServerSide { protected get; set; }
+    public bool IsServerSide { get; set; }
 
     /// <summary>
     /// Handles an incoming packet from the server. This method is invoked on the client side.

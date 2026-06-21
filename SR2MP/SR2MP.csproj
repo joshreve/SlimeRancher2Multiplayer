@@ -9,7 +9,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <Configurations>Debug;Release</Configurations>
     <DebugType>embedded</DebugType>
-    <NoWarn>1701;1702;RCS1037;CS0436</NoWarn>
+    <NoWarn>1701;1702;RCS1037;CS0436;CS1591;S927;S125;S1135;S1075;S2223</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

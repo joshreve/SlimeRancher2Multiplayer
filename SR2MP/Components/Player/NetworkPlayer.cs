@@ -135,7 +135,7 @@ internal partial class NetworkPlayer : MonoBehaviour
 
         if (PlayerMarkerTransforms.TryGetValue(ID, out var marker))
         {
-            if (marker.mainMarker)
+            if (marker.mainMarker != null)
             {
                 Destroy(marker.mainMarker.gameObject);
             }
