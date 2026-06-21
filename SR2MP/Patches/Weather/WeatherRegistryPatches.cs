@@ -28,4 +28,46 @@ internal static class WeatherRegistryPatches
 
         return !Main.Client.IsConnected || Main.Server.IsRunning || HandlingPacket;
     }
+
+    [HarmonyPatch(nameof(WeatherRegistry.CalculateZoneMapData)), HarmonyPostfix]
+    public static void CalculateZoneMapDataPostfix(WeatherRegistry __instance, ZoneMapData zoneMapData, CppCollections.List<ZoneWeatherMapData> mapData)
+    {
+        if (mapData == null)
+            return;
+
+        if (mapData.Count > 0)
+            return;
+
+        var zoneDef = zoneMapData.WeatherZone != null ? zoneMapData.WeatherZone : zoneMapData.PrimaryZone;
+        if (zoneDef == null)
+            return;
+
+        if (!__instance._zones.TryGetValue(zoneDef, out var zoneWeatherData))
+            return;
+
+        var forecastList = zoneWeatherData.Forecast;
+        if (forecastList == null)
+            return;
+
+        foreach (var forecast in forecastList)
+        {
+            if (forecast.Pattern != null && forecast.Pattern.Metadata != null)
+            {
+                var mapDataEntry = new ZoneWeatherMapData();
+                mapDataEntry.Metadata = forecast.Pattern.Metadata;
+
+                var stateDef = forecast.State.TryCast<WeatherStateDefinition>();
+                if (stateDef != null)
+                {
+                    mapDataEntry.MapTier = stateDef.MapTier;
+                }
+                else
+                {
+                    mapDataEntry.MapTier = forecast.State.GetMapTier();
+                }
+
+                mapData.Add(mapDataEntry);
+            }
+        }
+    }
 }

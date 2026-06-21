@@ -118,12 +118,31 @@ internal partial class NetworkPlayer : MonoBehaviour
         else
         {
             PlayerMarkerTransforms[ID] = new();
+            if (SR2MP.Patches.Map.OnMapUIAppear.ActiveMapUI != null)
+            {
+                CreateMapMarker(SR2MP.Patches.Map.OnMapUIAppear.ActiveMapUI);
+            }
         }
 
         UsernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
 
         SetupRenderersAndCollision();
     }
+
+    public void OnDestroy()
+    {
+        if (IsLocal) return;
+
+        if (PlayerMarkerTransforms.TryGetValue(ID, out var marker))
+        {
+            if (marker.mainMarker)
+            {
+                Destroy(marker.mainMarker.gameObject);
+            }
+            PlayerMarkerTransforms.Remove(ID);
+        }
+    }
+
 
     private void SetupRenderersAndCollision()
     {

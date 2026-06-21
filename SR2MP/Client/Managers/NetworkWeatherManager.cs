@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
+using Il2CppMonomiPark.SlimeRancher.UI.Map;
 using SR2MP.Packets.World;
 using SR2MP.Server.Managers;
 
@@ -176,6 +177,22 @@ internal static class NetworkWeatherManager
             }
 
             yield return new WaitFrames(3);
+        }
+
+        if (SR2MP.Patches.Map.OnMapUIAppear.ActiveMapUI != null)
+        {
+            var zoomedOutUI = SR2MP.Patches.Map.OnMapUIAppear.ActiveMapUI._zoomedOutUI;
+            if (zoomedOutUI != null && zoomedOutUI._zoneMarkerUIs != null)
+            {
+                foreach (var markerUI in zoomedOutUI._zoneMarkerUIs)
+                {
+                    var zoneMarkerUI = markerUI.TryCast<ZoneMarkerUI>();
+                    if (zoneMarkerUI != null)
+                    {
+                        zoneMarkerUI.SetUpWeather();
+                    }
+                }
+            }
         }
 
         HandlingPacket = false;

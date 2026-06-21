@@ -10,47 +10,47 @@ namespace SR2MP.Patches.Map;
 [HarmonyPatch(typeof(MapUI), nameof(MapUI.Start))]
 internal class OnMapUIAppear
 {
+    public static MapUI? ActiveMapUI;
+
     public static void Postfix(MapUI __instance)
     {
+        ActiveMapUI = __instance;
         foreach (var player in PlayerManager.GetAllPlayers())
         {
             if (player.PlayerId == LocalID)
                 continue;
             
-            var marker = Object.Instantiate(
-                __instance._markerPrefabMapping._playerMarkerPrefab, 
-                __instance._mapContainer.transform.parent.FindChild("Markers"), 
-                true);
-            
-            marker.transform.position = new Vector3(player.Position.x, player.Position.z, 0);
-            marker.transform.localScale = Vector3.one;
-
-            marker.GetComponent<MapFader>()._targetOpacity = 100;
-            
-            var textObject = new GameObject("PlayerName")
+            if (PlayerObjects.TryGetValue(player.PlayerId, out var playerObj))
             {
-                transform =
+                var networkPlayer = playerObj.GetComponent<NetworkPlayer>();
+                if (networkPlayer != null)
                 {
-                    parent = marker.transform,
-                    localPosition = new Vector3(0, 42, 0),
-                    localScale = Vector3.one * 0.6f,
+                    networkPlayer.CreateMapMarker(__instance);
                 }
-            };
-            
-            var textComponent = textObject.AddComponent<TextMeshProUGUI>();
-            textComponent.SetText(player.Username);
-            textComponent.alpha = 0.6f;
-            textComponent.alignment = TextAlignmentOptions.Center;
-            textComponent.font = PlayerObjects[player.PlayerId].GetComponent<NetworkPlayer>().usernameFont;
-            textComponent.overflowMode = TextOverflowModes.Overflow;
-            textComponent.enableWordWrapping = false;
-            
-            var facingFrame = marker.transform.FindChild("FacingFrame");
-            facingFrame.FindChild("FacingArrow").GetComponent<Image>().m_Color = RemotePlayerManager.GetPlayerColor(player);
-            
-            var markerTransformGroup = PlayerMarkerTransforms[player.PlayerId];
-            markerTransformGroup.mainMarker = marker.transform;
-            markerTransformGroup.markerArrow = facingFrame.transform;
+            }
+        }
+    }
+}
+
+[HarmonyPatch(typeof(MapUI), nameof(MapUI.OnDestroy))]
+internal class OnMapUIDestroy
+{
+    public static void Prefix(MapUI __instance)
+    {
+        if (OnMapUIAppear.ActiveMapUI == __instance)
+        {
+            OnMapUIAppear.ActiveMapUI = null;
+        }
+
+        foreach (var pair in PlayerMarkerTransforms)
+        {
+            var marker = pair.Value;
+            if (marker.mainMarker)
+            {
+                Object.Destroy(marker.mainMarker.gameObject);
+            }
+            marker.mainMarker = null;
+            marker.markerArrow = null;
         }
     }
 }

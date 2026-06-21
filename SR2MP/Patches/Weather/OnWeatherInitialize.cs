@@ -15,10 +15,15 @@ internal static class OnWeatherInitialize
         if (Main.Server.IsRunning)
         {
             __instance.gameObject.AddComponent<NetworkWeather>();
+            __instance.gameObject.AddComponent<CyclicalSyncUpdater>();
         }
         else if (!injectedToServer)
         {
-            Main.Server.OnServerStarted += () => SceneContext.Instance.AddComponent<NetworkWeather>();
+            Main.Server.OnServerStarted += () => 
+            {
+                SceneContext.Instance.AddComponent<NetworkWeather>();
+                SceneContext.Instance.AddComponent<CyclicalSyncUpdater>();
+            };
             injectedToServer = true;
         }
     }

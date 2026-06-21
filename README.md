@@ -34,7 +34,7 @@
 |  Resource Nodes   |   🟩   | Fully functional (interacts, wiggling, depletion, and harvest loot sync)      |
 |   Gordo Slimes    |   🟩   |                               Fully functional                                |
 |      Geysers      |   🟩   |                               Fully functional                                |
-|        Map        |   🟨   |               Players on the Map and Locator bar, Weather icons missing       |
+|        Map        |   🟩   |                               Fully functional                                |
 |    Teleporters    |   🟩   |                               Fully functional                                |
 |      Weather      |   🟩   |                               Fully functional                                |
 |     Weather Events|   🟩   |                               Fully functional (Lightning sync & no duplicate loot) |

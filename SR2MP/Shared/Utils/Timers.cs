@@ -11,6 +11,7 @@ public static class Timers
     public static float PlayerTimer { get; private set; } = 0.125f;
     public static float TimeSyncTimer { get; private set; } = 0.85f;
     public static float PlayerInventoryTimer { get; private set; } = 5f;
+    public static float CyclicalSyncTimer { get; private set; } = 30f;
 
     internal enum SyncTimerType : byte
     {
@@ -18,7 +19,8 @@ public static class Timers
         ACTOR,
         PLAYER_INVENTORY,
         WORLD_WEATHER,
-        WORLD_TIME
+        WORLD_TIME,
+        CYCLICAL_SYNC
     }
 
     internal static void SetTimer(SyncTimerType timerType, float value)
@@ -39,6 +41,9 @@ public static class Timers
                 return;
             case SyncTimerType.PLAYER_INVENTORY:
                 PlayerInventoryTimer = value;
+                return;
+            case SyncTimerType.CYCLICAL_SYNC:
+                CyclicalSyncTimer = value;
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(timerType), timerType, null);

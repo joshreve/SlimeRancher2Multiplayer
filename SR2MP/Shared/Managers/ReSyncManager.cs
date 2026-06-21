@@ -226,7 +226,7 @@ internal sealed class ReSyncManager
     private static void SendUpgradesPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateUpgradesPacket(), client);
 
-    private static InitialUpgradesPacket CreateUpgradesPacket()
+    internal static InitialUpgradesPacket CreateUpgradesPacket()
     {
         var upgrades = new Dictionary<byte, sbyte>();
 
@@ -242,7 +242,7 @@ internal sealed class ReSyncManager
     private static void SendRefineryPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateRefineryPacket(), client);
 
-    private static InitialRefineryPacket CreateRefineryPacket()
+    internal static InitialRefineryPacket CreateRefineryPacket()
     {
         var refineryItems = new Dictionary<ushort, ushort>();
 
@@ -256,7 +256,7 @@ internal sealed class ReSyncManager
         return new InitialRefineryPacket { Items = refineryItems };
     }
 
-    private static void SendWeatherPacket(IPEndPoint client)
+    internal static void SendWeatherPacket(IPEndPoint client)
     {
         var weatherRegistry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
         if (weatherRegistry == null || weatherRegistry._model == null)
@@ -277,7 +277,7 @@ internal sealed class ReSyncManager
     private static void SendPediaPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePediaPacket(), client);
 
-    private static InitialPediaPacket CreatePediaPacket()
+    internal static InitialPediaPacket CreatePediaPacket()
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
 
@@ -292,7 +292,7 @@ internal sealed class ReSyncManager
     private static void SendMapPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateMapPacket(), client);
 
-    private static InitialMapPacket CreateMapPacket()
+    internal static InitialMapPacket CreateMapPacket()
     {
         if (!SceneContext.Instance.eventDirector._model.table.TryGetValue(MapEventKey, out var maps))
         {
@@ -311,7 +311,7 @@ internal sealed class ReSyncManager
     private static void SendAccessDoorsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateAccessDoorsPacket(), client);
 
-    private static InitialAccessDoorsPacket CreateAccessDoorsPacket()
+    internal static InitialAccessDoorsPacket CreateAccessDoorsPacket()
     {
         var accessDoorsList = new List<InitialAccessDoorsPacket.Door>();
 
@@ -330,7 +330,7 @@ internal sealed class ReSyncManager
     private static void SendPuzzleSlotsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePuzzleSlotsPacket(), client);
 
-    private static InitialPuzzleSlotsPacket CreatePuzzleSlotsPacket()
+    internal static InitialPuzzleSlotsPacket CreatePuzzleSlotsPacket()
     {
         var slotsList = new List<InitialPuzzleSlotsPacket.Slot>();
 
@@ -349,7 +349,7 @@ internal sealed class ReSyncManager
     private static void SendPlortDepositorsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePlortDepositorsPacket(), client);
 
-    private static InitialPlortDepositorsPacket CreatePlortDepositorsPacket()
+    internal static InitialPlortDepositorsPacket CreatePlortDepositorsPacket()
     {
         var depositorsList = new List<InitialPlortDepositorsPacket.Depositor>();
 
@@ -368,7 +368,7 @@ internal sealed class ReSyncManager
     private static void SendPrismaBarriersPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePrismaBarriersPacket(), client);
 
-    private static InitialPrismaBarriersPacket CreatePrismaBarriersPacket()
+    internal static InitialPrismaBarriersPacket CreatePrismaBarriersPacket()
     {
         var barriersList = new List<InitialPrismaBarriersPacket.Barrier>();
 
@@ -419,7 +419,7 @@ internal sealed class ReSyncManager
     private static void SendSwitchesPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateSwitchesPacket(), client);
 
-    private static InitialSwitchesPacket CreateSwitchesPacket()
+    internal static InitialSwitchesPacket CreateSwitchesPacket()
     {
         var switchesList = new List<InitialSwitchesPacket.Switch>();
 
@@ -438,7 +438,7 @@ internal sealed class ReSyncManager
     private static void SendGordoSlimesPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateGordoSlimesPacket(), client);
 
-    private static InitialGordosPacket CreateGordoSlimesPacket()
+    internal static InitialGordosPacket CreateGordoSlimesPacket()
     {
         var gordoSlimeList = new List<InitialGordosPacket.GordoSlime>();
 
@@ -465,7 +465,7 @@ internal sealed class ReSyncManager
     private static void SendPlotsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePlotsPacket(), client);
 
-    private static InitialLandPlotsPacket CreatePlotsPacket()
+    internal static InitialLandPlotsPacket CreatePlotsPacket()
     {
         var landPlotsList = new List<InitialLandPlotsPacket.BasePlot>();
 
@@ -521,13 +521,13 @@ internal sealed class ReSyncManager
     private static void SendPricesPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreatePricesPacket(), client);
 
-    private static MarketPricePacket CreatePricesPacket()
+    internal static MarketPricePacket CreatePricesPacket()
         => new MarketPricePacket { Prices = MarketPricesArray! };
 
     private static void SendTreasurePodsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateTreasurePodsPacket(), client);
 
-    private static InitialTreasurePodsPacket CreateTreasurePodsPacket()
+    internal static InitialTreasurePodsPacket CreateTreasurePodsPacket()
     {
         var treasurePods = new Dictionary<int, TreasurePod.State>();
 
