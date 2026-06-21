@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using MelonLoader;
 // ReSharper disable InconsistentNaming
 
@@ -50,28 +50,31 @@ internal static class StartupCheck
             installedGameVersion = versionParts[0];
         }
 
-        switch (CompareVersions(installedGameVersion, RequiredGameVersion))
+        if (!string.IsNullOrEmpty(RequiredGameVersion))
         {
-            case < 0:
-                ShowMessageBox(
-                    "SR2MP is incompatible with this game version.\n\n" +
-                    $"Required: {RequiredGameVersion}\n" +
-                    $"Detected: {installedGameVersion}",
-                    "SR2MP – Incompatible Game Version",
-                    MB_OK | MB_ICON_ERROR, true
-                );
-                Application.Quit();
-                return;
-            case > 0:
-                ShowMessageBox(
-                    "You are running a newer game version than SR2MP was built for.\n\n" +
-                    $"Required: {RequiredGameVersion}\n" +
-                    $"Detected: {installedGameVersion}\n\n" +
-                    "The mod may still work, but issues are possible.",
-                    "SR2MP – Newer Game Version Detected",
-                    MB_OK | MB_ICON_WARNING, false
-                );
-                break;
+            switch (CompareVersions(installedGameVersion, RequiredGameVersion))
+            {
+                case < 0:
+                    ShowMessageBox(
+                        "SR2MP is incompatible with this game version.\n\n" +
+                        $"Required: {RequiredGameVersion}\n" +
+                        $"Detected: {installedGameVersion}",
+                        "SR2MP – Incompatible Game Version",
+                        MB_OK | MB_ICON_ERROR, true
+                    );
+                    Application.Quit();
+                    return;
+                case > 0:
+                    ShowMessageBox(
+                        "You are running a newer game version than SR2MP was built for.\n\n" +
+                        $"Required: {RequiredGameVersion}\n" +
+                        $"Detected: {installedGameVersion}\n\n" +
+                        "The mod may still work, but issues are possible.",
+                        "SR2MP – Newer Game Version Detected",
+                        MB_OK | MB_ICON_WARNING, false
+                    );
+                    break;
+            }
         }
 
         Task.Run(async () => await CheckModVersionAsync());
@@ -177,8 +180,12 @@ internal static class StartupCheck
         }
     }
 
-    private static int CompareVersions(string version1, string version2)
+    private static int CompareVersions(string? version1, string? version2)
     {
+        if (version1 == null && version2 == null) return 0;
+        if (version1 == null) return -1;
+        if (version2 == null) return 1;
+
         var v1Parts = version1.Split('.');
         var v2Parts = version2.Split('.');
         var maxLength = Math.Max(v1Parts.Length, v2Parts.Length);

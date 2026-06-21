@@ -72,6 +72,13 @@ internal enum PacketType : byte
     SloomberYawn = 82,            // Both Ways                                    Low (depends on slime count)          On Sloomber SLime Yawn
     PlayerInventorySync = 83,
     ResourceNode = 84,
+    DroneProgram = 85,
+    PuzzleSlot = 86,
+    PlortDepositor = 87,
+    PrismaBarrier = 88,
+    InitialPuzzleSlots = 89,
+    InitialPlortDepositors = 90,
+    InitialPrismaBarriers = 91,
     ModSync = 100,                // Server -> Client                             Low (manual)                          Sync Mod names on incompatible mod
     ModSyncAck = 101,             // Client -> Server                             Low (manual)                          Mod names on incompatible mod
     ApiCall = 253,                // Both Ways                                    Variable                              Backing for mod's api packets

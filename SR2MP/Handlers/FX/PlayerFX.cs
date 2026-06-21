@@ -1,4 +1,5 @@
 using System.Net;
+using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.FX;
 using SR2MP.Packets.Utils;
@@ -18,7 +19,10 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             if (!IsPlayerSoundDictionary[packet.FX])
             {
                 var fxPrefab = FXManager.PlayerFXMap[packet.FX];
-                FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+                if (fxPrefab != null)
+                {
+                    FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+                }
             }
             else
             {
@@ -36,6 +40,19 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                     playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
                     playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
                     playerAudio.Play();
+                }
+
+                var vacItem = PlayerObjects[packet.Player].GetComponentInChildren<VacuumItem>();
+                if (vacItem != null && vacItem.VacFX != null)
+                {
+                    if (packet.FX == PlayerFXType.VacRunningStart || packet.FX == PlayerFXType.VacRunning)
+                    {
+                        vacItem.VacFX.SetActive(true);
+                    }
+                    else if (packet.FX == PlayerFXType.VacRunningEnd)
+                    {
+                        vacItem.VacFX.SetActive(false);
+                    }
                 }
             }
         }

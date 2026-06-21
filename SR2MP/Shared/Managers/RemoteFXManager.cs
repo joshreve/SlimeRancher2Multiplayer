@@ -24,7 +24,10 @@ internal sealed class RemoteFXManager
         if (cue.name.Contains("Step")
             || cue.name.Contains("Run")
             || cue.name.Contains("Jump")
-            || cue.name.Contains("Land"))
+            || cue.name.Contains("Land")
+            || cue.name.Contains("Splash")
+            || cue.name.Contains("Swim")
+            || cue.name.Contains("Water"))
         {
             return true;
         }
@@ -66,7 +69,8 @@ internal sealed class RemoteFXManager
             { PlayerFXType.None, null! },
             { PlayerFXType.VacReject, AllFX["FX_vacReject"] },
             { PlayerFXType.VacAccept, AllFX["FX_vacAcquire"] },
-            { PlayerFXType.VacShoot, AllFX["FX_VacpackShoot"] }
+            { PlayerFXType.VacShoot, AllFX["FX_VacpackShoot"] },
+            { PlayerFXType.WaterSplash, null! }
         };
         PlayerAudioCueMap = new Dictionary<PlayerFXType, SECTR_AudioCue>
         {

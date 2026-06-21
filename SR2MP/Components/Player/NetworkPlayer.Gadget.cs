@@ -39,10 +39,20 @@ internal partial class NetworkPlayer
 
     private void AwakeGadgetMode()
     {
-        PlayerItemController = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
-
         OnNetworkGadgetModeChanged += OnGadgetModeChanged;
         OnNetworkGadgetIDChanged += OnGadgetIDChanged;
+    }
+
+    private PlayerItemController? GetPlayerItemController()
+    {
+        if (PlayerItemController == null)
+        {
+            if (SceneContext.Instance != null && SceneContext.Instance.Player != null)
+            {
+                PlayerItemController = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
+            }
+        }
+        return PlayerItemController;
     }
 
     private void ApplyGadgetLocalRotation()
@@ -82,11 +92,13 @@ internal partial class NetworkPlayer
             UpdateOnlineGadgetMode();
     }
 
-    private Material GetFootprintMaterial(bool isValidPlacement)
+    private Material? GetFootprintMaterial(bool isValidPlacement)
     {
+        var pic = GetPlayerItemController();
+        if (pic == null) return null;
         return isValidPlacement
-            ? PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintValidMaterial
-            : PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintInvalidMaterial;
+            ? pic._gadgetItem._gadgetItemMetadata.GadgetFootprintValidMaterial
+            : pic._gadgetItem._gadgetItemMetadata.GadgetFootprintInvalidMaterial;
     }
 
     private void UpdateOnlineGadgetMode()
@@ -105,12 +117,19 @@ internal partial class NetworkPlayer
         CachedOnlineGadgetID = OnlineGadgetID;
 
         if (FootprintPrefabInstance)
-            FootprintRendererInstance!.material = GetFootprintMaterial(OnlinePlacementValid);
+        {
+            var mat = GetFootprintMaterial(OnlinePlacementValid);
+            if (mat != null)
+                FootprintRendererInstance!.material = mat;
+        }
     }
 
     private void UpdateLocalGadgetMode()
     {
-        FootprintPrefabInstance = PlayerItemController._gadgetItem._gadgetFootprintInstance;
+        var pic = GetPlayerItemController();
+        if (pic == null) return;
+
+        FootprintPrefabInstance = pic._gadgetItem._gadgetFootprintInstance;
 
         if (!FootprintPrefabInstance)
         {
@@ -124,7 +143,7 @@ internal partial class NetworkPlayer
             return;
         }
 
-        var gadget = PlayerItemController._gadgetItem._heldGadget;
+        var gadget = pic._gadgetItem._heldGadget;
         var gadgetID =
             gadget
             ? NetworkActorManager.GetPersistentID(gadget.Cast<IdentifiableType>())
@@ -143,8 +162,8 @@ internal partial class NetworkPlayer
             Rotation = FootprintPrefabInstance.transform.rotation,
             GadgetLocalRotation = gadgetLocalRotation,
             CurrentGadget = gadgetID,
-            ValidPlacement = (PlayerItemController._gadgetItem._isPlacementValid &&
-                              !PlayerItemController._gadgetItem._isPlacementBlocked)
+            ValidPlacement = (pic._gadgetItem._isPlacementValid &&
+                              !pic._gadgetItem._isPlacementBlocked)
                               || gadgetID == -1,
         };
 
@@ -190,9 +209,11 @@ internal partial class NetworkPlayer
     {
         if (newMode)
         {
-            var footprintPrefab = PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintPrefab;
+            var pic = GetPlayerItemController();
+            if (pic == null) return;
+            var footprintPrefab = pic._gadgetItem._gadgetItemMetadata.GadgetFootprintPrefab;
             var footprintRendererPrefab =
-                PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintRendererPrefab;
+                pic._gadgetItem._gadgetItemMetadata.GadgetFootprintRendererPrefab;
             FootprintPrefabInstance = Instantiate(footprintPrefab);
             DontDestroyOnLoad(FootprintPrefabInstance);
 
@@ -212,9 +233,12 @@ internal partial class NetworkPlayer
 
     private void OnGadgetIDChanged(int gadgetID)
     {
+        var pic = GetPlayerItemController();
+        if (pic == null) return;
+
         if (gadgetID == -1)
         {
-            SetHeldGadget(PlayerItemController._gadgetItem, null);
+            SetHeldGadget(pic._gadgetItem, null);
             return;
         }
 
@@ -231,7 +255,7 @@ internal partial class NetworkPlayer
             return;
         }
 
-        SetHeldGadget(PlayerItemController._gadgetItem, definition);
+        SetHeldGadget(pic._gadgetItem, definition);
     }
 
     public void SetHeldGadget(GadgetItem self, GadgetDefinition? gadgetDefinition)

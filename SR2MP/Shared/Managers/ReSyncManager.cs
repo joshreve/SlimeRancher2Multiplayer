@@ -69,6 +69,9 @@ internal sealed class ReSyncManager
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
         SendPricesPacket(endPoint);
         SendWeatherPacket(endPoint);
+        SendPuzzleSlotsPacket(endPoint);
+        SendPlortDepositorsPacket(endPoint);
+        SendPrismaBarriersPacket(endPoint);
 
         // Send saved player inventory
         var playerData = SR2MP.Server.Managers.PlayerDataManager.Instance.GetPlayerData(playerId);
@@ -124,6 +127,9 @@ internal sealed class ReSyncManager
         var accessDoorsPacket  = CreateAccessDoorsPacket();
         var treasurePodsPacket = CreateTreasurePodsPacket();
         var pricesPacket       = CreatePricesPacket();
+        var puzzleSlotsPacket  = CreatePuzzleSlotsPacket();
+        var plortDepositorsPacket = CreatePlortDepositorsPacket();
+        var prismaBarriersPacket = CreatePrismaBarriersPacket();
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -156,6 +162,9 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(accessDoorsPacket,     client.EndPoint);
             Main.Server.SendToClient(treasurePodsPacket,    client.EndPoint);
             Main.Server.SendToClient(pricesPacket,          client.EndPoint);
+            Main.Server.SendToClient(puzzleSlotsPacket,     client.EndPoint);
+            Main.Server.SendToClient(plortDepositorsPacket, client.EndPoint);
+            Main.Server.SendToClient(prismaBarriersPacket,  client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
 
@@ -316,6 +325,63 @@ internal sealed class ReSyncManager
         }
 
         return new InitialAccessDoorsPacket { Doors = accessDoorsList };
+    }
+
+    private static void SendPuzzleSlotsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePuzzleSlotsPacket(), client);
+
+    private static InitialPuzzleSlotsPacket CreatePuzzleSlotsPacket()
+    {
+        var slotsList = new List<InitialPuzzleSlotsPacket.Slot>();
+
+        foreach (var slot in GameState.slots)
+        {
+            slotsList.Add(new InitialPuzzleSlotsPacket.Slot
+            {
+                ID = slot.Key,
+                Filled = slot.Value.filled
+            });
+        }
+
+        return new InitialPuzzleSlotsPacket { Slots = slotsList };
+    }
+
+    private static void SendPlortDepositorsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePlortDepositorsPacket(), client);
+
+    private static InitialPlortDepositorsPacket CreatePlortDepositorsPacket()
+    {
+        var depositorsList = new List<InitialPlortDepositorsPacket.Depositor>();
+
+        foreach (var depositor in GameState.depositors)
+        {
+            depositorsList.Add(new InitialPlortDepositorsPacket.Depositor
+            {
+                ID = depositor.Key,
+                AmountDeposited = depositor.Value.AmountDeposited
+            });
+        }
+
+        return new InitialPlortDepositorsPacket { Depositors = depositorsList };
+    }
+
+    private static void SendPrismaBarriersPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePrismaBarriersPacket(), client);
+
+    private static InitialPrismaBarriersPacket CreatePrismaBarriersPacket()
+    {
+        var barriersList = new List<InitialPrismaBarriersPacket.Barrier>();
+
+        foreach (var barrier in GameState.AllPrismaBarriers())
+        {
+            barriersList.Add(new InitialPrismaBarriersPacket.Barrier
+            {
+                ID = barrier.Key,
+                ActivationTime = barrier.Value.ActivationTime
+            });
+        }
+
+        return new InitialPrismaBarriersPacket { Barriers = barriersList };
     }
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
