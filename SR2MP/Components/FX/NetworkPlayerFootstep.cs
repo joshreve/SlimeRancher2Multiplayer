@@ -23,17 +23,32 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
     [UsedImplicitly]
     public void Awake()
     {
-        SpawnAtTransform = transform.GetChild(2);
+        if (transform.childCount > 2)
+            SpawnAtTransform = transform.GetChild(2);
+    }
+
+    private void TryInitializeParticles()
+    {
+        if (footstepParticles != null) return;
+
+        if (SpawnAtTransform == null && transform.childCount > 2)
+            SpawnAtTransform = transform.GetChild(2);
+
+        if (SpawnAtTransform == null) return;
+
         FootstepFX = FXManager.FootstepFX;
+        if (FootstepFX == null) return;
 
         FootstepFXInstance = Instantiate(FootstepFX, SpawnAtTransform.position, SpawnAtTransform.rotation);
         FootstepFXInstance.transform.SetParent(SpawnAtTransform.transform);
-
         footstepParticles = FootstepFXInstance.GetComponentInChildren<ParticleSystem>();
     }
 
     public void UpdateFXState()
     {
+        TryInitializeParticles();
+        if (footstepParticles == null) return;
+
         if (playerGrounded && !playerInWater)
             footstepParticles.Play(true);
         else
@@ -47,7 +62,10 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
             return;
 
         playerInWater = true;
-        footstepParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+
+        TryInitializeParticles();
+        if (footstepParticles != null)
+            footstepParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
     [UsedImplicitly]
@@ -58,7 +76,8 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
 
         playerInWater = false;
 
-        if (playerGrounded)
+        TryInitializeParticles();
+        if (playerGrounded && footstepParticles != null)
             footstepParticles.Play(true);
     }
 
