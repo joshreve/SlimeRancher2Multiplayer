@@ -106,6 +106,32 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 
             if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
             {
+                if (!System.IO.File.Exists("E:\\Users\\jashreve\\git\\SlimeRancher2Multiplayer\\vac_hierarchy_dump.txt"))
+                {
+                    try
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        sb.AppendLine("=== REMOTE PLAYER VAC HIERARCHY ===");
+                        DumpHierarchy(vacStandard, sb, "");
+                        
+                        if (SceneContext.Instance != null && SceneContext.Instance.Player != null)
+                        {
+                            var localVac = FindChildRecursive(SceneContext.Instance.Player.transform, "vacStandard");
+                            if (localVac != null)
+                            {
+                                sb.AppendLine("\n=== LOCAL PLAYER VAC HIERARCHY ===");
+                                DumpHierarchy(localVac, sb, "");
+                            }
+                        }
+                        
+                        System.IO.File.WriteAllText("E:\\Users\\jashreve\\git\\SlimeRancher2Multiplayer\\vac_hierarchy_dump.txt", sb.ToString());
+                    }
+                    catch (System.Exception ex)
+                    {
+                        System.IO.File.WriteAllText("E:\\Users\\jashreve\\git\\SlimeRancher2Multiplayer\\vac_hierarchy_dump.txt", ex.ToString());
+                    }
+                }
+
                 if (spiralRenderer != null)
                     spiralRenderer.gameObject.SetActive(true);
 
@@ -134,6 +160,43 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         if (interactionFX != null)
         {
             interactionFX.vacActive = (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning);
+        }
+    }
+
+    private static void DumpHierarchy(Transform t, System.Text.StringBuilder sb, string indent)
+    {
+        if (t == null) return;
+        sb.AppendLine($"{indent}GameObject: {t.name} (activeSelf={t.gameObject.activeSelf}, activeInHierarchy={t.gameObject.activeInHierarchy})");
+        var comps = t.GetComponents<Component>();
+        if (comps != null)
+        {
+            foreach (var comp in comps)
+            {
+                if (comp == null) continue;
+                sb.AppendLine($"{indent}  Component: {comp.GetIl2CppType().FullName}");
+                if (comp.GetIl2CppType().FullName == "UnityEngine.ParticleSystem")
+                {
+                    try
+                    {
+                        var ps = comp.Cast<ParticleSystem>();
+                        sb.AppendLine($"{indent}    ParticleSystem: isPlaying={ps.isPlaying}, isEmitting={ps.isEmitting}, particleCount={ps.particleCount}");
+                    }
+                    catch {}
+                }
+                else if (comp.GetIl2CppType().FullName == "UnityEngine.MeshRenderer" || comp.GetIl2CppType().FullName == "UnityEngine.SkinnedMeshRenderer")
+                {
+                    try
+                    {
+                        var r = comp.Cast<Renderer>();
+                        sb.AppendLine($"{indent}    Renderer: enabled={r.enabled}, sharedMaterial={r.sharedMaterial?.name}");
+                    }
+                    catch {}
+                }
+            }
+        }
+        for (int i = 0; i < t.childCount; i++)
+        {
+            DumpHierarchy(t.GetChild(i), sb, indent + "  ");
         }
     }
 
