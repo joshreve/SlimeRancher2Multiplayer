@@ -95,15 +95,25 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         var colorAnimator = vacStandard.GetComponent<Il2Cpp.VacColorAnimator>();
         if (colorAnimator != null)
         {
+            colorAnimator.enabled = false;
+
+            var spiralRenderer = colorAnimator.SpiralRenderer;
+            var mat = colorAnimator._vacSpiralMat;
+
             if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
             {
-                colorAnimator.SetVacActive(true);
-                colorAnimator.SetVacMode(true);
+                if (spiralRenderer != null)
+                    spiralRenderer.gameObject.SetActive(true);
+
+                if (mat != null)
+                {
+                    mat.SetColor(Il2Cpp.VacColorAnimator.PROPERTY_SPIRAL_COLOR, new Color(0.2f, 0.6f, 1.0f, 0.4f));
+                }
             }
             else if (fx == PlayerFXType.VacRunningEnd)
             {
-                colorAnimator.SetVacActive(false);
-                colorAnimator.SetVacMode(false);
+                if (spiralRenderer != null)
+                    spiralRenderer.gameObject.SetActive(false);
             }
         }
     }
