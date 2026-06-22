@@ -15,7 +15,14 @@ internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket
         var node = FindNode(packet.NodeId);
         if (node == null)
         {
-            SrLogger.LogWarning($"ResourceNode {packet.NodeId} not found!");
+            // If the server receives a state update but does not have the scene loaded,
+            // we should still relay it to other clients who might have the scene loaded.
+            if (Main.Server.IsRunning && !packet.RequestSpawn)
+            {
+                Main.Server.SendToAll(packet);
+            }
+
+            SrLogger.LogDebug($"ResourceNode {packet.NodeId} not found (likely unloaded on host)");
             return true;
         }
 
@@ -23,7 +30,7 @@ internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket
 
         if (Main.Server.IsRunning && packet.RequestSpawn)
         {
-            // Server spawns the actual item
+            // Server spawns the actual item (fallback for legacy clients)
             node.SpawnSingleResource();
             
             // Relay the packet to all clients so they wiggle the node in sync
@@ -37,13 +44,19 @@ internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket
         }
         else
         {
-            // Client wiggles or depletes the node based on state
+            // Client or Host wiggles or depletes the node based on state
             var model = node._model;
             if (model != null)
             {
                 var state = (Il2Cpp.ResourceNode.NodeState)packet.State;
                 model.nodeState = state;
                 node.UpdateForState();
+            }
+
+            if (Main.Server.IsRunning)
+            {
+                // Relay the state update to all clients
+                Main.Server.SendToAll(packet);
             }
         }
 

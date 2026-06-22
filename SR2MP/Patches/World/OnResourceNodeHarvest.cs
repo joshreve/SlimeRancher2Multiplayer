@@ -12,22 +12,9 @@ internal static class OnResourceNodeHarvest
         if (HandlingPacket)
             return true;
 
-        if (Main.Client.IsConnected)
-        {
-            var model = __instance._model;
-            if (model != null)
-            {
-                var packet = new ResourceNodePacket
-                {
-                    NodeId = model.nodeId,
-                    State = (byte)Il2Cpp.ResourceNode.NodeState.NONE,
-                    RequestSpawn = true
-                };
-                Main.Client.SendPacket(packet);
-            }
-            return false; // Skip local spawn on client to prevent duplication
-        }
-
-        return true; // Allow execution on server/host
+        // Allow execution on both client and host. This enables immediate client-side
+        // spawning, which supports harvesting in scenes unloaded by the host. The spawned 
+        // actor is automatically synchronized to other players via the OnActorSpawn patch.
+        return true;
     }
 }
