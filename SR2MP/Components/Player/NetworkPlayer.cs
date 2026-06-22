@@ -32,6 +32,9 @@ internal partial class NetworkPlayer : MonoBehaviour
     // private MeshRenderer[] renderers;
     private Collider collider;
 
+    public Packets.FX.PlayerFXPacket.PlayerFXType LastVacFX = Packets.FX.PlayerFXPacket.PlayerFXType.VacRunningEnd;
+    public bool HasPendingVacFXUpdate = false;
+
     public int previousScene;
     
     public Vector3 previousPosition;
@@ -209,6 +212,16 @@ internal partial class NetworkPlayer : MonoBehaviour
 
                 var targetRot = Quaternion.Euler(0, networkYaw, 0);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, blendSpeed);
+            }
+        }
+
+        if (HasPendingVacFXUpdate)
+        {
+            var vacStandard = Handlers.FX.PlayerFXHandler.FindChildRecursive(transform, "vacStandard");
+            if (vacStandard != null)
+            {
+                HasPendingVacFXUpdate = false;
+                Handlers.FX.PlayerFXHandler.ApplyVacFX(gameObject, LastVacFX);
             }
         }
 

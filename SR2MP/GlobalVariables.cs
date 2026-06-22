@@ -13,6 +13,11 @@ namespace SR2MP;
 public static class GlobalVariables
 {
     /// <summary>
+    /// The maximum distance in meters for synchronizing world states and network actors.
+    /// </summary>
+    public const float MaxSyncDistance = 120f;
+
+    /// <summary>
     /// Gets or sets a value indicating whether development mode is currently active.
     /// </summary>
     public static bool DevMode { get; } = true;

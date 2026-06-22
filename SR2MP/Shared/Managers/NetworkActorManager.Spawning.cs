@@ -5,6 +5,7 @@ using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
+using UnityEngine;
 
 namespace SR2MP.Shared.Managers;
 
@@ -756,18 +757,22 @@ internal sealed partial class NetworkActorManager
         }
         
         HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActor(
-            type.prefab,
-            scene,
-            position,
-            rotation,
-            false,
-            SlimeAppearance.AppearanceSaveSet.NONE,
-            SlimeAppearance.AppearanceSaveSet.NONE,
-            new Il2CppSystem.Nullable<Il2CppMonomiPark.SlimeRancher.Player.AmmoSlot.AmmoMetadata>(),
-            false,
-            false
-        );
+        GameObject actor = null;
+        using (new ActorIdProtectionScope())
+        {
+            actor = InstantiationHelpers.InstantiateActor(
+                type.prefab,
+                scene,
+                position,
+                rotation,
+                false,
+                SlimeAppearance.AppearanceSaveSet.NONE,
+                SlimeAppearance.AppearanceSaveSet.NONE,
+                new Il2CppSystem.Nullable<Il2CppMonomiPark.SlimeRancher.Player.AmmoSlot.AmmoMetadata>(),
+                false,
+                false
+            );
+        }
         HandlingPacket = false;
         
         if (!actor)
@@ -836,18 +841,22 @@ internal sealed partial class NetworkActorManager
         }
         
         HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActor(
-            type.prefab,
-            scene,
-            position,
-            rotation,
-            false,
-            SlimeAppearance.AppearanceSaveSet.NONE,
-            SlimeAppearance.AppearanceSaveSet.NONE,
-            new Il2CppSystem.Nullable<Il2CppMonomiPark.SlimeRancher.Player.AmmoSlot.AmmoMetadata>(),
-            false,
-            false
-        );
+        GameObject actor = null;
+        using (new ActorIdProtectionScope())
+        {
+            actor = InstantiationHelpers.InstantiateActor(
+                type.prefab,
+                scene,
+                position,
+                rotation,
+                false,
+                SlimeAppearance.AppearanceSaveSet.NONE,
+                SlimeAppearance.AppearanceSaveSet.NONE,
+                new Il2CppSystem.Nullable<Il2CppMonomiPark.SlimeRancher.Player.AmmoSlot.AmmoMetadata>(),
+                false,
+                false
+            );
+        }
         HandlingPacket = false;
         
         if (!actor)

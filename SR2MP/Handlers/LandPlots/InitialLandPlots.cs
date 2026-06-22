@@ -4,6 +4,7 @@ using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
 using SR2MP.Components.LandPlots;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Handlers.LandPlots;
 
@@ -64,7 +65,11 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                     HandlingPacket = true;
                     if (gardenCatcher.CanAccept(actor))
                     {
-                        var plantedObject = gardenCatcher.Plant(actor, true);
+                        GameObject plantedObject = null;
+                        using (new ActorIdProtectionScope())
+                        {
+                            plantedObject = gardenCatcher.Plant(actor, true);
+                        }
 
                         if (plantedObject != null)
                         {

@@ -4,6 +4,7 @@ using SR2MP.Handlers.Internal;
 using SR2MP.Packets.FX;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
+using Starlight.Storage;
 
 namespace SR2MP.Handlers.FX;
 
@@ -45,18 +46,20 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                 }
 
                 var remotePlayer = PlayerObjects[packet.Player];
-                UpdateVacAnimator(remotePlayer, packet.FX);
-                var vacFX = GetOrCreateVacFX(remotePlayer);
-                if (vacFX != null)
+                var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
+                if (vacStandard == null)
                 {
-                    if (packet.FX == PlayerFXType.VacRunningStart || packet.FX == PlayerFXType.VacRunning)
+                    var netPlayer = remotePlayer.GetComponent<SR2MP.Components.Player.NetworkPlayer>();
+                    if (netPlayer != null)
                     {
-                        vacFX.SetActive(true);
+                        netPlayer.LastVacFX = packet.FX;
+                        netPlayer.HasPendingVacFXUpdate = true;
+                        SrLogger.LogMessage($"[PlayerFXHandler] Player model not fully loaded yet. Caching pending vac FX: {packet.FX} for player: {packet.Player}");
                     }
-                    else if (packet.FX == PlayerFXType.VacRunningEnd)
-                    {
-                        vacFX.SetActive(false);
-                    }
+                }
+                else
+                {
+                    ApplyVacFX(remotePlayer, packet.FX);
                 }
             }
         }
@@ -72,8 +75,34 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         return true;
     }
 
+    internal static void ApplyVacFX(GameObject remotePlayer, PlayerFXType fx)
+    {
+        UpdateVacAnimator(remotePlayer, fx);
+        var vacFX = GetOrCreateVacFX(remotePlayer);
+        if (vacFX != null)
+        {
+            bool active = (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning);
+
+            var modifier = vacFX.GetComponent<RemoteVacFXModifier>();
+            if (modifier != null)
+            {
+                modifier.VacActive = active;
+            }
+
+            var anim = vacFX.GetComponent<Animator>();
+            if (anim != null)
+            {
+                anim.SetBool("active", active);
+                anim.SetBool("vacMode", active);
+            }
+
+            vacFX.SetActive(active);
+        }
+    }
+
     private static void UpdateVacAnimator(GameObject remotePlayer, PlayerFXType fx)
     {
+        /*
         if (!hasDumpedHierarchy)
         {
             hasDumpedHierarchy = true;
@@ -87,27 +116,59 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             }
             SrLogger.LogMessage("=== END ROOT HIERARCHY DUMP ===");
         }
+        */
 
         var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
         if (vacStandard == null) return;
 
-        var animator = vacStandard.GetComponent<Animator>();
+        var animator = remotePlayer.GetComponentInChildren<Animator>();
         if (animator != null)
         {
-            if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
+            /*
+            if (!hasDumpedWeaponAnimator)
             {
-                animator.SetInteger("vacMode", 1);
-                animator.SetBool("active", true);
+                hasDumpedWeaponAnimator = true;
+                try
+                {
+                    SrLogger.LogMessage($"=== PLAYER MAIN ANIMATOR PARAMETERS (count={animator.parameterCount}) ===");
+                    for (int i = 0; i < animator.parameterCount; i++)
+                    {
+                        var param = animator.GetParameter(i);
+                        SrLogger.LogMessage($"  Param {i}: name={param.name}, type={param.type}");
+                    }
+                    SrLogger.LogMessage("=== END PLAYER MAIN ANIMATOR PARAMETERS ===");
+                }
+                catch (System.Exception ex)
+                {
+                    SrLogger.LogError("Error dumping main player animator parameters: " + ex.ToString());
+                }
             }
-            else if (fx == PlayerFXType.VacRunningEnd)
+            */
+            
+            try
             {
-                animator.SetInteger("vacMode", 0);
-                animator.SetBool("active", false);
+                if (fx == PlayerFXType.VacRunningStart || fx == PlayerFXType.VacRunning)
+                {
+                    try { animator.SetInteger("vacMode", 1); } catch {}
+                    try { animator.SetBool("vacMode", true); } catch {}
+                    try { animator.SetBool("active", true); } catch {}
+                }
+                else if (fx == PlayerFXType.VacRunningEnd)
+                {
+                    try { animator.SetInteger("vacMode", 0); } catch {}
+                    try { animator.SetBool("vacMode", false); } catch {}
+                    try { animator.SetBool("active", false); } catch {}
+                }
+                else if (fx == PlayerFXType.VacShoot || fx == PlayerFXType.VacShootSound)
+                {
+                    try { animator.SetInteger("vacMode", 2); } catch {}
+                    try { animator.SetBool("vacMode", true); } catch {}
+                    try { animator.SetBool("active", true); } catch {}
+                }
             }
-            else if (fx == PlayerFXType.VacShoot || fx == PlayerFXType.VacShootSound)
+            catch (System.Exception ex)
             {
-                animator.SetInteger("vacMode", 2);
-                animator.SetBool("active", true);
+                SrLogger.LogDebug($"Failed to set main animator parameters: {ex}");
             }
         }
 
@@ -202,7 +263,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         }
     }
 
-    private static Transform? FindChildRecursive(Transform parent, string name)
+    internal static Transform? FindChildRecursive(Transform parent, string name)
     {
         if (parent.name == name) return parent;
         for (int i = 0; i < parent.childCount; i++)
@@ -218,7 +279,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
         if (vacStandard == null) return null;
 
-        var remoteVacFX = FindChildRecursive(vacStandard, "RemoteVacFX");
+        var remoteVacFX = FindChildRecursive(vacStandard, "VacFX");
         if (remoteVacFX != null) return remoteVacFX.gameObject;
 
         if (SceneContext.Instance == null || SceneContext.Instance.Player == null) return null;
@@ -231,11 +292,104 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         var targetParent = FindChildRecursive(remotePlayer.transform, localParentName) ?? vacStandard;
 
         var clonedFX = Object.Instantiate(localVacFX, targetParent);
-        clonedFX.name = "RemoteVacFX";
+        clonedFX.name = "VacFX";
         clonedFX.transform.localPosition = localVacFX.transform.localPosition;
         clonedFX.transform.localRotation = localVacFX.transform.localRotation;
         clonedFX.transform.localScale = localVacFX.transform.localScale;
 
+        SetLayerRecursive(clonedFX, 0);
+
+        var anim = clonedFX.GetComponent<Animator>();
+        if (anim != null)
+        {
+            anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
+
+        var modifier = clonedFX.AddComponent<RemoteVacFXModifier>();
+        if (modifier != null)
+        {
+            modifier.VacActive = false;
+        }
+
         return clonedFX;
+    }
+
+    private static void SetLayerRecursive(GameObject obj, int layer)
+    {
+        if (obj == null) return;
+        obj.layer = layer;
+        for (int i = 0; i < obj.transform.childCount; i++)
+        {
+            var child = obj.transform.GetChild(i);
+            if (child != null)
+            {
+                SetLayerRecursive(child.gameObject, layer);
+            }
+        }
+    }
+
+    private static bool hasDumpedWeaponAnimator = false;
+}
+
+[InjectIntoIL]
+internal sealed class RemoteVacFXModifier : MonoBehaviour
+{
+    public bool VacActive;
+
+    private ParticleSystem[] _particleSystems;
+    private Renderer[] _renderers;
+    private Transform[] _transforms;
+
+    private void Start()
+    {
+        _particleSystems = GetComponentsInChildren<ParticleSystem>(true);
+        _renderers = GetComponentsInChildren<Renderer>(true);
+        _transforms = GetComponentsInChildren<Transform>(true);
+    }
+
+    private void LateUpdate()
+    {
+        if (_transforms != null)
+        {
+            for (int i = 0; i < _transforms.Length; i++)
+            {
+                var t = _transforms[i];
+                if (t != null)
+                    t.gameObject.layer = 0;
+            }
+        }
+
+        if (_particleSystems != null)
+        {
+            for (int i = 0; i < _particleSystems.Length; i++)
+            {
+                var ps = _particleSystems[i];
+                if (ps == null) continue;
+                
+                ps.gameObject.SetActive(VacActive);
+                
+                if (VacActive)
+                {
+                    if (!ps.isPlaying)
+                        ps.Play();
+                }
+                else
+                {
+                    if (ps.isPlaying)
+                        ps.Stop();
+                }
+            }
+        }
+
+        if (_renderers != null)
+        {
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                var r = _renderers[i];
+                if (r == null) continue;
+                r.gameObject.SetActive(VacActive);
+                r.enabled = VacActive;
+            }
+        }
     }
 }

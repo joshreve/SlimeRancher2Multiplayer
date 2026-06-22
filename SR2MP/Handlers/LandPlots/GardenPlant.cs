@@ -2,6 +2,7 @@ using System.Net;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.LandPlots;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Handlers.LandPlots;
 
@@ -36,7 +37,12 @@ internal sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
 
             HandlingPacket = true;
             if (garden.CanAccept(actor))
-                garden.Plant(actor, true);
+            {
+                using (new ActorIdProtectionScope())
+                {
+                    garden.Plant(actor, true);
+                }
+            }
             HandlingPacket = false;
         }
 

@@ -223,7 +223,7 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
             UpdatePolation();
 
-            if (LocallyOwned)
+            if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
                 SendStateUpdate();
 
             SyncTimer -= UnityEngine.Time.unscaledDeltaTime;
@@ -233,7 +233,7 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
             SyncTimer = Timers.ActorTimer;
 
-            if (LocallyOwned)
+            if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
                 SendWorldUpdate();
         }
         catch (Exception ex)
@@ -303,5 +303,23 @@ internal sealed partial class NetworkActor : MonoBehaviour
                 // ignored
             }
         }
+    }
+
+    private bool IsCloseToAnyPlayer(float maxDistance)
+    {
+        if (SceneContext.Instance == null || SceneContext.Instance.player == null)
+            return false;
+
+        var localPlayerPos = SceneContext.Instance.player.transform.position;
+        if (Vector3.SqrMagnitude(localPlayerPos - transform.position) <= maxDistance * maxDistance)
+            return true;
+
+        foreach (var remotePlayer in PlayerManager.GetAllPlayers())
+        {
+            if (Vector3.SqrMagnitude(remotePlayer.Position - transform.position) <= maxDistance * maxDistance)
+                return true;
+        }
+
+        return false;
     }
 }
