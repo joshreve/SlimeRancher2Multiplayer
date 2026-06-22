@@ -27,6 +27,15 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
             // SR2MPClient.StartHeartbeat();
             Main.Client.NotifyConnected();
 
+            try
+            {
+                SR2MP.Patches.Player.TutorialBypassHelper.CleanUpTutorials();
+            }
+            catch (System.Exception ex)
+            {
+                SrLogger.LogError($"Failed to cleanup tutorials on connection approval: {ex}");
+            }
+
             SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})");
 
             CheatsEnabled = packet.AllowCheats;
