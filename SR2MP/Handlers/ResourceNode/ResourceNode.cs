@@ -10,54 +10,93 @@ namespace SR2MP.Handlers.ResourceNode;
 [PacketHandler((byte)PacketType.ResourceNode)]
 internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket>
 {
-    protected override bool Handle(ResourceNodePacket packet, IPEndPoint? _)
+    protected override bool Handle(ResourceNodePacket packet, IPEndPoint? sender)
     {
         var node = FindNode(packet.NodeId);
+
+        // --- Host receives RequestSpawn from a client ---
+        if (Main.Server.IsRunning && packet.RequestSpawn)
+        {
+            if (node != null)
+            {
+                // Host has the scene loaded — spawn the loot locally.
+                // The spawned actor flows through OnActorSpawn → ActorSpawnPacket relay.
+                HandlingPacket = true;
+                node.SpawnSingleResource();
+                HandlingPacket = false;
+
+                // Relay a non-spawn state update to all clients so they wiggle the node in sync
+                var relayPacket = new ResourceNodePacket
+                {
+                    NodeId = packet.NodeId,
+                    State = (byte)Il2Cpp.ResourceNode.NodeState.HARVESTING,
+                    RequestSpawn = false
+                };
+                Main.Server.SendToAll(relayPacket);
+            }
+            else
+            {
+                // Host does NOT have the scene loaded. Relay the RequestSpawn back to
+                // ALL clients — the client that has the node loaded will execute the spawn.
+                // This is a temporary delegation until ScenePresenceManager (Phase 2) enables
+                // targeted delegation to the specific peer with the scene loaded.
+                Main.Server.SendToAll(packet);
+            }
+
+            return true;
+        }
+
+        // --- Client receives relayed RequestSpawn (host didn't have scene loaded) ---
+        if (!Main.Server.IsRunning && packet.RequestSpawn)
+        {
+            if (node != null)
+            {
+                // This client has the scene loaded — execute the spawn locally.
+                // The spawned actor flows through OnActorSpawn → ActorSpawnPacket → host relay.
+                node.SpawnSingleResource();
+
+                // Send state update (non-spawn) to host for relay to other clients
+                var statePacket = new ResourceNodePacket
+                {
+                    NodeId = packet.NodeId,
+                    State = (byte)Il2Cpp.ResourceNode.NodeState.HARVESTING,
+                    RequestSpawn = false
+                };
+                Main.Client.SendPacket(statePacket);
+            }
+            // If this client also doesn't have the node, silently ignore — another client will handle it.
+
+            return true;
+        }
+
+        // --- State update (non-spawn): wiggle or deplete the node ---
         if (node == null)
         {
-            // If the server receives a state update but does not have the scene loaded,
-            // we should still relay it to other clients who might have the scene loaded.
-            if (Main.Server.IsRunning && !packet.RequestSpawn)
+            // Host relays state updates even when the node isn't locally loaded,
+            // so other clients who do have it can apply the visual state.
+            if (Main.Server.IsRunning)
             {
                 Main.Server.SendToAll(packet);
             }
 
-            SrLogger.LogDebug($"ResourceNode {packet.NodeId} not found (likely unloaded on host)");
+            SrLogger.LogDebug($"ResourceNode {packet.NodeId} not found (likely unloaded)");
             return true;
         }
 
         HandlingPacket = true;
 
-        if (Main.Server.IsRunning && packet.RequestSpawn)
+        var model = node._model;
+        if (model != null)
         {
-            // Server spawns the actual item (fallback for legacy clients)
-            node.SpawnSingleResource();
-            
-            // Relay the packet to all clients so they wiggle the node in sync
-            var relayPacket = new ResourceNodePacket
-            {
-                NodeId = packet.NodeId,
-                State = (byte)Il2Cpp.ResourceNode.NodeState.HARVESTING,
-                RequestSpawn = false
-            };
-            Main.Server.SendToAll(relayPacket);
+            var state = (Il2Cpp.ResourceNode.NodeState)packet.State;
+            model.nodeState = state;
+            node.UpdateForState();
         }
-        else
-        {
-            // Client or Host wiggles or depletes the node based on state
-            var model = node._model;
-            if (model != null)
-            {
-                var state = (Il2Cpp.ResourceNode.NodeState)packet.State;
-                model.nodeState = state;
-                node.UpdateForState();
-            }
 
-            if (Main.Server.IsRunning)
-            {
-                // Relay the state update to all clients
-                Main.Server.SendToAll(packet);
-            }
+        if (Main.Server.IsRunning)
+        {
+            // Relay the state update to all clients
+            Main.Server.SendToAll(packet);
         }
 
         HandlingPacket = false;

@@ -12,9 +12,30 @@ internal static class OnResourceNodeHarvest
         if (HandlingPacket)
             return true;
 
-        // Allow execution on both client and host. This enables immediate client-side
-        // spawning, which supports harvesting in scenes unloaded by the host. The spawned 
-        // actor is automatically synchronized to other players via the OnActorSpawn patch.
-        return true;
+        // If not in a multiplayer session, allow normal vanilla behavior.
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+            return true;
+
+        // Host always spawns locally — it is the spawn authority when it has the scene loaded.
+        if (Main.Server.IsRunning)
+            return true;
+
+        // Client: delegate spawn to the host via RequestSpawn.
+        // The host (or scene-owner, in a future phase) will execute the spawn
+        // and relay the result to all clients via ActorSpawnPacket.
+        // This prevents duplicate loot drops when both client and host spawn independently.
+        var model = __instance._model;
+        if (model != null)
+        {
+            var packet = new ResourceNodePacket
+            {
+                NodeId = model.nodeId,
+                State = (byte)Il2Cpp.ResourceNode.NodeState.HARVESTING,
+                RequestSpawn = true
+            };
+            Main.Client.SendPacket(packet);
+        }
+
+        return false;
     }
 }
