@@ -57,6 +57,7 @@ public static class GlobalVariables
 
     internal static readonly RemoteFXManager FXManager = new();
     internal static readonly NetworkActorManager ActorManager = new();
+    internal static readonly ScenePresenceManager ScenePresenceManager = new();
 
     // To prevent stuff from being stuck in an infinite sending loop
     /// <summary>

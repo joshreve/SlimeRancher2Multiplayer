@@ -80,6 +80,7 @@ internal enum PacketType : byte
     InitialPuzzleSlots = 89,
     InitialPlortDepositors = 90,
     InitialPrismaBarriers = 91,
+    ScenePresence = 92,
     ModSync = 100,                // Server -> Client                             Low (manual)                          Sync Mod names on incompatible mod
     ModSyncAck = 101,             // Client -> Server                             Low (manual)                          Mod names on incompatible mod
     ApiCall = 253,                // Both Ways                                    Variable                              Backing for mod's api packets

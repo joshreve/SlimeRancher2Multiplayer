@@ -2,6 +2,7 @@ using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
+using SR2MP.Packets.Loading;
 
 namespace SR2MP.Shared.Managers;
 
@@ -26,6 +27,8 @@ internal sealed partial class NetworkActorManager
         StartCoroutine(ZoneLoadingLoop());
     }
 
+    private int _previousSceneGroupId = -1;
+
     private IEnumerator ZoneLoadingLoop()
     {
         while (true)
@@ -44,6 +47,10 @@ internal sealed partial class NetworkActorManager
                 continue;
 
             var scene = SystemContext.Instance.SceneLoader.CurrentSceneGroup;
+            var currentSceneGroupId = NetworkSceneManager.GetPersistentID(scene);
+
+            // Broadcast scene presence changes for spawn delegation and ownership.
+            BroadcastScenePresence(currentSceneGroupId);
 
             foreach (var actor in gameModel!.identifiables)
             {
@@ -151,5 +158,31 @@ internal sealed partial class NetworkActorManager
             yield return null;
             i = 0;
         }
+    }
+
+    private void BroadcastScenePresence(int currentSceneGroupId)
+    {
+        if (_previousSceneGroupId != -1 && _previousSceneGroupId != currentSceneGroupId)
+        {
+            var exitPacket = new ScenePresencePacket
+            {
+                PlayerId = LocalID,
+                SceneGroupId = _previousSceneGroupId,
+                Entered = false
+            };
+            GlobalVariables.ScenePresenceManager.OnPlayerExitedScene(LocalID, _previousSceneGroupId);
+            Main.SendToAllOrServer(exitPacket);
+        }
+
+        var enterPacket = new ScenePresencePacket
+        {
+            PlayerId = LocalID,
+            SceneGroupId = currentSceneGroupId,
+            Entered = true
+        };
+        GlobalVariables.ScenePresenceManager.OnPlayerEnteredScene(LocalID, currentSceneGroupId);
+        Main.SendToAllOrServer(enterPacket);
+
+        _previousSceneGroupId = currentSceneGroupId;
     }
 }

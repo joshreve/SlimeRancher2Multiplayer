@@ -233,6 +233,7 @@ public sealed class SR2MPServer
             PacketDeduplication.Clear();
             ClientManager.Clear();
             PlayerManager.Clear();
+            GlobalVariables.ScenePresenceManager.Clear();
             NetworkManager.Stop();
             NetworkStringPool.Clear();
             ApiHandlers.ClearNetIds();
