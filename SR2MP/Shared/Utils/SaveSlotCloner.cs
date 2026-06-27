@@ -8,7 +8,7 @@ namespace SR2MP.Shared.Utils;
 
 internal static class SaveSlotCloner
 {
-    private static readonly Regex SaveFileRegex = new(@"^(\d{14})_(\d+)_(\d+)\.sav$", RegexOptions.Compiled);
+    private static readonly Regex SaveFileRegex = new(@"^(\d+)_(\d+)(?:_(\d+))?\.sav$", RegexOptions.Compiled);
 
     public static string GetSaveDirectory()
     {
@@ -131,8 +131,6 @@ internal static class SaveSlotCloner
             // Read source file bytes
             var fileBytes = File.ReadAllBytes(sourcePath);
 
-            // Extract source timestamp and slot from filename
-            // Filename format: YYYYMMDDHHMMSS_S_X.sav
             var match = SaveFileRegex.Match(Path.GetFileName(sourcePath));
             if (!match.Success)
             {
@@ -140,22 +138,8 @@ internal static class SaveSlotCloner
                 return false;
             }
 
-            var timestampPart = match.Groups[1].Value; // e.g. YYYYMMDDHHMMSS
-            var slotPart = match.Groups[2].Value;      // e.g. slot number (1-indexed)
-
-            // The save name string stored inside is: [timestamp]_[slot] (e.g. YYYYMMDDHHMMSS_S)
-            var internalSaveName = $"{timestampPart}_{slotPart}";
-            var searchPattern = Encoding.ASCII.GetBytes(internalSaveName);
-
-            // Find pattern index
-            var matchIndex = FindPatternIndex(fileBytes, searchPattern);
-            if (matchIndex == -1)
-            {
-                // Fallback: try searching for just the timestamp part followed by underscore
-                var fallbackPattern = Encoding.ASCII.GetBytes($"{timestampPart}_");
-                matchIndex = FindPatternIndex(fileBytes, fallbackPattern);
-            }
-
+            // Find internal metadata offset dynamically by scanning bytes
+            var matchIndex = FindMetadataOffset(fileBytes);
             if (matchIndex == -1)
             {
                 statusMessage = "Could not locate save metadata inside the file.";
@@ -191,9 +175,10 @@ internal static class SaveSlotCloner
                 fileBytes[matchIndex + 18] = newSlotByte;
             }
 
-            // Write to new file: [NewTimestamp]_[TargetSlot1Indexed]_1.sav
+            // Write to new file preserving original sub-number if any
             var targetSlot1Indexed = targetSlot0Indexed + 1;
-            var destFileName = $"{newTimestamp}_{targetSlot1Indexed}_1.sav";
+            var subNumber = (match.Groups.Count > 3 && match.Groups[3].Success) ? match.Groups[3].Value : "1";
+            var destFileName = $"{newTimestamp}_{targetSlot1Indexed}_{subNumber}.sav";
             var destPath = Path.Combine(dir, destFileName);
 
             File.WriteAllBytes(destPath, fileBytes);
@@ -261,18 +246,8 @@ internal static class SaveSlotCloner
             }
 
             var timestampPart = match.Groups[1].Value;
-            var slotPart = match.Groups[2].Value;
 
-            var internalSaveName = $"{timestampPart}_{slotPart}";
-            var searchPattern = Encoding.ASCII.GetBytes(internalSaveName);
-
-            var matchIndex = FindPatternIndex(fileBytes, searchPattern);
-            if (matchIndex == -1)
-            {
-                var fallbackPattern = Encoding.ASCII.GetBytes($"{timestampPart}_");
-                matchIndex = FindPatternIndex(fileBytes, fallbackPattern);
-            }
-
+            var matchIndex = FindMetadataOffset(fileBytes);
             if (matchIndex == -1)
             {
                 SrLogger.LogWarning("Could not find save metadata offset; writing bytes unmodified.");
@@ -302,7 +277,8 @@ internal static class SaveSlotCloner
             }
 
             var targetSlot1Indexed = targetSlot0Indexed + 1;
-            targetFileNameWithoutExtension = $"{timestampPart}_{targetSlot1Indexed}_1";
+            var subNumber = (match.Groups.Count > 3 && match.Groups[3].Success) ? match.Groups[3].Value : "1";
+            targetFileNameWithoutExtension = $"{timestampPart}_{targetSlot1Indexed}_{subNumber}";
             var destPath = Path.Combine(dir, $"{targetFileNameWithoutExtension}.sav");
 
             File.WriteAllBytes(destPath, fileBytes);
@@ -313,6 +289,36 @@ internal static class SaveSlotCloner
             SrLogger.LogError($"Failed to process and write save bytes: {ex}");
             return false;
         }
+    }
+
+    private static int FindMetadataOffset(byte[] fileBytes)
+    {
+        if (fileBytes == null || fileBytes.Length < 16)
+            return -1;
+
+        // Search for a sequence of 14 digits, followed by '_', followed by a digit
+        // Digits are ASCII 0x30 to 0x39. '_' is 0x5F.
+        for (int i = 0; i <= fileBytes.Length - 16; i++)
+        {
+            bool isMatch = true;
+            for (int j = 0; j < 14; j++)
+            {
+                byte b = fileBytes[i + j];
+                if (b < 0x30 || b > 0x39)
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+            if (isMatch)
+            {
+                if (fileBytes[i + 14] == 0x5F && fileBytes[i + 15] >= 0x30 && fileBytes[i + 15] <= 0x39)
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     private static int FindPatternIndex(byte[] src, byte[] pattern)
