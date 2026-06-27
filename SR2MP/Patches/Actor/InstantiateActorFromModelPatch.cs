@@ -10,15 +10,15 @@ namespace SR2MP.Patches.Actor;
 [HarmonyPatch(typeof(InstantiationHelpers), nameof(InstantiationHelpers.InstantiateActorFromModel))]
 internal static class InstantiateActorFromModelPatch
 {
-    public static void Postfix(ActorModel model, ref GameObject __result)
+    public static void Postfix(ActorModel actorModel, ref GameObject __result)
     {
         if (HandlingPacket) return;
 
         if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
 
-        if (__result == null || model == null) return;
+        if (__result == null || actorModel == null) return;
 
-        var actorId = model.actorId;
+        var actorId = actorModel.actorId;
         if (actorId.Value == 0) return;
 
         var networkComponent = __result.GetComponent<NetworkActor>();
@@ -33,7 +33,7 @@ internal static class InstantiateActorFromModelPatch
             networkComponent.nextRotation = __result.transform.rotation;
         }
 
-        var identModel = model.TryCast<IdentifiableModel>();
+        var identModel = actorModel.TryCast<IdentifiableModel>();
         if (identModel != null)
         {
             GlobalVariables.ActorManager.Actors[actorId.Value] = identModel;
