@@ -12,18 +12,21 @@ internal sealed class TreasurePodHandler : BasePacketHandler<TreasurePodPacket>
     {
         if (!GameState.pods.TryGetValue("pod" + packet.ID, out var model)) return true;
 
-        HandlingPacket = true;
-        try
+        if (model.state == null || model.state.Value != Il2Cpp.TreasurePod.State.OPEN)
         {
-            model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
-        }
-        catch (System.Exception ex)
-        {
-            SrLogger.LogWarning($"Failed to activate treasure pod {packet.ID}: {ex.Message}");
-        }
-        finally
-        {
-            HandlingPacket = false;
+            HandlingPacket = true;
+            try
+            {
+                model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
+            }
+            catch (System.Exception ex)
+            {
+                SrLogger.LogWarning($"Failed to activate treasure pod {packet.ID}: {ex.Message}");
+            }
+            finally
+            {
+                HandlingPacket = false;
+            }
         }
 
         model.state = new ObservableValue<Il2Cpp.TreasurePod.State>(

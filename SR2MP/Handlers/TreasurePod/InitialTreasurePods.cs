@@ -15,7 +15,7 @@ internal sealed class InitialTreasurePodsHandler : BasePacketHandler<InitialTrea
             if (!GameState.pods.TryGetValue("pod" + podId, out var model))
                 continue;
 
-            if (podState == Il2Cpp.TreasurePod.State.OPEN)
+            if (podState == Il2Cpp.TreasurePod.State.OPEN && (model.state == null || model.state.Value != Il2Cpp.TreasurePod.State.OPEN))
             {
                 HandlingPacket = true;
                 try
