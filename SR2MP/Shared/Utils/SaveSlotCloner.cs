@@ -232,31 +232,56 @@ internal static class SaveSlotCloner
     public static byte[] ReadActiveSaveBytes(out string saveName)
     {
         saveName = string.Empty;
-        var summary = GameContext.Instance?.AutoSaveDirector?.TryGetCurrentGameSummary();
-        if (summary == null)
+        var director = GameContext.Instance?.AutoSaveDirector;
+        if (director == null)
         {
-            SrLogger.LogWarning("No active save summary found.");
+            SrLogger.LogWarning("AutoSaveDirector is null during ReadActiveSaveBytes.");
             return Array.Empty<byte>();
         }
 
-        saveName = summary.SaveName;
+        var summary = director.TryGetCurrentGameSummary();
+        string? targetSaveName = summary?.SaveName;
+
+        if (string.IsNullOrEmpty(targetSaveName))
+        {
+            targetSaveName = director.CurrentSaveGameName();
+            SrLogger.LogMessage($"[ReadActiveSaveBytes] TryGetCurrentGameSummary returned null. Falling back to CurrentSaveGameName(): '{targetSaveName}'");
+        }
+
+        if (string.IsNullOrEmpty(targetSaveName))
+        {
+            SrLogger.LogWarning("No active save summary or save name found.");
+            return Array.Empty<byte>();
+        }
+
+        saveName = targetSaveName;
         var dir = GetSaveDirectory();
         if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
-            return Array.Empty<byte>();
-
-        var path = Path.Combine(dir, $"{saveName}.sav");
-        if (File.Exists(path))
         {
-            try
-            {
-                return File.ReadAllBytes(path);
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogError($"Error reading active save file: {ex}");
-            }
+            SrLogger.LogWarning($"Save directory not found during ReadActiveSaveBytes: {dir}");
+            return Array.Empty<byte>();
         }
 
+        try
+        {
+            var files = Directory.GetFiles(dir, "*.sav");
+            foreach (var f in files)
+            {
+                var fileName = Path.GetFileNameWithoutExtension(f);
+                if (fileName.Equals(targetSaveName, StringComparison.OrdinalIgnoreCase) || 
+                    fileName.StartsWith(targetSaveName + "_", StringComparison.OrdinalIgnoreCase))
+                {
+                    SrLogger.LogMessage($"[ReadActiveSaveBytes] Found matching active save file: {f}");
+                    return File.ReadAllBytes(f);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Error reading active save bytes: {ex.Message}");
+        }
+
+        SrLogger.LogWarning($"Could not find matching .sav file for active save name '{targetSaveName}' in directory '{dir}'");
         return Array.Empty<byte>();
     }
 
