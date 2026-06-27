@@ -15,12 +15,15 @@ internal struct SaveFilePacket : IPacket
     public readonly void Serialise(PacketWriter writer)
     {
         writer.WriteString(OriginalSaveName);
-        writer.WriteArray(SaveBytes, (w, b) => w.WriteByte(b));
+        writer.WritePackedInt(SaveBytes.Length);
+        writer.WriteSpan(SaveBytes);
     }
 
     public void Deserialise(PacketReader reader)
     {
         OriginalSaveName = reader.ReadString() ?? string.Empty;
-        SaveBytes = reader.ReadArray(r => r.ReadByte()) ?? Array.Empty<byte>();
+        var length = reader.ReadPackedInt();
+        SaveBytes = new byte[length];
+        reader.ReadToSpan(SaveBytes);
     }
 }
