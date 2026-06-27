@@ -316,9 +316,18 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         var clonedFX = Object.Instantiate(localVacFX, targetParent);
         clonedFX.name = "VacFX";
 
-        clonedFX.transform.localPosition = localVacFX.transform.localPosition;
-        clonedFX.transform.localRotation = localVacFX.transform.localRotation;
-        clonedFX.transform.localScale = localVacFX.transform.localScale;
+        if (nozzle != null)
+        {
+            clonedFX.transform.localPosition = Quaternion.Euler(90, 0, 0) * localVacFX.transform.localPosition;
+            clonedFX.transform.localRotation = Quaternion.Euler(90, 0, 0) * localVacFX.transform.localRotation;
+            clonedFX.transform.localScale = localVacFX.transform.localScale;
+        }
+        else
+        {
+            clonedFX.transform.localPosition = new Vector3(0.25f, -0.17f, 1.37f) + Quaternion.Euler(90, 0, 0) * localVacFX.transform.localPosition;
+            clonedFX.transform.localRotation = Quaternion.Euler(90, 0, 0) * localVacFX.transform.localRotation;
+            clonedFX.transform.localScale = localVacFX.transform.localScale;
+        }
 
         SrLogger.LogMessage($"[GetOrCreateVacFX] Instantiated VacFX on remote player. LocalPos: {clonedFX.transform.localPosition}, LocalRot: {clonedFX.transform.localRotation.eulerAngles}, LocalScale: {clonedFX.transform.localScale}, WorldPos: {clonedFX.transform.position}, WorldRot: {clonedFX.transform.rotation.eulerAngles}");
 
