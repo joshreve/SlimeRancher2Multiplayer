@@ -142,6 +142,9 @@ internal sealed partial class NetworkActorManager
             if (!actor.Value.TryGetNetworkComponent(out var netActor))
                 continue;
 
+            if (!IsLocalPlayerNearest(actor.Value, player.transform.position))
+                continue;
+
             netActor.LocallyOwned = true;
 
             var actorId = netActor.ActorId;
@@ -158,6 +161,44 @@ internal sealed partial class NetworkActorManager
             yield return null;
             i = 0;
         }
+    }
+
+    public static long AllocateCanonicalActorId()
+    {
+        if (GameState == null || GameState._actorIdProvider == null)
+            return 0;
+
+        var provider = GameState._actorIdProvider;
+        var id = provider._nextActorId;
+        provider._nextActorId++;
+        return id;
+    }
+
+    private static bool IsLocalPlayerNearest(IdentifiableModel actorModel, Vector3 localPlayerPos)
+    {
+        if (actorModel.sceneGroup == null)
+            return true;
+
+        var sceneGroupId = NetworkSceneManager.GetPersistentID(actorModel.sceneGroup);
+        var actorPos = actorModel.lastPosition;
+        var localDistSq = (localPlayerPos - actorPos).sqrMagnitude;
+
+        var playersInScene = GlobalVariables.ScenePresenceManager.GetPlayersInSceneGroup(sceneGroupId);
+        foreach (var playerId in playersInScene)
+        {
+            if (playerId == LocalID)
+                continue;
+
+            var remotePlayer = GlobalVariables.PlayerManager.GetPlayer(playerId);
+            if (remotePlayer == null)
+                continue;
+
+            var remoteDistSq = (remotePlayer.Position - actorPos).sqrMagnitude;
+            if (remoteDistSq < localDistSq)
+                return false;
+        }
+
+        return true;
     }
 
     private void BroadcastScenePresence(int currentSceneGroupId)

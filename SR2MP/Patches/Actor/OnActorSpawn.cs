@@ -106,8 +106,15 @@ internal static class OnActorSpawn
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
 
-        ActorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
-            __result.GetComponent<IdentifiableActor>()._model;
+        var model = __result.GetComponent<IdentifiableActor>()._model;
+        var oldId = model.actorId.Value;
+
+        ActorManager.Actors[oldId] = model;
+
+        if (Main.Client.IsConnected && oldId >= 3000000000L)
+        {
+            GlobalVariables.ClientSpawnRegistry.Register(oldId, actorType, position, __result);
+        }
 
         StartCoroutine(SpawnOverNetwork(actorType, (byte)sceneGroupId, __result, appearance, secondAppearance));
     }

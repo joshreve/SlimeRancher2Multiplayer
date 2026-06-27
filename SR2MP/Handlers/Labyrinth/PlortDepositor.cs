@@ -16,9 +16,9 @@ internal sealed class PlortDepositorHandler : BasePacketHandler<PlortDepositorPa
         {
             HandlingPacket = true;
             model.AmountDeposited = packet.AmountDeposited;
-            model.NotifyParticipants();
             if (model._gameObject)
             {
+                model.NotifyParticipants();
                 var depositor = model._gameObject.GetComponent<PlortDepositor>();
                 if (depositor)
                 {

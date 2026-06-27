@@ -42,6 +42,7 @@ public sealed class RemotePlayerManager
         if (!players.TryRemove(playerId, out _))
             return false;
         SrLogger.LogMessage($"Remote player removed: {playerId}");
+        GlobalVariables.ScenePresenceManager.OnPlayerDisconnected(playerId);
         OnPlayerRemoved?.Invoke(playerId);
         return true;
     }

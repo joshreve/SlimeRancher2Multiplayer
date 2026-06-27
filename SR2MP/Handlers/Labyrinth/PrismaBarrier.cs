@@ -16,9 +16,9 @@ internal sealed class PrismaBarrierHandler : BasePacketHandler<PrismaBarrierPack
         {
             HandlingPacket = true;
             model.ActivationTime = packet.ActivationTime;
-            model.NotifyParticipants();
             if (model._gameObj)
             {
+                model.NotifyParticipants();
                 var barrier = model._gameObj.GetComponent<PrismaBarrier>();
                 if (barrier)
                 {

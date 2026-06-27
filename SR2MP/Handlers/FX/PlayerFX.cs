@@ -287,15 +287,40 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         if (pic == null || pic._vacuumItem == null || pic._vacuumItem.VacFX == null) return null;
 
         var localVacFX = pic._vacuumItem.VacFX;
-        var localParentName = localVacFX.transform.parent.name;
 
-        var targetParent = FindChildRecursive(remotePlayer.transform, localParentName) ?? vacStandard;
+        if (!hasLoggedParentChain)
+        {
+            hasLoggedParentChain = true;
+            try
+            {
+                var p = localVacFX.transform;
+                SrLogger.LogMessage("=== localVacFX Parent Chain ===");
+                while (p != null)
+                {
+                    SrLogger.LogMessage($"  {p.name} | localPos: {p.localPosition}, localRot: {p.localRotation.eulerAngles}, localScale: {p.localScale}");
+                    p = p.parent;
+                }
+                SrLogger.LogMessage("===============================");
+            }
+            catch (System.Exception ex)
+            {
+                SrLogger.LogError("Failed to log localVacFX parent chain: " + ex.Message);
+            }
+        }
+
+        var nozzle = FindChildRecursive(vacStandard, "bone_vac_barrel");
+        var targetParent = nozzle ?? vacStandard;
+
+        SrLogger.LogMessage($"[GetOrCreateVacFX] Target parent for remote VacFX: {targetParent.name} (nozzle found: {nozzle != null})");
 
         var clonedFX = Object.Instantiate(localVacFX, targetParent);
         clonedFX.name = "VacFX";
+
         clonedFX.transform.localPosition = localVacFX.transform.localPosition;
         clonedFX.transform.localRotation = localVacFX.transform.localRotation;
         clonedFX.transform.localScale = localVacFX.transform.localScale;
+
+        SrLogger.LogMessage($"[GetOrCreateVacFX] Instantiated VacFX on remote player. LocalPos: {clonedFX.transform.localPosition}, LocalRot: {clonedFX.transform.localRotation.eulerAngles}, LocalScale: {clonedFX.transform.localScale}, WorldPos: {clonedFX.transform.position}, WorldRot: {clonedFX.transform.rotation.eulerAngles}");
 
         SetLayerRecursive(clonedFX, 0);
 
@@ -329,6 +354,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
     }
 
     private static bool hasDumpedWeaponAnimator = false;
+    private static bool hasLoggedParentChain = false;
 }
 
 [InjectIntoIL]

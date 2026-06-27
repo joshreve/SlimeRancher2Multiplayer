@@ -13,6 +13,7 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
     protected override bool Handle(InitialActorsPacket packet, IPEndPoint? _)
     {
         ActorManager.Actors.Clear();
+        GlobalVariables.ClientSpawnRegistry.Clear();
 
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             GameState.identifiables

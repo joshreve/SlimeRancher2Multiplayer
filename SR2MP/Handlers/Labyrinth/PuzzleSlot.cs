@@ -16,9 +16,9 @@ internal sealed class PuzzleSlotHandler : BasePacketHandler<PuzzleSlotPacket>
         {
             HandlingPacket = true;
             model.filled = packet.Filled;
-            model.NotifyParticipants();
             if (model.gameObj)
             {
+                model.NotifyParticipants();
                 var slot = model.gameObj.GetComponent<PuzzleSlot>();
                 if (slot)
                 {

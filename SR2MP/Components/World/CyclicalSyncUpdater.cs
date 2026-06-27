@@ -22,9 +22,20 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
 {
     private float timer;
     private int currentCycleStep;
+    private float cleanupTimer;
 
     public void Update()
     {
+        if (Main.Client.IsConnected)
+        {
+            cleanupTimer += UnityEngine.Time.deltaTime;
+            if (cleanupTimer >= 1.0f)
+            {
+                cleanupTimer = 0f;
+                GlobalVariables.ClientSpawnRegistry.CleanupExpired();
+            }
+        }
+
         timer += UnityEngine.Time.deltaTime;
 
         if (timer < Timers.CyclicalSyncTimer)
@@ -62,9 +73,50 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
             case 6:
                 SyncPediaAndMap(clients);
                 break;
+            case 7:
+                SyncActorChecksums();
+                break;
         }
 
-        currentCycleStep = (currentCycleStep + 1) % 7;
+        currentCycleStep = (currentCycleStep + 1) % 8;
+    }
+
+    private static void SyncActorChecksums()
+    {
+        var counts = new Dictionary<int, int>();
+        foreach (var pair in GlobalVariables.ActorManager.Actors)
+        {
+            var model = pair.Value;
+            if (model == null || model.sceneGroup == null)
+                continue;
+
+            try
+            {
+                var sceneGroupId = NetworkSceneManager.GetPersistentID(model.sceneGroup);
+                counts.TryGetValue(sceneGroupId, out var c);
+                counts[sceneGroupId] = c + 1;
+            }
+            catch
+            {
+                // Ignore native reference issues
+            }
+        }
+
+        var packet = new SR2MP.Packets.Actor.ActorChecksumPacket
+        {
+            Entries = new List<SR2MP.Packets.Actor.ActorChecksumPacket.Entry>()
+        };
+
+        foreach (var pair in counts)
+        {
+            packet.Entries.Add(new SR2MP.Packets.Actor.ActorChecksumPacket.Entry
+            {
+                SceneGroupId = pair.Key,
+                ActorCount = pair.Value
+            });
+        }
+
+        Main.Server.SendToAll(packet);
     }
 
     private static void SyncMoneyAndUpgrades(System.Collections.Generic.List<Server.Models.ClientInfo> clients)

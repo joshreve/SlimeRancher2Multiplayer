@@ -399,6 +399,7 @@ public sealed class SR2MPClient
 
             PlayerManager.Clear();
             GlobalVariables.ScenePresenceManager.Clear();
+            GlobalVariables.ClientSpawnRegistry.Clear();
             NetworkStringPool.Clear();
             ApiHandlers.ClearNetIds();
 
