@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
@@ -6,38 +8,45 @@ using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using JetBrains.Annotations;
 using SR2MP.Packets.Actor;
+using SR2MP.Components.Actor.Sync;
 using SR2MP.Shared.Utils;
 using Starlight.Storage;
 using Delegate = Il2CppSystem.Delegate;
 using Type = Il2CppSystem.Type;
+using UnityEngine;
 
 namespace SR2MP.Components.Actor;
 
 [InjectIntoIL]
-internal sealed partial class NetworkActor : MonoBehaviour
+internal sealed class NetworkActor : MonoBehaviour
 {
-    public  RegionMember? RegionMember;
+    public RegionMember? RegionMember;
     private Identifiable identifiable;
-    private ResourceCycle? cycle;
-    private Rigidbody rigidbody;
-    private SlimeEmotions emotions;
+    public ResourceCycle? cycle;
+    public Rigidbody rigidbody;
+    public SlimeEmotions emotions;
     private PlortModel? plortModel;
 
     public float SyncTimer = Timers.ActorTimer;
-    public bool  ShouldUpdateResourceState;
-    public bool  IsValid = true;
-    public bool  IsDestroyed;
-    public byte  AttemptedGetIdentifiable;
-    public bool  CachedLocallyOwned;
+    public bool ShouldUpdateResourceState;
+    public bool IsValid = true;
+    public bool IsDestroyed;
+    public byte AttemptedGetIdentifiable;
+    public bool CachedLocallyOwned;
 
-    private bool? CycleReleasing => cycle?._preparingToRelease;
-    private bool? cachedCycleReleasing;
-
-    private Vector3 savedVelocity;
+    public Vector3 savedVelocity;
 
     internal bool isSlime;
     private bool isResource;
     private bool isPlort;
+
+    // Component Syncing fields
+    private NetworkTransform? transformComponent;
+    private NetworkSlimeEmotions? emotionsComponent;
+    private NetworkResourceCycle? resourceComponent;
+    private NetworkPlort? plortComponent;
+
+    public readonly List<NetworkComponent> syncComponents = new();
 
     public ActorId ActorId
     {
@@ -90,7 +99,47 @@ internal sealed partial class NetworkActor : MonoBehaviour
         }
     }
 
+    public ActorModel? ActorModel
+    {
+        get
+        {
+            var id = ActorId;
+            if (id.Value != 0 && ActorManager.Actors.TryGetValue(id.Value, out var model))
+            {
+                return model.Cast<ActorModel>();
+            }
+            return null;
+        }
+    }
+
     public bool LocallyOwned { get; set; }
+
+    // Backwards Compatibility Delegated Properties (for Spawning manager & other places)
+    public Vector3 previousPosition
+    {
+        get => transformComponent?.PreviousPosition ?? Vector3.zero;
+        set { if (transformComponent != null) transformComponent.PreviousPosition = value; }
+    }
+    public Vector3 nextPosition
+    {
+        get => transformComponent?.NextPosition ?? Vector3.zero;
+        set { if (transformComponent != null) transformComponent.NextPosition = value; }
+    }
+    public Quaternion previousRotation
+    {
+        get => transformComponent?.PreviousRotation ?? Quaternion.identity;
+        set { if (transformComponent != null) transformComponent.PreviousRotation = value; }
+    }
+    public Quaternion nextRotation
+    {
+        get => transformComponent?.NextRotation ?? Quaternion.identity;
+        set { if (transformComponent != null) transformComponent.NextRotation = value; }
+    }
+
+    public void SetResourceState(ResourceCycle.State state, double progress, bool force = false)
+    {
+        resourceComponent?.SetResourceState(state, progress, force);
+    }
 
     public void Start()
     {
@@ -113,6 +162,26 @@ internal sealed partial class NetworkActor : MonoBehaviour
             GetActorType();
             
             SetRigidbodyState(LocallyOwned);
+
+            // Initialize plain C# components dynamically based on type
+            transformComponent = new NetworkTransform(this);
+            syncComponents.Add(transformComponent);
+
+            if (isSlime)
+            {
+                emotionsComponent = new NetworkSlimeEmotions(this);
+                syncComponents.Add(emotionsComponent);
+            }
+            else if (isResource)
+            {
+                resourceComponent = new NetworkResourceCycle(this);
+                syncComponents.Add(resourceComponent);
+            }
+            else if (isPlort)
+            {
+                plortComponent = new NetworkPlort(this);
+                syncComponents.Add(plortComponent);
+            }
 
             if (RegionMember != null)
                 SetupHibernationEvent();
@@ -217,12 +286,16 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
         try
         {
-            UpdateResourceState();
+            // Plain C# component updates
+            float dt = UnityEngine.Time.deltaTime;
+            for (int i = 0; i < syncComponents.Count; i++)
+            {
+                syncComponents[i].Update(dt);
+            }
+
             HandleOwnershipChange();
-            HandleCycleReleasing();
 
-            UpdatePolation();
-
+            // Check and sync critical state updates (Emotions, Resources, Plorts) every frame
             if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
                 SendStateUpdate();
 
@@ -233,6 +306,7 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
             SyncTimer = Timers.ActorTimer;
 
+            // Check and sync transform updates on the unscaled interval
             if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
                 SendWorldUpdate();
         }
@@ -321,5 +395,86 @@ internal sealed partial class NetworkActor : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void SendStateUpdate()
+    {
+        var actorId = ActorId;
+        if (actorId.Value == 0)
+            return;
+
+        var deltas = new List<DeltaValue>();
+
+        // Check Emotions, ResourceCycle, Plort components (everything except Transform)
+        for (int i = 0; i < syncComponents.Count; i++)
+        {
+            var comp = syncComponents[i];
+            if (comp.Key != DeltaRegistry.KeyTransform && comp.IsDirty())
+            {
+                deltas.Add(new DeltaValue { Key = comp.Key, Value = comp.GetCurrentData() });
+                comp.ResetDirty();
+            }
+        }
+
+        if (deltas.Count > 0)
+        {
+            Main.SendToAllOrServer(new ActorDeltaPacket
+            {
+                ActorId = actorId,
+                Deltas = deltas
+            });
+        }
+    }
+
+    private void SendWorldUpdate()
+    {
+        var actorId = ActorId;
+        if (actorId.Value == 0)
+            return;
+
+        var deltas = new List<DeltaValue>();
+
+        if (transformComponent != null)
+        {
+            if (transformComponent.IsDirty() || transformComponent.ShouldForceSend())
+            {
+                deltas.Add(new DeltaValue { Key = transformComponent.Key, Value = transformComponent.GetCurrentData() });
+                transformComponent.ResetDirty();
+            }
+        }
+
+        if (deltas.Count > 0)
+        {
+            Main.SendToAllOrServer(new ActorDeltaPacket
+            {
+                ActorId = actorId,
+                Deltas = deltas
+            });
+        }
+    }
+
+    public void ApplyDelta(ActorDeltaPacket packet)
+    {
+        if (LocallyOwned || IsDestroyed)
+            return;
+
+        foreach (var delta in packet.Deltas)
+        {
+            var comp = FindComponent(delta.Key);
+            if (comp != null)
+            {
+                comp.ApplyDelta(delta.Value);
+            }
+        }
+    }
+
+    private NetworkComponent? FindComponent(byte key)
+    {
+        for (int i = 0; i < syncComponents.Count; i++)
+        {
+            if (syncComponents[i].Key == key)
+                return syncComponents[i];
+        }
+        return null;
     }
 }
