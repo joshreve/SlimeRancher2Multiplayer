@@ -77,12 +77,7 @@ internal sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
 
-        DrawTabRow(ref mainTab, "Join", "Host");
-
-        if (mainTab == 0)
-            DrawJoinSection();
-        else
-            DrawHostSection();
+        DrawHostSection();
     }
 
     private void UnimplementedScreen()
