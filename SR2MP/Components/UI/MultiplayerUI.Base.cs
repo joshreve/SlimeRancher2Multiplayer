@@ -57,7 +57,7 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
         previousLayoutHorizontalIndex = 0;
 
-        if (!MenuEUtil.isAnyMenuOpen && !MenuEUtil.isAnyPopUpOpen)
+        if (!Starlight.ContextShortcuts.inGame || (!MenuEUtil.isAnyMenuOpen && !MenuEUtil.isAnyPopUpOpen))
         {
             didUnfocus = false;
             DrawWindow();

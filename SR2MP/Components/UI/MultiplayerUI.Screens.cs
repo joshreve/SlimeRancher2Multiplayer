@@ -69,8 +69,7 @@ internal sealed partial class MultiplayerUI
             RefreshSaveList();
         }
 
-        DrawText("You must be in a save to host or connect!");
-        DrawText("Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
+        DrawJoinSection();
     }
 
     private void InGameScreen()

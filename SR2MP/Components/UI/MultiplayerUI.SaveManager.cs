@@ -9,7 +9,8 @@ namespace SR2MP.Components.UI;
 internal sealed partial class MultiplayerUI
 {
     private bool viewingSaveManager;
-    private Vector2 saveScrollPosition;
+    private int currentSavePage = 0;
+    private const int SavesPerPage = 4;
     private string selectedSavePath = string.Empty;
     private string saveManagerStatus = string.Empty;
     private List<string> detectedSaves = new();
@@ -31,21 +32,15 @@ internal sealed partial class MultiplayerUI
 
         DrawText("Detected Saves (Newest First):");
 
-        var listRect = CalculateInputLayout(6);
-        listRect.height = 160f; // Expand height for list
-
         var savesCount = detectedSaves.Count;
-        var viewWidth = WindowWidth - 30f;
-        var viewHeight = savesCount * 30f;
+        var totalPages = Math.Max(1, (int)Math.Ceiling((double)savesCount / SavesPerPage));
+        if (currentSavePage >= totalPages) currentSavePage = totalPages - 1;
+        if (currentSavePage < 0) currentSavePage = 0;
 
-        saveScrollPosition = GUI.BeginScrollView(
-            listRect,
-            saveScrollPosition,
-            new Rect(0, 0, viewWidth, Math.Max(viewHeight, 160f))
-        );
+        int startIndex = currentSavePage * SavesPerPage;
+        int endIndex = Math.Min(startIndex + SavesPerPage, savesCount);
 
-        var currentY = 0f;
-        for (int i = 0; i < savesCount; i++)
+        for (int i = startIndex; i < endIndex; i++)
         {
             var savePath = detectedSaves[i];
             var fileName = Path.GetFileName(savePath);
@@ -60,18 +55,26 @@ internal sealed partial class MultiplayerUI
             }
 
             var btnLabel = $"{(isSelected ? "<b>" : "")}[{slotLabel}] {lastWrite} ({fileName}){(isSelected ? "</b>" : "")}";
-            if (GUI.Button(new Rect(5, currentY, viewWidth - 10, 25), btnLabel))
+            if (GUI.Button(CalculateButtonLayout(6), btnLabel))
             {
                 selectedSavePath = savePath;
                 saveManagerStatus = $"Selected {fileName}";
             }
-            currentY += 30f;
         }
 
-        GUI.EndScrollView();
-
-        // Advance layout coordinate manually to cover the scrollview space
-        previousLayoutRect.height = 160f;
+        if (totalPages > 1)
+        {
+            DrawText($"Page {currentSavePage + 1} of {totalPages}", 2);
+            
+            if (GUI.Button(CalculateButtonLayout(6, 2, 0), "Previous Page"))
+            {
+                if (currentSavePage > 0) currentSavePage--;
+            }
+            if (GUI.Button(CalculateButtonLayout(6, 2, 1), "Next Page"))
+            {
+                if (currentSavePage < totalPages - 1) currentSavePage++;
+            }
+        }
 
         if (!string.IsNullOrEmpty(selectedSavePath))
         {
