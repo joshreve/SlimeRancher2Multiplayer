@@ -11,6 +11,9 @@ internal sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
 {
     protected override bool Handle(WorldFXPacket packet, IPEndPoint? _)
     {
+        if (!Starlight.ContextShortcuts.inGame)
+            return true;
+
         if (!IsWorldSoundDictionary[packet.FX])
         {
             var fxPrefab = FXManager.WorldFXMap[packet.FX];

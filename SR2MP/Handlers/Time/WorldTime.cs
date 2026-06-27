@@ -10,6 +10,9 @@ internal sealed class WorldTimeHandler : BasePacketHandler<WorldTimePacket>
 {
     protected override bool Handle(WorldTimePacket packet, IPEndPoint? _)
     {
+        if (!Starlight.ContextShortcuts.inGame || SceneContext.Instance == null || SceneContext.Instance.TimeDirector == null)
+            return true;
+
         if (!IsInRanchHouse)
             SceneContext.Instance.TimeDirector._worldModel.worldTime = packet.Time;
         return false;

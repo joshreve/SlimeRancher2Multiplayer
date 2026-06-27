@@ -11,6 +11,9 @@ internal sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
 {
     protected override bool Handle(CurrencyPacket packet, IPEndPoint? _)
     {
+        if (!Starlight.ContextShortcuts.inGame || SceneContext.Instance == null || SceneContext.Instance.PlayerState == null)
+            return true;
+
         var currency = GameContext.Instance.LookupDirector._currencyList._currencies[packet.CurrencyType - 1];
         var currencyDefinition = currency!.Cast<ICurrency>();
         var difference = packet.NewAmount - SceneContext.Instance.PlayerState.GetCurrency(currencyDefinition);
