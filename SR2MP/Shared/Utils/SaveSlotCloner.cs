@@ -16,7 +16,39 @@ internal static class SaveSlotCloner
         if (!Directory.Exists(localLow))
             return string.Empty;
 
-        // Search for directories containing .sav files recursively
+        // Prioritize Steam directories with long SteamID64 numeric names
+        try
+        {
+            var steamDir = Path.Combine(localLow, "Steam");
+            if (Directory.Exists(steamDir))
+            {
+                var subDirs = Directory.GetDirectories(steamDir);
+                foreach (var dir in subDirs)
+                {
+                    var dirName = Path.GetFileName(dir);
+                    if (long.TryParse(dirName, out var steamId) && steamId > 1000000000000000L)
+                    {
+                        var savFiles = Directory.GetFiles(dir, "*.sav");
+                        if (savFiles.Length > 0)
+                            return dir;
+                    }
+                }
+
+                // Fallback to any directory under Steam containing saves (e.g. '0')
+                foreach (var dir in subDirs)
+                {
+                    var savFiles = Directory.GetFiles(dir, "*.sav");
+                    if (savFiles.Length > 0)
+                        return dir;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Error scanning SteamID directories: {ex.Message}");
+        }
+
+        // Fallback to searching recursively
         try
         {
             var savFiles = Directory.GetFiles(localLow, "*.sav", SearchOption.AllDirectories);
@@ -27,23 +59,7 @@ internal static class SaveSlotCloner
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Error scanning for save directories: {ex.Message}");
-        }
-
-        // Check fallback Steam directory
-        try
-        {
-            var steamDir = Path.Combine(localLow, "Steam");
-            if (Directory.Exists(steamDir))
-            {
-                var subDirs = Directory.GetDirectories(steamDir);
-                if (subDirs.Length > 0)
-                    return subDirs[0];
-            }
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogWarning($"Error scanning Steam fallback directory: {ex.Message}");
+            SrLogger.LogWarning($"Error scanning fallback directories: {ex.Message}");
         }
 
         return localLow;
