@@ -49,6 +49,8 @@ internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPa
                 if ((spawner.transform.position - packet.SpawnerID).sqrMagnitude >= 0.01f)
                     continue;
 
+                currentGarden = spawner;
+
                 if (packet.Joint >= 0 && packet.Joint < spawner.SpawnJoints.Count)
                     targetJoint = spawner.SpawnJoints[packet.Joint];
 
@@ -71,7 +73,8 @@ internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPa
         cycle.Attach(targetJoint);
         HandlingPacket = false;
 
-        currentGarden!._spawned.Add(cycle.gameObject);
+        if (currentGarden != null)
+            currentGarden._spawned.Add(cycle.gameObject);
 
         var produceModel = model.TryCast<ProduceModel>();
         if (produceModel != null)

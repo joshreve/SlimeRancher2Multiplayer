@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.LandPlots;
 using SR2MP.Packets.Utils;
@@ -10,8 +10,12 @@ internal sealed class PlortCollectionHandler : BasePacketHandler<PlortCollection
 {
     protected override bool Handle(PlortCollectionPacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        if (GameState.landPlots == null || !GameState.landPlots.TryGetValue(packet.ID, out var model) || model == null || !model.gameObj)
+            return false;
+
         var collector = model.gameObj.GetComponentInChildren<PlortCollector>();
+        if (collector == null)
+            return false;
 
         HandlingPacket =  true;
         collector._endCollectAt = packet.EndTime;
