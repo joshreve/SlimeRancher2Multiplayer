@@ -27,7 +27,13 @@ internal abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPack
 
         if (!IsServerSide && !Starlight.ContextShortcuts.inGame)
         {
-            var type = packet.Type;
+            var type = PacketType.None;
+            var attributes = this.GetType().GetCustomAttributes(typeof(PacketHandlerAttribute), true);
+            if (attributes.Length > 0 && attributes[0] is PacketHandlerAttribute attr)
+            {
+                type = (PacketType)attr.PacketType;
+            }
+
             if (type != PacketType.ModSync &&
                 type != PacketType.ModSyncAck &&
                 type != PacketType.ConnectionApprove &&
