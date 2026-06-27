@@ -36,7 +36,10 @@ public static class RecyclePool<T> where T : class, IRecyclable, new()
             return;
 
         if (item.IsRecycled)
-            throw new InvalidOperationException("Item is already recycled!");
+        {
+            SrLogger.LogWarning($"[RecyclePool<{typeof(T).Name}>] Attempted to return an item that is already recycled!");
+            return;
+        }
 
         item.Recycle();
         item.IsRecycled = true;

@@ -46,7 +46,13 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         if (!Main.Server.IsRunning)
             return;
 
-        var clients = Main.Server.ClientManager.GetAllClients().ToList();
+        var clients = new List<Server.Models.ClientInfo>();
+        foreach (var client in Main.Server.ClientManager.GetAllClients())
+        {
+            if (client.SyncState == Server.Models.ClientSyncState.Active)
+                clients.Add(client);
+        }
+
         if (clients.Count == 0)
             return;
 
