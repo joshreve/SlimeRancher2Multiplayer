@@ -198,5 +198,8 @@ internal sealed class NetworkManager
         }
     }
 
+    public void RemoveClient(IPEndPoint endPoint)
+        => reliabilityManager?.RemoveClient(endPoint);
+
     public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
 }

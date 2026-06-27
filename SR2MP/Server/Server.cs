@@ -133,6 +133,7 @@ public sealed class SR2MPServer
 
     private void OnClientRemoved(ClientInfo client)
     {
+        NetworkManager.RemoveClient(client.EndPoint);
         var playerId = client.PlayerId;
 
         // Check if the player actually joined fully (they will be in PlayerManager)

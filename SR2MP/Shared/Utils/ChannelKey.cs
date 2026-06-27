@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Shared.Utils;
@@ -9,7 +9,7 @@ namespace SR2MP.Shared.Utils;
 /// </summary>
 internal readonly struct ChannelKey : IEquatable<ChannelKey>
 {
-    private readonly IPEndPoint EndPoint;
+    internal readonly IPEndPoint EndPoint;
     private readonly NetworkChannel Channel;
     private readonly byte PacketType;
 

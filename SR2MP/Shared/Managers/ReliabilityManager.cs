@@ -326,5 +326,52 @@ internal sealed class ReliabilityManager
                ((s1 < s2) && (s2 - s1 > 32768));
     }
 
+    public void RemoveClient(IPEndPoint clientEp)
+    {
+        if (clientEp == null)
+            return;
+
+        // 1. Remove pending packets destined for this endpoint
+        foreach (var key in pendingPackets.Keys)
+        {
+            if (key.EndPoint.Equals(clientEp))
+            {
+                if (pendingPackets.TryRemove(key, out var packet))
+                {
+                    PendingPacket.Return(packet);
+                }
+            }
+        }
+
+        // 2. Remove reorder buffers and tracking sequence numbers for this endpoint
+        foreach (var key in lastProcessedSequence.Keys)
+        {
+            if (key.EndPoint.Equals(clientEp))
+            {
+                lastProcessedSequence.TryRemove(key, out _);
+            }
+        }
+
+        foreach (var key in sequenceNumbersByChannel.Keys)
+        {
+            if (key.EndPoint.Equals(clientEp))
+            {
+                sequenceNumbersByChannel.TryRemove(key, out _);
+            }
+        }
+
+        foreach (var key in reorderBuffers.Keys)
+        {
+            if (key.EndPoint.Equals(clientEp))
+            {
+                if (reorderBuffers.TryRemove(key, out var buffer))
+                {
+                    buffer.Clear();
+                }
+                reorderLocks.TryRemove(key, out _);
+            }
+        }
+    }
+
     public int GetPendingPacketCount() => pendingPackets.Count;
 }
