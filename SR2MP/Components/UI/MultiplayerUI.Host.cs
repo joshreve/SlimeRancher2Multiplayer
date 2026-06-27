@@ -1,4 +1,4 @@
-﻿namespace SR2MP.Components.UI;
+namespace SR2MP.Components.UI;
 
 internal sealed partial class MultiplayerUI
 {
@@ -59,8 +59,9 @@ internal sealed partial class MultiplayerUI
         if (!tunnelPortValid)
             DrawText("Invalid tunnel port. Must be a number from 1 to 65535.");
 
-        GUI.enabled = ipValid && localPortValid && tunnelPortValid && !hostAutoInProgress;
-        if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
+        var worldLoaded = IsWorldLoaded();
+        GUI.enabled = ipValid && localPortValid && tunnelPortValid && !hostAutoInProgress && worldLoaded;
+        if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : (worldLoaded ? "Start Server" : "Start Server (Load World First)")))
             TryHostManual(hostIpInput, tunnelPort, hostPort);
         GUI.enabled = true;
     }
@@ -73,8 +74,9 @@ internal sealed partial class MultiplayerUI
         if (!string.IsNullOrWhiteSpace(hostAutoError))
             DrawText(hostAutoError);
 
-        GUI.enabled = !hostAutoInProgress;
-        if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
+        var worldLoaded = IsWorldLoaded();
+        GUI.enabled = !hostAutoInProgress && worldLoaded;
+        if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : (worldLoaded ? "Start Server" : "Start Server (Load World First)")))
             StartAutoHost();
         GUI.enabled = true;
     }
@@ -91,8 +93,9 @@ internal sealed partial class MultiplayerUI
 
         if (ushort.TryParse(hostLocalPortInput, out var hostPort))
         {
-            GUI.enabled = !hostAutoInProgress;
-            if (GUI.Button(CalculateButtonLayout(6), "Start Server"))
+            var worldLoaded = IsWorldLoaded();
+            GUI.enabled = !hostAutoInProgress && worldLoaded;
+            if (GUI.Button(CalculateButtonLayout(6), worldLoaded ? "Start Server" : "Start Server (Load World First)"))
                 Host(hostPort);
             GUI.enabled = true;
         }

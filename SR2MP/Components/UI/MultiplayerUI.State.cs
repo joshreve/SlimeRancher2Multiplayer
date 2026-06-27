@@ -47,6 +47,14 @@ internal sealed partial class MultiplayerUI
     private bool chatShown;
     private MenuState previousState = MenuState.Hidden;
 
+    private static bool IsWorldLoaded()
+    {
+        return ContextShortcuts.inGame &&
+               SceneContext.Instance != null &&
+               SceneContext.Instance.PlayerState != null &&
+               SceneContext.Instance.PlayerState._model != null;
+    }
+
     private static bool GetIsLoading()
     {
         return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is
