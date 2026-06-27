@@ -380,10 +380,16 @@ internal sealed class ReSyncManager
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
+        MelonLoader.MelonCoroutines.Start(SendActorsPacketCoroutine(client, playerIndex));
+    }
+
+    private static System.Collections.IEnumerator SendActorsPacketCoroutine(IPEndPoint client, ushort playerIndex)
+    {
         var actorsList = new List<InitialActorsPacket.ActorBase>();
 
         foreach (var (_, model) in ActorManager.Actors)
         {
+            if (model == null) continue;
             if (model.TryCast<GadgetModel>(out _))
                 continue;
 
@@ -392,22 +398,32 @@ internal sealed class ReSyncManager
 
         foreach (var model in GameState.AllGadgets())
         {
+            if (model == null) continue;
             if (!model.TryCast<GadgetModel>(out var gadget))
                 continue;
 
             actorsList.Add(NetworkActorManager.CreateInitialGadget(gadget));
         }
 
-        var actorsPacket = new InitialActorsPacket
+        int batchSize = 3;
+        for (int i = 0; i < actorsList.Count; i += batchSize)
         {
-            StartingActorID =
-                (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * ActorIdOffset,
-                    (playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
-            Actors = actorsList,
-            WorldTime = GameState.world.worldTime
-        };
+            if (!Main.Server.IsRunning || !Main.Server.ClientManager.GetAllClients().Any(c => c.EndPoint.Equals(client)))
+                yield break;
 
-        Main.Server.SendToClient(actorsPacket, client);
+            var batch = actorsList.Skip(i).Take(batchSize).ToList();
+            var actorsPacket = new InitialActorsPacket
+            {
+                StartingActorID =
+                    (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * ActorIdOffset,
+                        (playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
+                Actors = batch,
+                WorldTime = GameState.world.worldTime
+            };
+
+            Main.Server.SendToClient(actorsPacket, client);
+            yield return null;
+        }
     }
 
     private static void SendSwitchesPacket(IPEndPoint client)

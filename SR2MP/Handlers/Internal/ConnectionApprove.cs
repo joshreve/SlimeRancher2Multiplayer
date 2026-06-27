@@ -11,7 +11,22 @@ namespace SR2MP.Handlers.Internal;
 [PacketHandler((byte)PacketType.ConnectionApprove, HandlerType.Client)]
 internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApprovePacket>
 {
+    public static ConnectionApprovePacket? PendingApprove;
+
     protected override bool Handle(ConnectionApprovePacket packet, IPEndPoint? _)
+    {
+        if (!ContextShortcuts.inGame || SceneContext.Instance == null || SceneContext.Instance.PlayerState == null)
+        {
+            PendingApprove = packet;
+            SrLogger.LogMessage("[ConnectionApproveHandler] Connection approved. Storing pending approval and waiting for save file transfer...");
+            return false;
+        }
+
+        CompleteConnection(packet);
+        return false;
+    }
+
+    public static void CompleteConnection(ConnectionApprovePacket packet)
     {
         if (packet.InitialJoin)
         {
@@ -24,7 +39,6 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
 
             PacketSender.SendPacket(joinPacket);
 
-            // SR2MPClient.StartHeartbeat();
             Main.Client.NotifyConnected();
 
             try
@@ -40,13 +54,15 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
 
             CheatsEnabled = packet.AllowCheats;
 
-            // todo: resync players too
             foreach (var (id, username) in packet.OtherPlayers)
                 SpawnPlayer(id, username);
         }
 
-        SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
-        SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
+        if (SceneContext.Instance != null && SceneContext.Instance.PlayerState != null)
+        {
+            SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
+            SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
+        }
 
         foreach (var data in packet.NetData)
         {
@@ -54,8 +70,6 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
         }
 
         ApiHandlers.RefreshPacketMapping();
-
-        return false;
     }
 
     private static void SpawnPlayer(string id, string name)

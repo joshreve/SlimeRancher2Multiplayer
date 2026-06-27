@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
@@ -16,8 +16,15 @@ internal sealed class ActorTypeRegistryHandler : BasePacketHandler<ActorTypeRegi
 
         foreach (var (persistentId, referenceId) in packet.Registry)
         {
-            var type = ActorManager.ActorTypes.Values
-                .FirstOrDefault(type => type?.ReferenceId == referenceId);
+            IdentifiableType type = null!;
+            foreach (var entry in GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._identifiableTypeLookup)
+            {
+                if (entry.value != null && entry.value.ReferenceId == referenceId)
+                {
+                    type = entry.value;
+                    break;
+                }
+            }
 
             if (type == null)
             {
@@ -27,6 +34,7 @@ internal sealed class ActorTypeRegistryHandler : BasePacketHandler<ActorTypeRegi
             }
 
             ActorManager.ActorTypes[persistentId] = type;
+            ActorManager.TypeToId[type] = persistentId;
         }
         
         return true;

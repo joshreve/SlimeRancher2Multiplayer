@@ -208,6 +208,113 @@ internal static class SaveSlotCloner
         }
     }
 
+    public static byte[] ReadActiveSaveBytes(out string saveName)
+    {
+        saveName = string.Empty;
+        var summary = GameContext.Instance?.AutoSaveDirector?.TryGetCurrentGameSummary();
+        if (summary == null)
+        {
+            SrLogger.LogWarning("No active save summary found.");
+            return Array.Empty<byte>();
+        }
+
+        saveName = summary.SaveName;
+        var dir = GetSaveDirectory();
+        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
+            return Array.Empty<byte>();
+
+        var path = Path.Combine(dir, $"{saveName}.sav");
+        if (File.Exists(path))
+        {
+            try
+            {
+                return File.ReadAllBytes(path);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogError($"Error reading active save file: {ex}");
+            }
+        }
+
+        return Array.Empty<byte>();
+    }
+
+    public static bool ProcessAndWriteSaveBytes(byte[] fileBytes, string originalSaveName, int targetSlot0Indexed, out string targetFileNameWithoutExtension)
+    {
+        targetFileNameWithoutExtension = string.Empty;
+        var dir = GetSaveDirectory();
+        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
+            return false;
+
+        try
+        {
+            var match = SaveFileRegex.Match(originalSaveName);
+            if (!match.Success)
+            {
+                match = Regex.Match(originalSaveName, @"^(\d{14})_(\d+)_(\d+)");
+            }
+
+            if (!match.Success)
+            {
+                SrLogger.LogError($"Invalid original save name format: {originalSaveName}");
+                return false;
+            }
+
+            var timestampPart = match.Groups[1].Value;
+            var slotPart = match.Groups[2].Value;
+
+            var internalSaveName = $"{timestampPart}_{slotPart}";
+            var searchPattern = Encoding.ASCII.GetBytes(internalSaveName);
+
+            var matchIndex = FindPatternIndex(fileBytes, searchPattern);
+            if (matchIndex == -1)
+            {
+                var fallbackPattern = Encoding.ASCII.GetBytes($"{timestampPart}_");
+                matchIndex = FindPatternIndex(fileBytes, fallbackPattern);
+            }
+
+            if (matchIndex == -1)
+            {
+                SrLogger.LogWarning("Could not find save metadata offset; writing bytes unmodified.");
+            }
+            else
+            {
+                var newTimestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                var newSlotChar = (char)('1' + targetSlot0Indexed);
+                var newSlotByte = (byte)targetSlot0Indexed;
+
+                var newInternalSaveName = $"{newTimestamp}_{newSlotChar}";
+                var newInternalSaveNameBytes = Encoding.ASCII.GetBytes(newInternalSaveName);
+
+                for (int i = 0; i < 16; i++)
+                {
+                    if (matchIndex + i < fileBytes.Length && i < newInternalSaveNameBytes.Length)
+                        fileBytes[matchIndex + i] = newInternalSaveNameBytes[i];
+                }
+
+                if (matchIndex + 17 < fileBytes.Length)
+                    fileBytes[matchIndex + 17] = (byte)newSlotChar;
+
+                if (matchIndex + 18 < fileBytes.Length)
+                    fileBytes[matchIndex + 18] = newSlotByte;
+
+                timestampPart = newTimestamp;
+            }
+
+            var targetSlot1Indexed = targetSlot0Indexed + 1;
+            targetFileNameWithoutExtension = $"{timestampPart}_{targetSlot1Indexed}_1";
+            var destPath = Path.Combine(dir, $"{targetFileNameWithoutExtension}.sav");
+
+            File.WriteAllBytes(destPath, fileBytes);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to process and write save bytes: {ex}");
+            return false;
+        }
+    }
+
     private static int FindPatternIndex(byte[] src, byte[] pattern)
     {
         if (src == null || pattern == null || src.Length < pattern.Length)

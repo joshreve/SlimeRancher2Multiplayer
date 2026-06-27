@@ -1,10 +1,11 @@
-﻿using System.Net;
+using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Api;
 using SR2MP.Packets.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Handlers.Internal;
 
@@ -77,7 +78,21 @@ internal sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
         
         ActorManager.SendActorTypeRegistry(clientEp!);
 
-        ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp!);
+        var saveBytes = SaveSlotCloner.ReadActiveSaveBytes(out var originalSaveName);
+        if (saveBytes.Length > 0)
+        {
+            var savePacket = new SaveFilePacket
+            {
+                SaveBytes = saveBytes,
+                OriginalSaveName = originalSaveName
+            };
+            Main.Server.SendToClient(savePacket, clientEp!);
+            SrLogger.LogMessage($"[ModSyncAckHandler] Sent active save '{originalSaveName}' ({saveBytes.Length} bytes) to player {packet.PlayerId}.");
+        }
+        else
+        {
+            SrLogger.LogWarning("[ModSyncAckHandler] Could not read active save bytes. Client will not receive save file.");
+        }
 
         SrLogger.LogMessage(
             $"Player {packet.PlayerId} successfully connected",

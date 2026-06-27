@@ -27,7 +27,7 @@ internal sealed class ActorChecksumHandler : BasePacketHandler<ActorChecksumPack
             }
         }
 
-        if (hasMismatch && (DateTime.UtcNow - _lastResyncRequest) > TimeSpan.FromSeconds(30))
+        if (hasMismatch && (DateTime.UtcNow - _lastResyncRequest) > TimeSpan.FromSeconds(60))
         {
             SrLogger.LogMessage("[ActorChecksum] Requesting resync due to actor drift.");
             _lastResyncRequest = DateTime.UtcNow;

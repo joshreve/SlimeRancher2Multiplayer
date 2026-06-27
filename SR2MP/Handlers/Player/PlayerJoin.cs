@@ -6,6 +6,7 @@ using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Player;
 
@@ -65,6 +66,8 @@ internal sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
         PlayerDataManager.Instance.GetOrCreatePlayerData(packet.PlayerId, packet.PlayerName ?? "Player");
 
         InstantiatePlayer(packet);
+
+        ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp!);
 
         var joinPacket = new PlayerJoinPacket
         {

@@ -10,17 +10,30 @@ internal sealed partial class NetworkActorManager
 {
     public readonly Dictionary<long, IdentifiableModel> Actors = new();
     public readonly Dictionary<int, IdentifiableType> ActorTypes = new();
+    public readonly Dictionary<IdentifiableType, int> TypeToId = new();
 
     public static int GetPersistentID(IdentifiableType type)
-        => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(type);
+    {
+        if (type == null) return -1;
+        if (GlobalVariables.ActorManager != null && GlobalVariables.ActorManager.TypeToId.TryGetValue(type, out var id))
+            return id;
+        return -1;
+    }
 
     internal void Initialize(GameContext context)
     {
         ActorTypes.Clear();
+        TypeToId.Clear();
         Actors.Clear();
 
+        int nextId = 1;
         foreach (var type in context.AutoSaveDirector._saveReferenceTranslation._identifiableTypeLookup)
-            ActorTypes.TryAdd(GetPersistentID(type.value), type.value);
+        {
+            if (type.value == null) continue;
+            ActorTypes[nextId] = type.value;
+            TypeToId[type.value] = nextId;
+            nextId++;
+        }
 
         ActorTypes[-1] = null!;
 
