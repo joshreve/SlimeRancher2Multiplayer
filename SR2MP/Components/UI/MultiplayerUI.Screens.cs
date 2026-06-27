@@ -57,6 +57,12 @@ internal sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
 
+        if (GUI.Button(CalculateButtonLayout(6), "Save Manager"))
+        {
+            viewingSaveManager = true;
+            RefreshSaveList();
+        }
+
         DrawText("You must be in a save to host or connect!");
         DrawText("Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
     }

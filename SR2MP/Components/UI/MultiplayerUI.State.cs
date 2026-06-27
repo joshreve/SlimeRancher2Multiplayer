@@ -20,6 +20,7 @@ internal sealed partial class MultiplayerUI
         SettingsHelp,
         Kicked,
         Error,
+        SaveManager,
     }
 
     public enum ErrorType : byte
@@ -55,6 +56,7 @@ internal sealed partial class MultiplayerUI
     private MenuState GetState()
     {
         if (multiplayerUIHidden) return MenuState.Hidden;
+        if (viewingSaveManager) return MenuState.SaveManager;
 
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
