@@ -397,6 +397,7 @@ internal sealed class NetworkActor : MonoBehaviour
         return false;
     }
 
+    [HideFromIl2Cpp]
     private void SendStateUpdate()
     {
         var actorId = ActorId;
@@ -426,6 +427,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
     }
 
+    [HideFromIl2Cpp]
     private void SendWorldUpdate()
     {
         var actorId = ActorId;
@@ -453,6 +455,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
     }
 
+    [HideFromIl2Cpp]
     public void ApplyDelta(ActorDeltaPacket packet)
     {
         if (LocallyOwned || IsDestroyed)
@@ -468,6 +471,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
     }
 
+    [HideFromIl2Cpp]
     private NetworkComponent? FindComponent(byte key)
     {
         for (int i = 0; i < syncComponents.Count; i++)
