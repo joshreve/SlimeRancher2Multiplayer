@@ -6,6 +6,7 @@ internal sealed partial class MultiplayerUI
 
     private string usernameInput = "Player";
     private bool allowCheatsInput;
+    private bool playerPulsingInput = true;
 
     private void FirstTimeScreen()
     {
@@ -39,6 +40,10 @@ internal sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
             allowCheatsInput = !allowCheatsInput;
 
+        DrawText("Player Pulsing:", 2);
+        if (GUI.Button(CalculateButtonLayout(6, 2, 1), playerPulsingInput.ToStringYesOrNo()))
+            playerPulsingInput = !playerPulsingInput;
+
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
             DrawText("You must set an Username.");
@@ -49,6 +54,7 @@ internal sealed partial class MultiplayerUI
 
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
+        Main.SetConfigValue("player_pulsing_enabled", playerPulsingInput);
         viewingSettings = false;
     }
 

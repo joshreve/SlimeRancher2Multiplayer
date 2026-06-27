@@ -59,6 +59,29 @@ internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWave
             }
         }
 
+        // Apply force to local player if enabled
+        if (Main.PlayerPulsingEnabled && SceneContext.Instance != null && SceneContext.Instance.Player != null)
+        {
+            var playerPos = SceneContext.Instance.Player.transform.position;
+            var dist = Vector3.Distance(packet.Position, playerPos);
+            if (dist < radius)
+            {
+                var controller = SceneContext.Instance.Player.GetComponent<Il2CppMonomiPark.SlimeRancher.Player.CharacterController.SRCharacterController>();
+                if (controller != null)
+                {
+                    var dir = (playerPos - packet.Position).normalized;
+                    if (dir.sqrMagnitude < 0.001f) dir = Vector3.up;
+                    var forceFactor = 1f - (dist / radius);
+                    var pushVelocity = dir * (power * forceFactor * 1.2f);
+                    pushVelocity.y = Mathf.Max(pushVelocity.y, 4f * forceFactor);
+
+                    controller.ForceUnground();
+                    controller.BaseVelocity = controller.BaseVelocity + pushVelocity;
+                    SrLogger.LogMessage($"[PlayerPulseWaveHandler] Pushed local player with velocity: {pushVelocity}");
+                }
+            }
+        }
+
         return true;
     }
 }
