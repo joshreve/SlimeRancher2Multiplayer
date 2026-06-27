@@ -294,12 +294,7 @@ internal static class SaveSlotCloner
 
         try
         {
-            var match = SaveFileRegex.Match(originalSaveName);
-            if (!match.Success)
-            {
-                match = Regex.Match(originalSaveName, @"^(\d{14})_(\d+)_(\d+)");
-            }
-
+            var match = Regex.Match(originalSaveName, @"^(\d{14})_(\d+)(?:_(\d+))?(?:\.sav)?$", RegexOptions.IgnoreCase);
             if (!match.Success)
             {
                 SrLogger.LogError($"Invalid original save name format: {originalSaveName}");
