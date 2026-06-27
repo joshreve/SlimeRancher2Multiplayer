@@ -30,10 +30,20 @@ internal sealed class NetworkManager
         {
             if (enableIPv6)
             {
-                udpClient = new UdpClient(AddressFamily.InterNetworkV6);
-                udpClient.Client.DualMode = true;
-                udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}");
+                try
+                {
+                    udpClient = new UdpClient(AddressFamily.InterNetworkV6);
+                    udpClient.Client.DualMode = true;
+                    udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+                    SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}");
+                }
+                catch (Exception ex)
+                {
+                    SrLogger.LogWarning($"Failed to start in IPv6 dual mode, falling back to IPv4: {ex.Message}");
+                    udpClient?.Close();
+                    udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+                    SrLogger.LogMessage($"Server started in IPv4 fallback mode on port: {port}");
+                }
             }
             else
             {
