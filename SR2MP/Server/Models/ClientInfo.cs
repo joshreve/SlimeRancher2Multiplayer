@@ -2,10 +2,19 @@ using System.Net;
 
 namespace SR2MP.Server.Models;
 
+public enum ClientSyncState
+{
+    Connected,
+    LoadingWorld,
+    SyncingDeferred,
+    Active
+}
+
 public sealed class ClientInfo
 {
     public readonly IPEndPoint EndPoint;
     public readonly string PlayerId;
+    public ClientSyncState SyncState { get; set; } = ClientSyncState.Connected;
 
     private DateTime lastHeartbeat;
 

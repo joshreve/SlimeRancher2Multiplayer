@@ -24,6 +24,24 @@ internal abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPack
     private void ProcessPacket(PacketReader reader, IPEndPoint? clientEp)
     {
         var packet = reader.ReadPacket<T>();
+
+        if (!IsServerSide && !Starlight.ContextShortcuts.inGame)
+        {
+            var type = packet.Type;
+            if (type != PacketType.ModSync &&
+                type != PacketType.ModSyncAck &&
+                type != PacketType.ConnectionApprove &&
+                type != PacketType.ConnectionDeny &&
+                type != PacketType.SaveFile &&
+                type != PacketType.ActorTypeRegistry &&
+                type != PacketType.Close &&
+                type != PacketType.ReservedAcknowledge &&
+                type != PacketType.ReservedCompression)
+            {
+                return;
+            }
+        }
+
         var shouldSend = Handle(packet, clientEp);
 
         if (IsServerSide && shouldSend)

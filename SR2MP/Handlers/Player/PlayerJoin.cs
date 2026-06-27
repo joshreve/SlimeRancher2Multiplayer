@@ -65,6 +65,12 @@ internal sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
         // Update database with player name and last connected time:
         PlayerDataManager.Instance.GetOrCreatePlayerData(packet.PlayerId, packet.PlayerName ?? "Player");
 
+        if (Main.Server.ClientManager.TryGetClient(clientEp!, out var clientInfo))
+        {
+            clientInfo!.SyncState = Server.Models.ClientSyncState.SyncingDeferred;
+            SrLogger.LogMessage($"[ServerPlayerJoinHandler] Client {packet.PlayerId} transitioned to SyncState.SyncingDeferred.");
+        }
+
         InstantiatePlayer(packet);
 
         ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp!);

@@ -424,6 +424,12 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(actorsPacket, client);
             yield return null;
         }
+
+        if (Main.Server.IsRunning && Main.Server.ClientManager.TryGetClient(client, out var clientInfo))
+        {
+            clientInfo!.SyncState = Server.Models.ClientSyncState.Active;
+            SrLogger.LogMessage($"[SendActorsPacketCoroutine] Client {client} fully resynced and transitioned to SyncState.Active.");
+        }
     }
 
     private static void SendSwitchesPacket(IPEndPoint client)

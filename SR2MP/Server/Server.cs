@@ -331,9 +331,18 @@ public sealed class SR2MPServer
             writeAction(writer, state);
             var data = writer.ToSpan();
 
-            NetworkManager.Broadcast(data, ClientManager.GetAllClients(), reliability, channel);
+            var activeClients = new List<ClientInfo>();
+            foreach (var client in ClientManager.GetAllClients())
+            {
+                if (client.SyncState == Models.ClientSyncState.Active)
+                    activeClients.Add(client);
+            }
 
-            SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to all clients.");
+            if (activeClients.Count > 0)
+            {
+                NetworkManager.Broadcast(data, activeClients, reliability, channel);
+                SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to {activeClients.Count} active client(s).");
+            }
         }
         catch (Exception ex)
         {
@@ -380,11 +389,17 @@ public sealed class SR2MPServer
                 if (client.EndPoint == excludedClientInfo)
                     continue;
 
+                if (client.SyncState != Models.ClientSyncState.Active)
+                    continue;
+
                 NetworkManager.Send(data, client.EndPoint, reliability, channel);
                 sentCount++;
             }
 
-            SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to {sentCount} client(s).");
+            if (sentCount > 0)
+            {
+                SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to {sentCount} active client(s).");
+            }
         }
         catch (Exception ex)
         {

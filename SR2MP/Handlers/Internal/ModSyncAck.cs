@@ -94,6 +94,12 @@ internal sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
             SrLogger.LogWarning("[ModSyncAckHandler] Could not read active save bytes. Client will not receive save file.");
         }
 
+        if (Main.Server.ClientManager.TryGetClient(clientEp!, out var clientInfo))
+        {
+            clientInfo!.SyncState = Server.Models.ClientSyncState.LoadingWorld;
+            SrLogger.LogMessage($"[ModSyncAckHandler] Client {packet.PlayerId} transitioned to SyncState.LoadingWorld.");
+        }
+
         SrLogger.LogMessage(
             $"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
