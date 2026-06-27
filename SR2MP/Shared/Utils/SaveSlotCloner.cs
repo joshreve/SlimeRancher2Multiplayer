@@ -12,6 +12,26 @@ internal static class SaveSlotCloner
 
     public static string GetSaveDirectory()
     {
+        try
+        {
+            if (GameContext.Instance != null && GameContext.Instance.AutoSaveDirector != null)
+            {
+                var provider = GameContext.Instance.AutoSaveDirector._storageProvider;
+                if (provider != null)
+                {
+                    var fileProvider = provider.TryCast<Il2Cpp.FileStorageProvider>();
+                    if (fileProvider != null && !string.IsNullOrEmpty(fileProvider.savePath))
+                    {
+                        return fileProvider.savePath;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Could not dynamically retrieve savePath from FileStorageProvider: {ex.Message}");
+        }
+
         var localLow = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow", "MonomiPark", "SlimeRancher2");
         if (!Directory.Exists(localLow))
             return string.Empty;
