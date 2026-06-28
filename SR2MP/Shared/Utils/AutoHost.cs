@@ -4,6 +4,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using SharpOpenNat;
+using UnityEngine.Playables;
 
 namespace SR2MP.Shared.Utils;
 
@@ -127,9 +128,34 @@ internal static class AutoHost
             SrLogger.LogWarning("UPnP: No devices discovered.");
             return null;
         }
+        else if (devices.Count == 1)
+        {
+            SrLogger.LogMessage($"UPnP: Discovered {devices.Count} device(s).");
+            return devices[0];
+        }
+
         SrLogger.LogMessage($"UPnP: Discovered {devices.Count} device(s).");
 
-        var gateways = GetGatewayAddresses();
+        HashSet<IPAddress> gateways;
+        try
+        {
+            var task = Task.Run(() => GetGatewayAddresses());
+            if (!task.Wait(5000))
+            {
+                SrLogger.LogWarning("UPnP: Gateway discovery timed out.");
+                gateways = new HashSet<IPAddress>();
+            }
+            else
+            {
+                gateways = task.Result;
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"UPnP: Gateway discovery failed: {ex.Message}");
+            gateways = new HashSet<IPAddress>();
+        }
+
         SrLogger.LogMessage("UPnP: System gateways discovered", $"UPnP: System gateways: {string.Join(", ", gateways)}");
 
         foreach (var device in devices)
