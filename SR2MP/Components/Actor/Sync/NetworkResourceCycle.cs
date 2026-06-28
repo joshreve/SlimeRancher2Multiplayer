@@ -106,7 +106,7 @@ internal sealed class NetworkResourceCycle : NetworkComponent
 
         shouldUpdateResourceState = true;
 
-        if (cycle._model != null)
+        if (cycle._model != null && cycle._model.progressTime != progress)
             cycle._model.progressTime = progress;
 
         if (!force && prevResourceState == state)

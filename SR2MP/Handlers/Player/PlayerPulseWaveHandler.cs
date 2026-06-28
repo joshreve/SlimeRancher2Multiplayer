@@ -36,7 +36,7 @@ internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWave
 
         if (data.PulseFx != null)
         {
-            var fx = Object.Instantiate(data.PulseFx, packet.Position, Quaternion.identity);
+            var fx = Object.Instantiate(data.PulseFx, packet.Position, packet.Rotation);
             fx.SetActive(true);
             Object.Destroy(fx, 3f);
         }

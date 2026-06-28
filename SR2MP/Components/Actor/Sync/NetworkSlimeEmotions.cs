@@ -51,8 +51,10 @@ internal sealed class NetworkSlimeEmotions : NetworkComponent
             return;
 
         var d = (SlimeEmotionsData)data;
-        emotions._model.Emotions = d.Emotions;
-        emotions._model.isSleeping = d.Sleeping;
+        if (!emotions._model.Emotions.Equals(d.Emotions))
+            emotions._model.Emotions = d.Emotions;
+        if (emotions._model.isSleeping != d.Sleeping)
+            emotions._model.isSleeping = d.Sleeping;
 
         lastSentEmotions = d.Emotions;
         lastSentSleeping = d.Sleeping;

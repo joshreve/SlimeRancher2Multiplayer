@@ -145,11 +145,16 @@ internal sealed partial class NetworkActorManager
 
         var player = SceneContext.Instance.player;
         var bounds = new Bounds(player.transform.position, new Vector3(600, 1250, 600));
+
+        var actorsSnapshot = new List<KeyValuePair<long, IdentifiableModel>>(Actors);
         
         var i = 0;
-        foreach (var actor in Actors)
+        foreach (var actor in actorsSnapshot)
         {
             if (actor.Value == null)
+                continue;
+
+            if (!Actors.ContainsKey(actor.Key))
                 continue;
             
             if (!bounds.Contains(actor.Value.lastPosition))
@@ -162,7 +167,6 @@ internal sealed partial class NetworkActorManager
                 continue;
 
             netActor.LocallyOwned = true;
-
             var actorId = netActor.ActorId;
             if (actorId.Value == 0)
                 continue;

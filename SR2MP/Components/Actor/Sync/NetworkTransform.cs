@@ -106,17 +106,29 @@ internal sealed class NetworkTransform : NetworkComponent
         if (now <= InterpolationEnd)
         {
             var t = Mathf.InverseLerp(InterpolationStart, InterpolationEnd, now);
-            GameObject.transform.position = Vector3.Lerp(PreviousPosition, NextPosition, t);
-            GameObject.transform.rotation = Quaternion.Lerp(PreviousRotation, NextRotation, t);
+            var targetPos = Vector3.Lerp(PreviousPosition, NextPosition, t);
+            var targetRot = Quaternion.Lerp(PreviousRotation, NextRotation, t);
+
+            if (GameObject.transform.position != targetPos)
+                GameObject.transform.position = targetPos;
+
+            if (GameObject.transform.rotation != targetRot)
+                GameObject.transform.rotation = targetRot;
         }
         else
         {
             var extrapolationTime = Mathf.Min(now - InterpolationEnd, MaxExtrapolationTime);
-            GameObject.transform.position = NextPosition + SavedVelocity * extrapolationTime;
-            GameObject.transform.rotation = NextRotation;
+            var targetPos = NextPosition + SavedVelocity * extrapolationTime;
+            var targetRot = NextRotation;
+
+            if (GameObject.transform.position != targetPos)
+                GameObject.transform.position = targetPos;
+
+            if (GameObject.transform.rotation != targetRot)
+                GameObject.transform.rotation = targetRot;
         }
 
-        if (Actor.rigidbody)
+        if (Actor.rigidbody && Actor.rigidbody.velocity != SavedVelocity)
             Actor.rigidbody.velocity = SavedVelocity;
     }
 

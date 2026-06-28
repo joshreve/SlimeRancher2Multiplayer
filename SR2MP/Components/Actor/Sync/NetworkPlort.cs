@@ -63,8 +63,10 @@ internal sealed class NetworkPlort : NetworkComponent
             return;
 
         var p = (PlortData)data;
-        plortModel._invulnerability.IsInvulnerable = p.Invulnerable;
-        plortModel._invulnerability.InvulnerabilityPeriod = p.InvulnerablePeriod;
+        if (plortModel._invulnerability.IsInvulnerable != p.Invulnerable)
+            plortModel._invulnerability.IsInvulnerable = p.Invulnerable;
+        if (plortModel._invulnerability.InvulnerabilityPeriod != p.InvulnerablePeriod)
+            plortModel._invulnerability.InvulnerabilityPeriod = p.InvulnerablePeriod;
 
         lastSentInvulnerable = p.Invulnerable;
         lastSentInvulnerablePeriod = p.InvulnerablePeriod;
