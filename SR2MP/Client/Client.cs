@@ -402,6 +402,7 @@ public sealed class SR2MPClient
             GlobalVariables.ClientSpawnRegistry.Clear();
             NetworkStringPool.Clear();
             ApiHandlers.ClearNetIds();
+            Handlers.Actor.ActorsLoadHandler.ResetSyncState();
 
             SrLogger.LogMessage("Disconnected from server");
             OnDisconnected?.Invoke();

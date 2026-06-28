@@ -83,6 +83,8 @@ internal sealed class SaveFileHandler : BasePacketHandler<SaveFilePacket>
         var targetSlotName = $"Slot {targetSlot}";
         SrLogger.LogMessage($"[SaveFileHandler] Wrote save file to {targetSlotName} as {targetSaveName}.sav. Triggering game load...");
 
+        Actor.ActorsLoadHandler.ResetSyncState();
+
         if (ConnectionApproveHandler.PendingApprove != null)
         {
             var approve = ConnectionApproveHandler.PendingApprove;

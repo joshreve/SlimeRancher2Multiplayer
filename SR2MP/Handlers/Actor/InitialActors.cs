@@ -10,27 +10,38 @@ namespace SR2MP.Handlers.Actor;
 [PacketHandler((byte)PacketType.InitialActors, HandlerType.Client)]
 internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 {
+    private static bool clearedWorldForSync = false;
+
+    public static void ResetSyncState()
+    {
+        clearedWorldForSync = false;
+    }
+
     protected override bool Handle(InitialActorsPacket packet, IPEndPoint? _)
     {
-        ActorManager.Actors.Clear();
-        GlobalVariables.ClientSpawnRegistry.Clear();
-
-        var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
-            GameState.identifiables
-                .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
-
-        HandlingPacket = true;
-        foreach (var (_, value) in toRemove)
+        if (!clearedWorldForSync)
         {
-            if (value.ident.IsPlayer)
-                continue;
+            clearedWorldForSync = true;
+            ActorManager.Actors.Clear();
+            GlobalVariables.ClientSpawnRegistry.Clear();
 
-            var gameObject = value.GetGameObject();
+            var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
+                GameState.identifiables
+                    .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
-            if (gameObject)
-                Destroyer.DestroyAny(gameObject, "SR2MP.InitialActors");
+            HandlingPacket = true;
+            foreach (var (_, value) in toRemove)
+            {
+                if (value.ident.IsPlayer)
+                    continue;
+
+                var gameObject = value.GetGameObject();
+
+                if (gameObject)
+                    Destroyer.DestroyAny(gameObject, "SR2MP.InitialActors");
+            }
+            HandlingPacket = false;
         }
-        HandlingPacket = false;
 
         GameState._actorIdProvider._nextActorId =
             packet.StartingActorID;
