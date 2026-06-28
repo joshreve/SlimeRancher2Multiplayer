@@ -36,6 +36,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
             }
         }
 
+        /*
         timer += UnityEngine.Time.deltaTime;
 
         if (timer < Timers.CyclicalSyncTimer)
@@ -85,6 +86,7 @@ internal sealed class CyclicalSyncUpdater : MonoBehaviour
         }
 
         currentCycleStep = (currentCycleStep + 1) % 8;
+        */
     }
 
     private static void SyncActorChecksums()

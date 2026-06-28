@@ -21,7 +21,7 @@ internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWave
             Main.Server.SendToAllExcept(packet, sender);
         }
 
-        SrLogger.LogMessage($"[PlayerPulseWaveHandler] Received pulse wave at {packet.Position}");
+        // SrLogger.LogMessage($"[PlayerPulseWaveHandler] Received pulse wave at {packet.Position}");
 
         var datas = Resources.FindObjectsOfTypeAll<PulseWaveAbilityData>();
         if (datas.Count == 0)
@@ -85,7 +85,7 @@ internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWave
 
                     controller.ForceUnground();
                     controller.BaseVelocity = controller.BaseVelocity + pushVelocity;
-                    SrLogger.LogMessage($"[PlayerPulseWaveHandler] Pushed local player with velocity: {pushVelocity}");
+                    // SrLogger.LogMessage($"[PlayerPulseWaveHandler] Pushed local player with velocity: {pushVelocity}");
                 }
             }
         }

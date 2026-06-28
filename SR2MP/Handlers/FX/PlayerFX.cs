@@ -17,7 +17,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 
         try
         {
-            SrLogger.LogMessage($"[PlayerFXHandler] Handle: FX={packet.FX}, Player={packet.Player}");
+            // SrLogger.LogMessage($"[PlayerFXHandler] Handle: FX={packet.FX}, Player={packet.Player}");
 
             if (!IsPlayerSoundDictionary[packet.FX])
             {
@@ -54,7 +54,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                     {
                         netPlayer.LastVacFX = packet.FX;
                         netPlayer.HasPendingVacFXUpdate = true;
-                        SrLogger.LogMessage($"[PlayerFXHandler] Player model not fully loaded yet. Caching pending vac FX: {packet.FX} for player: {packet.Player}");
+                        // SrLogger.LogMessage($"[PlayerFXHandler] Player model not fully loaded yet. Caching pending vac FX: {packet.FX} for player: {packet.Player}");
                     }
                 }
                 else
@@ -311,7 +311,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         var nozzle = FindChildRecursive(vacStandard, "bone_vac_barrel");
         var targetParent = nozzle ?? vacStandard;
 
-        SrLogger.LogMessage($"[GetOrCreateVacFX] Target parent for remote VacFX: {targetParent.name} (nozzle found: {nozzle != null})");
+        // SrLogger.LogMessage($"[GetOrCreateVacFX] Target parent for remote VacFX: {targetParent.name} (nozzle found: {nozzle != null})");
 
         var clonedFX = Object.Instantiate(localVacFX, targetParent);
         clonedFX.name = "VacFX";
@@ -329,7 +329,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             clonedFX.transform.localScale = localVacFX.transform.localScale;
         }
 
-        SrLogger.LogMessage($"[GetOrCreateVacFX] Instantiated VacFX on remote player. LocalPos: {clonedFX.transform.localPosition}, LocalRot: {clonedFX.transform.localRotation.eulerAngles}, LocalScale: {clonedFX.transform.localScale}, WorldPos: {clonedFX.transform.position}, WorldRot: {clonedFX.transform.rotation.eulerAngles}");
+        // SrLogger.LogMessage($"[GetOrCreateVacFX] Instantiated VacFX on remote player. LocalPos: {clonedFX.transform.localPosition}, LocalRot: {clonedFX.transform.localRotation.eulerAngles}, LocalScale: {clonedFX.transform.localScale}, WorldPos: {clonedFX.transform.position}, WorldRot: {clonedFX.transform.rotation.eulerAngles}");
 
         SetLayerRecursive(clonedFX, 0);
 
