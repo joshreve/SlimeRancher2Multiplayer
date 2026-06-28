@@ -18,7 +18,32 @@ internal sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoSlimeBurst
             HandlingPacket = true;
 
             if (gordoSlime.gameObj)
-                gordoSlime.gameObj.GetComponent<GordoEat>().ImmediateReachedTarget();
+            {
+                try
+                {
+                    var gordoEat = gordoSlime.gameObj.GetComponent<GordoEat>();
+                    if (gordoEat != null)
+                    {
+                        var rewards = gordoEat._rewards;
+                        if (rewards != null && rewards._activeRewards == null)
+                        {
+                            try
+                            {
+                                rewards.SetupActiveRewards();
+                            }
+                            catch (System.Exception ex)
+                            {
+                                SrLogger.LogDebug($"Could not setup active rewards for Gordo: {ex.Message}");
+                            }
+                        }
+                        gordoEat.ImmediateReachedTarget();
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    SrLogger.LogWarning($"Failed to burst Gordo immediately: {ex.Message}");
+                }
+            }
 
             HandlingPacket = false;
         }
