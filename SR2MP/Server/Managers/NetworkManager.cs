@@ -33,6 +33,7 @@ internal sealed class NetworkManager
                 try
                 {
                     udpClient = new UdpClient(AddressFamily.InterNetworkV6);
+                    udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                     udpClient.Client.DualMode = true;
                     udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
                     SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}");
@@ -41,13 +42,18 @@ internal sealed class NetworkManager
                 {
                     SrLogger.LogWarning($"Failed to start in IPv6 dual mode, falling back to IPv4: {ex.Message}");
                     udpClient?.Close();
-                    udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+                    
+                    udpClient = new UdpClient(AddressFamily.InterNetwork);
+                    udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
                     SrLogger.LogMessage($"Server started in IPv4 fallback mode on port: {port}");
                 }
             }
             else
             {
-                udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+                udpClient = new UdpClient(AddressFamily.InterNetwork);
+                udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
                 SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}");
             }
 
@@ -69,6 +75,8 @@ internal sealed class NetworkManager
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to start Server: {ex}");
+            try { udpClient?.Close(); } catch {}
+            udpClient = null;
             throw;
         }
     }

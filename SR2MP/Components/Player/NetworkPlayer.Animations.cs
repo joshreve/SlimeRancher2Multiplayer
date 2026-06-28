@@ -9,12 +9,28 @@ internal partial class NetworkPlayer
     private Transform rightArmLower;
     private Transform rightHand;
 
+    private static UnityEngine.Transform? FindChildRecursive(UnityEngine.Transform parent, string name)
+    {
+        if (parent.name.Equals(name, System.StringComparison.OrdinalIgnoreCase))
+            return parent;
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            var result = FindChildRecursive(child, name);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+
     private void SetupAnimations()
     {
-        rightArmUpper = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
-        rightArmLower = animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
-        rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-        rightShoulder = animator.GetBoneTransform(HumanBodyBones.RightShoulder);
+        rightShoulder = FindChildRecursive(transform, "rClavicleJ");
+        rightArmUpper = FindChildRecursive(transform, "rShoulderJ");
+        rightArmLower = FindChildRecursive(transform, "rElbowJ");
+        rightHand     = FindChildRecursive(transform, "rWristJ");
     }
 
     private void AnimateArmY()

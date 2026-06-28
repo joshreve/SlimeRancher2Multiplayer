@@ -19,7 +19,11 @@ internal sealed class TransformLookAtCamera : MonoBehaviour
     {
         if (!playerCamera)
         {
-            playerCamera = SceneContext.Instance?.Camera.GetComponent<Camera>()!;
+            var cameraObj = SceneContext.Instance?.Camera;
+            if (cameraObj != null)
+            {
+                playerCamera = cameraObj.GetComponent<Camera>();
+            }
             return;
         }
 

@@ -140,6 +140,9 @@ internal sealed partial class NetworkActorManager
     {
         const int max = 12;
 
+        if (SceneContext.Instance == null || SceneContext.Instance.player == null)
+            yield break;
+
         var player = SceneContext.Instance.player;
         var bounds = new Bounds(player.transform.position, new Vector3(600, 1250, 600));
         
