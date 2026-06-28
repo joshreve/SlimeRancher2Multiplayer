@@ -6,16 +6,20 @@ using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
+using SR2MP.Components.Player;
 using UnityEngine;
 
 namespace SR2MP.Handlers.Player;
 
-[PacketHandler((byte)PacketType.PlayerPulseWave, HandlerType.Client)]
+[PacketHandler((byte)PacketType.PlayerPulseWave, HandlerType.Both)]
 internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWavePacket>
 {
     protected override bool Handle(PlayerPulseWavePacket packet, IPEndPoint? sender)
     {
-        if (Main.Server.IsRunning) return false;
+        if (Main.Server.IsRunning && sender != null)
+        {
+            Main.Server.SendToAllExcept(packet, sender);
+        }
 
         SrLogger.LogMessage($"[PlayerPulseWaveHandler] Received pulse wave at {packet.Position}");
 
@@ -50,6 +54,10 @@ internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWave
         foreach (var col in colliders)
         {
             if (col == null || col.gameObject == null)
+                continue;
+
+            // Exclude players from raw rigidbody explosion force
+            if (col.GetComponentInParent<NetworkPlayer>() != null || col.CompareTag("Player"))
                 continue;
 
             var rb = col.GetComponent<Rigidbody>();

@@ -258,14 +258,15 @@ internal partial class NetworkPlayer : MonoBehaviour
         {
             if (!hasAnimationController)
             {
-                var playerAnimatorController = sceneContext.player?.GetComponent<Animator>().runtimeAnimatorController;
+                var localAnimator = sceneContext.player?.GetComponent<Animator>();
+                var playerAnimatorController = localAnimator?.runtimeAnimatorController;
 
-                if (animator.runtimeAnimatorController != null)
+                if (playerAnimatorController != null)
                 {
                     hasAnimationController = true;
                     animator.runtimeAnimatorController =
                         Instantiate(playerAnimatorController);
-                    animator.avatar = sceneContext.player?.GetComponent<Animator>().avatar;
+                    animator.avatar = localAnimator.avatar;
                     SetupAnimations();
                 }
             }

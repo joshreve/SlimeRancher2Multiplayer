@@ -64,7 +64,7 @@ internal static class NetworkWeatherManager
 
     internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
     {
-        while (SceneContext.Instance == null || SceneContext.Instance.WeatherRegistry == null)
+        while (HandlingPacket)
         {
             yield return null;
         }
@@ -72,6 +72,12 @@ internal static class NetworkWeatherManager
         WeatherUpdateHelper.EnsureLookupInitialized();
 
         yield return new WaitFrames(3);
+
+        if (SceneContext.Instance == null || Registry == null || Director == null)
+        {
+            yield break;
+        }
+
         HandlingPacket = true;
 
         var registry = Registry;
@@ -80,24 +86,39 @@ internal static class NetworkWeatherManager
         var zoneKeys = new List<ZoneDefinition>();
         foreach (var zone in registry._zones)
         {
-            zoneKeys.Add(zone.Key);
+            if (zone.Key != null)
+                zoneKeys.Add(zone.Key);
             yield return null;
         }
 
         byte zoneId = 0;
         foreach (var zoneKey in zoneKeys)
         {
+            if (zoneKey == null)
+                continue;
+
             if (!packet.Zones.TryGetValue(zoneId, out var data))
                 continue;
 
             var zone = registry._zones[zoneKey];
+            if (zone == null)
+                continue;
 
             var forecastCopy = new List<WeatherModel.ForecastEntry>();
-            foreach (var forecast in zone.Forecast)
-                forecastCopy.Add(forecast);
+            if (zone.Forecast != null)
+            {
+                foreach (var forecast in zone.Forecast)
+                {
+                    if (forecast != null)
+                        forecastCopy.Add(forecast);
+                }
+            }
 
             foreach (var forecast in forecastCopy)
             {
+                if (forecast == null || forecast.State == null)
+                    continue;
+
                 yield return null;
                 var patternInstance = registry.GetWeatherPatternInstance(
                     zoneKey,
@@ -106,10 +127,13 @@ internal static class NetworkWeatherManager
 
                 if (patternInstance == null)
                 {
-                    localDirector.StopState(
-                        forecast.State.Cast<IWeatherState>(),
-                        zone.Parameters
-                    );
+                    if (zone.Parameters != null)
+                    {
+                        localDirector.StopState(
+                            forecast.State.Cast<IWeatherState>(),
+                            zone.Parameters
+                        );
+                    }
                 }
                 else
                 {
@@ -158,16 +182,23 @@ internal static class NetworkWeatherManager
             yield break;
 
         var activeCopy = new List<WeatherModel.ForecastEntry>();
-        foreach (var activeForecast in activeZone.Forecast)
+        if (activeZone.Forecast != null)
         {
-            activeCopy.Add(activeForecast);
-            yield return null;
+            foreach (var activeForecast in activeZone.Forecast)
+            {
+                if (activeForecast != null)
+                    activeCopy.Add(activeForecast);
+                yield return null;
+            }
         }
 
         yield return null;
 
         foreach (var forecast in activeCopy)
         {
+            if (forecast == null || forecast.State == null)
+                continue;
+
             yield return null;
             var patternInstance = registry.GetWeatherPatternInstance(
                 localDirector.Zone,
@@ -177,7 +208,10 @@ internal static class NetworkWeatherManager
             yield return null;
             if (patternInstance == null)
             {
-                localDirector.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
+                if (activeZone.Parameters != null)
+                {
+                    localDirector.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
+                }
             }
             else
             {
