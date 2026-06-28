@@ -80,8 +80,8 @@ internal sealed class PlayerPulseWaveHandler : BasePacketHandler<PlayerPulseWave
                     var dir = (playerPos - packet.Position).normalized;
                     if (dir.sqrMagnitude < 0.001f) dir = Vector3.up;
                     var forceFactor = 1f - (dist / radius);
-                    var pushVelocity = dir * (power * forceFactor * 1.2f);
-                    pushVelocity.y = Mathf.Max(pushVelocity.y, 4f * forceFactor);
+                    var pushVelocity = dir * (power * forceFactor * 1.2f * Main.PlayerPulsingForce);
+                    pushVelocity.y = Mathf.Max(pushVelocity.y, 4f * forceFactor * Main.PlayerPulsingForce);
 
                     controller.ForceUnground();
                     controller.BaseVelocity = controller.BaseVelocity + pushVelocity;

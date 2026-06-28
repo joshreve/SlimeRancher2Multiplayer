@@ -17,7 +17,7 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
         allowCheatsInput = Main.AllowCheats;
-        playerPulsingInput = Main.PlayerPulsingEnabled;
+        playerPulsingForceInput = Main.PlayerPulsingForce.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
         joinIpInput = Main.SavedConnectIP;
         joinPortInput = Main.SavedConnectPort;
         hostLocalPortInput = Main.SavedHostPort;

@@ -6,7 +6,7 @@ internal sealed partial class MultiplayerUI
 
     private string usernameInput = "Player";
     private bool allowCheatsInput;
-    private bool playerPulsingInput = true;
+    private string playerPulsingForceInput = "1.0";
 
     private void FirstTimeScreen()
     {
@@ -40,9 +40,8 @@ internal sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
             allowCheatsInput = !allowCheatsInput;
 
-        DrawText("Player Pulsing:", 2);
-        if (GUI.Button(CalculateButtonLayout(6, 2, 1), playerPulsingInput.ToStringYesOrNo()))
-            playerPulsingInput = !playerPulsingInput;
+        DrawText("Player Pulsing Force (0=off):", 2);
+        playerPulsingForceInput = DrawSafeTextInput("player_pulsing_force", CalculateInputLayout(6, 2, 1), playerPulsingForceInput, 5);
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
@@ -52,9 +51,14 @@ internal sealed partial class MultiplayerUI
 
         if (!GUI.Button(CalculateButtonLayout(6), "Save")) return;
 
+        if (!float.TryParse(playerPulsingForceInput, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var forceVal) || forceVal < 0)
+        {
+            forceVal = 1.0f; // fallback
+        }
+
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
-        Main.SetConfigValue("player_pulsing_enabled", playerPulsingInput);
+        Main.SetConfigValue("player_pulsing_force", forceVal);
         viewingSettings = false;
     }
 

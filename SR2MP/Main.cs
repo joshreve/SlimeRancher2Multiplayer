@@ -100,7 +100,8 @@ public sealed class Main : StarlightExpansionV01
     // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
     internal static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
 
-    public static bool PlayerPulsingEnabled => preferences.GetEntry<bool>("player_pulsing_enabled").Value;
+    public static float PlayerPulsingForce => preferences.GetEntry<float>("player_pulsing_force").Value;
+    public static bool PlayerPulsingEnabled => PlayerPulsingForce > 0.001f;
 
     /// <inheritdoc/>
     public override void OnLateInitializeMelon()
@@ -126,7 +127,7 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");
 
-        preferences.CreateEntry("player_pulsing_enabled", true, display_name: "Enable Player Pulsing");
+        preferences.CreateEntry("player_pulsing_force", 1.0f, display_name: "Player Pulsing Force Factor");
 
         InsertLicenseFiles();
 
