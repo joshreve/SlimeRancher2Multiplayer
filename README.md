@@ -1,4 +1,6 @@
-# Slime Rancher 2 Multiplayer Mod - <a href="https://discord.com/invite/a7wfBw5feU" target="_blank" rel="noopener noreferrer">Join our Discord</a>
+# Slime Rancher 2 Multiplayer Mod - Ranching Party
+
+This is a hobby project, so updates and responses may be slow. I am actively playing SR2, so I will be at least adjusting for any game updates as I go along. Feel free to fork, drop an issue, or ask questions if you have any.  I may or may not incorporate PRs depending on level of effort.
 
 **LEGEND:**
 - 🟩 fully synced
@@ -15,7 +17,7 @@
 | Player Inventory  |   🟩   | Fully functional (persistent individual inventory storage & disconnected recovery `/recover` command) |
 | Initial Save load |   🟩   | Everything that is ___currently___ synchronised will be loaded on Player join |
 |  Map Expansions   |   🟩   |                               Fully functional                                |
-|      Slimes       |   🟩   |                               Dervish and Yolky behaviour synchronised        |
+|      Slimes       |   🟩   |                               synchronised        |
 |  Slime Behaviour  |   🟩   |                               Fully functional                                |
 |  Actors (Items)   |   🟩   |                               Fully functional                                |
 |     Landplots     |   🟩   |                               Fully functional                                |
@@ -44,6 +46,6 @@
 
 ## Acknowledgements
 Special thanks to:
+- [pyeight](https://github.com/pyeight) and contributors for developing [SlimeRancher2Multiplayer](https://github.com/pyeight/SlimeRancher2Multiplayer) from which this was forked.
 - [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining their [Starlight Core Essentials Mod](https://github.com/ThatFinnDev/Starlight)
 - [Lachee](https://github.com/Lachee/) for developing and maintaining their [Discord RPC C# library](https://github.com/Lachee/discord-rpc-csharp)
-- Each and every one of you for supporting us!
