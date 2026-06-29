@@ -25,33 +25,33 @@ internal static class OnTriggerDeposit
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(SiloCatcher), nameof(SiloCatcher.OnTriggerEnter))]
-    public static bool SiloCatcherPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool SiloCatcherPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(FeederRegion), nameof(FeederRegion.OnTriggerEnter))]
-    public static bool FeederRegionPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool FeederRegionPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(ScorePlort), nameof(ScorePlort.OnTriggerEnter))]
-    public static bool ScorePlortPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool ScorePlortPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(PlortDepositor), nameof(PlortDepositor.OnTriggerEnter))]
-    public static bool PlortDepositorPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool PlortDepositorPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(PuzzleSlot), nameof(PuzzleSlot.OnTriggerEnter))]
-    public static bool PuzzleSlotPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool PuzzleSlotPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(GordoEatTrigger), nameof(GordoEatTrigger.OnTriggerEnter))]
-    public static bool GordoEatTriggerPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool GordoEatTriggerPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Il2CppMonomiPark.SlimeRancher.Prestige.ResourceDepositor), nameof(Il2CppMonomiPark.SlimeRancher.Prestige.ResourceDepositor.OnTriggerEnter))]
-    public static bool ResourceDepositorPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool ResourceDepositorPrefix(Collider __0) => CheckOwnership(__0);
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Il2CppMonomiPark.SlimeRancher.Drone.DroneFuelDepositor), nameof(Il2CppMonomiPark.SlimeRancher.Drone.DroneFuelDepositor.OnTriggerEnter))]
-    public static bool DroneFuelDepositorPrefix(Collider collider) => CheckOwnership(collider);
+    public static bool DroneFuelDepositorPrefix(Collider __0) => CheckOwnership(__0);
 }
