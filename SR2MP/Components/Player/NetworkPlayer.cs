@@ -81,6 +81,19 @@ internal partial class NetworkPlayer : MonoBehaviour
             UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
                 UsernamePanel.transform;
         }
+
+        try
+        {
+            var overlayShader = Shader.Find("TextMeshPro/Mobile/Distance Field Overlay") ?? Shader.Find("TextMeshPro/Distance Field Overlay");
+            if (overlayShader != null)
+            {
+                UsernamePanel.material.shader = overlayShader;
+            }
+        }
+        catch (System.Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to apply overlay shader to UsernamePanel: {ex.Message}");
+        }
         
         if (!radarComponent) return;
 
