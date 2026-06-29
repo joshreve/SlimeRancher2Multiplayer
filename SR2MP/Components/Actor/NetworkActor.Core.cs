@@ -528,6 +528,7 @@ internal sealed class NetworkActor : MonoBehaviour
                     var actorId = ActorId;
                     if (actorId.Value != 0)
                     {
+                        SrLogger.LogMessage($"Stealing ownership of actor {actorId.Value} (Local Score: {localScore:F1}, Owner Score: {(hasActiveOwner ? ownerScore.ToString("F1") : "None")})");
                         Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
                     }
                 }
