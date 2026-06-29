@@ -26,9 +26,14 @@ internal sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
 
         if (ammo == null) return false;
         var ident = ActorManager.ActorTypes[packet.Identifiable];
-        HandlingPacket = true;
-        ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), ammo.GetNextSlot(ident), packet.Count, false);
-        HandlingPacket = false;
+        
+        var slotIdx = ammo.GetNextSlot(ident);
+        if (slotIdx >= 0 && slotIdx < ammo.Slots.Count)
+        {
+            HandlingPacket = true;
+            ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), slotIdx, packet.Count, false);
+            HandlingPacket = false;
+        }
 
         return true;
     }

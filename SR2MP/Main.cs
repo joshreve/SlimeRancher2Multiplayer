@@ -136,7 +136,33 @@ public sealed class Main : StarlightExpansionV01
     }
 
     /// <inheritdoc/>
-    public override void OnInitialize() => LoadBundledAssemblies();
+    public override void OnInitialize()
+    {
+        LoadBundledAssemblies();
+
+        try
+        {
+            var platformType = Type.GetType("Il2CppMonomiPark.SlimeRancher.Platform.SteamMetaGamePlatform, Assembly-CSharp");
+            if (platformType != null)
+            {
+                var grantMethod = platformType.GetMethod("Grant");
+                if (grantMethod != null)
+                {
+                    var prefix = typeof(SR2MP.Patches.GordoSlime.SteamMetaGamePlatformGrantPatch).GetMethod("Prefix");
+                    if (prefix != null)
+                    {
+                        var harmony = new HarmonyLib.Harmony("com.sr2mp.gordoachievementfix");
+                        harmony.Patch(grantMethod, prefix: new HarmonyLib.HarmonyMethod(prefix));
+                        SrLogger.LogMessage("Successfully patched SteamMetaGamePlatform.Grant dynamically.");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to dynamically patch SteamMetaGamePlatform.Grant: {ex.Message}");
+        }
+    }
 
     internal static void SendToAllOrServer<T>(T packet) where T : IPacket
     {

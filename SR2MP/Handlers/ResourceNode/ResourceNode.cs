@@ -19,10 +19,22 @@ internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket
         {
             if (node != null)
             {
+                if (node._model != null && node._model.nodeState == Il2Cpp.ResourceNode.NodeState.HARVESTED)
+                {
+                    return true;
+                }
+
                 // Host has the scene loaded — spawn the loot locally.
                 // The spawned actor flows through OnActorSpawn → ActorSpawnPacket relay.
                 HandlingPacket = true;
-                node.SpawnSingleResource();
+                try
+                {
+                    node.SpawnSingleResource();
+                }
+                catch (System.Exception ex)
+                {
+                    SrLogger.LogDebug($"Failed to spawn resource from node {packet.NodeId}: {ex.Message}");
+                }
                 HandlingPacket = false;
 
                 // Relay a non-spawn state update to all clients so they wiggle the node in sync
@@ -51,9 +63,21 @@ internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket
         {
             if (node != null)
             {
+                if (node._model != null && node._model.nodeState == Il2Cpp.ResourceNode.NodeState.HARVESTED)
+                {
+                    return true;
+                }
+
                 // This client has the scene loaded — execute the spawn locally.
                 // The spawned actor flows through OnActorSpawn → ActorSpawnPacket → host relay.
-                node.SpawnSingleResource();
+                try
+                {
+                    node.SpawnSingleResource();
+                }
+                catch (System.Exception ex)
+                {
+                    SrLogger.LogDebug($"Failed to spawn resource from node {packet.NodeId}: {ex.Message}");
+                }
 
                 // Send state update (non-spawn) to host for relay to other clients
                 var statePacket = new ResourceNodePacket

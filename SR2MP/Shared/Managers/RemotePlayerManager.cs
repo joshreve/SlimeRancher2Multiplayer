@@ -24,7 +24,10 @@ public sealed class RemotePlayerManager
 
     internal RemotePlayer AddPlayer(string playerId)
     {
-        var player = new RemotePlayer(playerId);
+        var player = new RemotePlayer(playerId)
+        {
+            Username = playerId.StartsWith("PLAYER_") ? "Player" : playerId
+        };
 
         if (players.TryAdd(playerId, player))
         {

@@ -1,5 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 using HarmonyLib;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Packets.Actor;
@@ -44,6 +45,26 @@ internal static class OnGadgetSpawn
         Vector3 position,
         Quaternion rotation)
     {
+        if (__result != null)
+        {
+            var gadget = __result.GetComponent<Il2CppMonomiPark.SlimeRancher.World.Gadget>();
+            if (gadget != null)
+            {
+                var actorId = gadget.GetActorId();
+                var model = (SystemContext.Instance != null && SystemContext.Instance.SceneLoader != null && SystemContext.Instance.SceneLoader.IsSceneLoadInProgress)
+                    ? null
+                    : GameState.GetIdentifiableModel(actorId);
+                if (model != null)
+                {
+                    var identModel = model.TryCast<IdentifiableModel>();
+                    if (identModel != null)
+                    {
+                        ActorManager.Actors[actorId.Value] = identModel;
+                    }
+                }
+            }
+        }
+
         if (!HandlingPacket)
             StartCoroutine(SpawnOverNetwork(__result, sceneGroup, position, rotation));
     }

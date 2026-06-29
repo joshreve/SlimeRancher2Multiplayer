@@ -16,7 +16,12 @@ internal static class PulseWaveAbilityPatch
 
         var position = __instance.VacOrigin != null ? __instance.VacOrigin.position : SceneContext.Instance.Player.transform.position;
         var rotation = __instance.VacOrigin != null ? __instance.VacOrigin.rotation : SceneContext.Instance.Player.transform.rotation;
-        var packet = new PlayerPulseWavePacket { Position = position, Rotation = rotation };
+        var packet = new PlayerPulseWavePacket 
+        { 
+            Position = position, 
+            Rotation = rotation,
+            PulsingForce = Main.PlayerPulsingForce
+        };
 
         Main.SendToAllOrServer(packet);
     }

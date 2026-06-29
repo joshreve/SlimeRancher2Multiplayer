@@ -11,38 +11,9 @@ internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGo
 {
     protected override bool Handle(InitialGordosPacket packet, IPEndPoint? _)
     {
-        var gameModel = GameState;
-
-        foreach (var gordoSlime in packet.GordoSlimes)
-        {
-            if (gameModel.gordos.TryGetValue(gordoSlime.Id, out var gordoModel))
-            {
-                gordoModel.GordoEatenCount = gordoSlime.EatenCount;
-                gordoModel.targetCount = gordoSlime.RequiredEatCount;
-
-                if (!gordoModel.gameObj)
-                    continue;
-
-                var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
-                gordoComponent.SetModel(gordoModel);
-                gordoModel.gameObj.SetActive(gordoSlime.EatenCount < gordoSlime.RequiredEatCount);
-            }
-            else
-            {
-                gordoModel = new GordoModel
-                {
-                    fashions = new CppCollections.List<IdentifiableType>(0),
-                    gordoEatCount = gordoSlime.EatenCount,
-                    gordoSeen = false,
-                    identifiableType = ActorManager.ActorTypes[gordoSlime.GordoSlimeType],
-                    gameObj = null,
-                    targetCount = gordoSlime.RequiredEatCount
-                };
-
-                gameModel.gordos.Add(gordoSlime.Id, gordoModel);
-            }
-        }
-
-        return false;
+        // Since the client loads the host's save game, Gordo states are already
+        // perfectly synchronized from the save file. Additional sync at connect
+        // is redundant and can overwrite or misalign native Gordo components.
+        return true;
     }
 }

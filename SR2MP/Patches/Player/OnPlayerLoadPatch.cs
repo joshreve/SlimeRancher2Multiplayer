@@ -31,6 +31,7 @@ internal static class OnPlayerLoadPatch
             networkPlayer.ID = Main.Server.PlayerId;
             networkPlayer.IsLocal = true;
             RegisterLocalPlayerAmmo(networkPlayer.ID);
+            PlayerManager.AddPlayer(networkPlayer.ID).Username = Main.Username;
         }
         else if (Main.Client.IsConnected)
         {
@@ -38,6 +39,7 @@ internal static class OnPlayerLoadPatch
             networkPlayer.ID = Main.Client.PlayerId;
             networkPlayer.IsLocal = true;
             RegisterLocalPlayerAmmo(networkPlayer.ID);
+            PlayerManager.AddPlayer(networkPlayer.ID).Username = Main.Username;
         }
         else
         {

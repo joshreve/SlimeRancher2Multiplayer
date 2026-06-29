@@ -29,7 +29,7 @@ internal sealed partial class NetworkActorManager
         if (!type.prefab)
             return false;
         
-        if (type.IsGadget())
+        if (type != null && type.Pointer != System.IntPtr.Zero && type.IsGadget())
             return TrySpawnNetworkGadget(actorId, position, rotation, typeId, sceneId, out model);
         
         if (ActorIDAlreadyInUse(actorId))
@@ -94,6 +94,10 @@ internal sealed partial class NetworkActorManager
         gadget.transform.SetPositionAndRotation(position, rotation);
         
         identModel = model.TryCast<IdentifiableModel>();
+        if (identModel != null)
+        {
+            ActorManager.Actors[actorId.Value] = identModel;
+        }
         return true;
     }
     
@@ -112,7 +116,7 @@ internal sealed partial class NetworkActorManager
             return false;
         }
         
-        if (type.IsGadget())
+        if (type != null && type.Pointer != System.IntPtr.Zero && type.IsGadget())
             return TrySpawnInitialGadget(actorData, out model);
         
         switch (actorData)
@@ -140,7 +144,7 @@ internal sealed partial class NetworkActorManager
         if (!type.prefab)
             return false;
         
-        if (type.IsGadget())
+        if (type != null && type.Pointer != System.IntPtr.Zero && type.IsGadget())
         {
             SrLogger.LogWarning($"Tried to spawn gadget over the network, but used the non-gadget function!\n\tActor {actorId.Value}: {type.name}");
             return false;
@@ -574,6 +578,11 @@ internal sealed partial class NetworkActorManager
         HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
+
+        if (identifiableModel != null)
+        {
+            ActorManager.Actors[actorId.Value] = identifiableModel;
+        }
         
         return true;
     }
@@ -605,6 +614,11 @@ internal sealed partial class NetworkActorManager
         HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
+
+        if (identifiableModel != null)
+        {
+            ActorManager.Actors[actorId.Value] = identifiableModel;
+        }
         
         return true;
     }
@@ -675,6 +689,12 @@ internal sealed partial class NetworkActorManager
         gadget.GetComponent<DroneStation>().SetModel(droneModel.Cast<GadgetModel>());
         
         gadget.transform.SetPositionAndRotation(position, rotation);
+
+        if (identifiableModel != null)
+        {
+            ActorManager.Actors[actorId.Value] = identifiableModel;
+        }
+
         SrLogger.LogWarning($"DEBUG: Spawning drone station;\n\tGadget Id: {actorId}\n\tDrone Id: {new ActorId(actorData.LinkedActorId)}\n\tBattery: {actorData.Charge}\n\tType: {actorData.DroneType}\n\tDrone Task:\n\t\tSink: {actorData.Task.Sink}\n\t\tSource: {actorData.Task.Source}\n\t\tTarget: {actorData.Task.Target}");
         
         return true;
@@ -710,6 +730,11 @@ internal sealed partial class NetworkActorManager
         HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
+
+        if (identifiableModel != null)
+        {
+            ActorManager.Actors[actorId.Value] = identifiableModel;
+        }
         
         return true;
     }
