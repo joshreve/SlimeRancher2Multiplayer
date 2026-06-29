@@ -20,6 +20,9 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
     // ReSharper disable once InconsistentNaming
     private readonly ConcurrentQueue<ServerHandleCache> serverPacketQueue = new();
 
+    public int ClientQueueCount => clientPacketQueue.Count;
+    public int ServerQueueCount => serverPacketQueue.Count;
+
     public static void Initialize()
     {
         if (Instance) return;
@@ -33,6 +36,8 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
 
     public void Update()
     {
+        NetworkMetrics.Update(UnityEngine.Time.unscaledDeltaTime);
+
         // Process general actions
         while (actionQueue.TryDequeue(out var action))
         {
@@ -51,6 +56,9 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
         {
             try
             {
+                float delay = UnityEngine.Time.unscaledTime - clientCache.ReceiveTime;
+                NetworkMetrics.AccProcessingDelay += delay;
+                NetworkMetrics.ProcessingDelayCount++;
                 clientCache.Handler.Handle(clientCache.Reader);
             }
             catch (Exception ex)
@@ -68,6 +76,9 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
         {
             try
             {
+                float delay = UnityEngine.Time.unscaledTime - serverCache.ReceiveTime;
+                NetworkMetrics.AccProcessingDelay += delay;
+                NetworkMetrics.ProcessingDelayCount++;
                 serverCache.Handler.Handle(serverCache.Reader, serverCache.ClientEp);
             }
             catch (Exception ex)

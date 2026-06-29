@@ -119,6 +119,7 @@ internal sealed class ReliabilityManager
         if (!reliability.HasFlag(PacketReliability.Reliable))
             return;
 
+        NetworkMetrics.ReliableSent++;
         var key = new PacketKey(packetType, packetId, destination);
         pendingPackets[key] = PendingPacket.Borrow(splitData, destination, packetId, packetType);
     }
@@ -199,6 +200,7 @@ internal sealed class ReliabilityManager
                     }
                     else
                     {
+                        NetworkMetrics.OutOfOrderDropped++;
                         SrLogger.LogPacketSize(
                             $"Reorder buffer full, dropping packet: " +
                             $"seq={sequenceNumber}, type={packetType}, channel={channel}");
@@ -269,6 +271,7 @@ internal sealed class ReliabilityManager
                     
                     if (now - packet.FirstSendTime > MaxRetryTime || packet.SendCount >= MaxResendAttempts)
                     {
+                        NetworkMetrics.FailedPackets++;
                         SrLogger.LogPacketAcknowledge(
                             $"Packet {packet.PacketId} (type={packet.PacketType}) " +
                             $"failed after {packet.SendCount} attempts");
@@ -282,6 +285,7 @@ internal sealed class ReliabilityManager
                         for (var i = 0; i < packet.SplitData.Count; i++)
                             sendRawCallback(packet.SplitData.Chunks[i], packet.Destination);
 
+                        NetworkMetrics.ResendAttempts++;
                         packet.LastSendTime = now;
                         packet.SendCount++;
 

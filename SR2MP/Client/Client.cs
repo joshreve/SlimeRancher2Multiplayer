@@ -312,11 +312,14 @@ public sealed class SR2MPClient
         }
     }
 
-    // Sends raw data without reliability tracking (used for resends)
     private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
     {
         if (data.Array != null)
+        {
             udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
+            SR2MP.Shared.Utils.NetworkMetrics.BytesSent += data.Count;
+            SR2MP.Shared.Utils.NetworkMetrics.PacketsSent++;
+        }
     }
 
     // Handle acknowledgement from server, used in client packet manager

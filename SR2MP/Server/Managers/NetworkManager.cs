@@ -177,11 +177,14 @@ internal sealed class NetworkManager
         }
     }
 
-    // Sends raw data without reliability tracking (used for resends or internally)
     private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
     {
         if (data.Array != null)
+        {
             udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
+            SR2MP.Shared.Utils.NetworkMetrics.BytesSent += data.Count;
+            SR2MP.Shared.Utils.NetworkMetrics.PacketsSent++;
+        }
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)

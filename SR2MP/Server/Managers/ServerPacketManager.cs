@@ -53,6 +53,9 @@ internal sealed class ServerPacketManager
 
     public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint clientEp)
     {
+        SR2MP.Shared.Utils.NetworkMetrics.BytesReceived += receivedBytes;
+        SR2MP.Shared.Utils.NetworkMetrics.PacketsReceived++;
+
         if (receivedBytes < HeaderSize)
         {
             SrLogger.LogWarning($"Received packet too small for chunk header: {receivedBytes} bytes");
@@ -75,6 +78,7 @@ internal sealed class ServerPacketManager
 
         if (receivedCrc != expectedCrc)
         {
+            SR2MP.Shared.Utils.NetworkMetrics.CorruptedDropped++;
             SrLogger.LogPacketAcknowledge(
                 $"Corrupted packet dropped: type={packetTypeHeader}" +
                 $"expected=0x{expectedCrc:X4} received=0x{receivedCrc:X4}");
@@ -139,6 +143,7 @@ internal sealed class ServerPacketManager
 
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
+            SR2MP.Shared.Utils.NetworkMetrics.DuplicateIgnored++;
             PacketReader.Return(reader);
             SrLogger.LogPacketSize($"Duplicate packet ignored from {clientEp}: {packetType} (packetId={packetId})");
             return;
@@ -163,7 +168,7 @@ internal sealed class ServerPacketManager
         {
             if (Handlers.TryGetValue(packetTypeHeader, out var handler))
             {
-                MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, handler, clientEp));
+                MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, handler, clientEp, UnityEngine.Time.unscaledTime));
             }
             else
             {

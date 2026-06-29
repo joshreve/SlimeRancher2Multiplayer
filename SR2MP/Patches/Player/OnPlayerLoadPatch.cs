@@ -16,24 +16,6 @@ internal static class OnPlayerLoadPatch
         {
             NetworkAmmoManager.RegisterAmmoPointer(localAmmo, playerId);
             SrLogger.LogMessage($"Registered local player ammo pointer for {playerId}");
-
-            if (Main.Server.IsRunning)
-            {
-                var hostData = SR2MP.Server.Managers.PlayerDataManager.Instance.GetPlayerData(playerId);
-                if (hostData != null)
-                {
-                    if (hostData.PosX.HasValue && hostData.PosY.HasValue && hostData.PosZ.HasValue)
-                    {
-                        var targetPos = new UnityEngine.Vector3(hostData.PosX.Value, hostData.PosY.Value, hostData.PosZ.Value);
-                        var characterController = SceneContext.Instance?.Player?.GetComponent<SRCharacterController>();
-                        if (characterController != null)
-                        {
-                            characterController.Position = targetPos;
-                            SrLogger.LogMessage($"Teleported host player to saved position: {targetPos}");
-                        }
-                    }
-                }
-            }
         }
         else
         {
