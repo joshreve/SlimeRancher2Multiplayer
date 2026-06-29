@@ -386,45 +386,83 @@ internal sealed class NetworkActor : MonoBehaviour
         if (!localPlayer)
             return;
 
-        var localPlayerPos = localPlayer.transform.position;
         var actorPos = transform.position;
-        var localDistSq = (localPlayerPos - actorPos).sqrMagnitude;
-
-        const float maxOwnershipStealDistance = 25f;
-        if (localDistSq > maxOwnershipStealDistance * maxOwnershipStealDistance)
-            return;
-
         var sceneGroupId = NetworkSceneManager.GetPersistentID(actorModel.sceneGroup);
         var playersInScene = GlobalVariables.ScenePresenceManager.GetPlayersInSceneGroup(sceneGroupId);
 
-        const float ownershipHysteresis = 5f;
-        var localDist = Mathf.Sqrt(localDistSq);
+        if (playersInScene.Count <= 1)
+        {
+            var localPlayerPos = localPlayer.transform.position;
+            var localDistSq = (localPlayerPos - actorPos).sqrMagnitude;
+            const float maxOwnershipStealDistance = 25f;
+            if (localDistSq <= maxOwnershipStealDistance * maxOwnershipStealDistance)
+            {
+                LocallyOwned = true;
+                var actorId = ActorId;
+                if (actorId.Value != 0)
+                {
+                    Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
+                }
+            }
+            return;
+        }
+
+        string bestPlayerId = null;
+        float bestScore = float.MinValue;
 
         foreach (var playerId in playersInScene)
         {
+            float dist;
+            float fps = 60f;
+            float gap = 0f;
+
             if (playerId == LocalID)
-                continue;
-
-            var remotePlayer = GlobalVariables.PlayerManager.GetPlayer(playerId);
-            if (remotePlayer == null)
-                continue;
-
-            var remotePlayerPos = remotePlayer.Position;
-            var remoteDistSq = (remotePlayerPos - actorPos).sqrMagnitude;
-            var remoteDist = Mathf.Sqrt(remoteDistSq);
-
-            if (localDist >= remoteDist - ownershipHysteresis)
             {
-                return;
+                dist = Vector3.Distance(localPlayer.transform.position, actorPos);
+                fps = GlobalVariables.LocalFPS;
+                gap = 0f;
+            }
+            else
+            {
+                var remotePlayer = GlobalVariables.PlayerManager.GetPlayer(playerId);
+                if (remotePlayer == null)
+                    continue;
+
+                dist = Vector3.Distance(remotePlayer.Position, actorPos);
+                fps = remotePlayer.FPS;
+                gap = UnityEngine.Time.unscaledTime - remotePlayer.LastPacketTime;
+            }
+
+            if (dist > 30f)
+                continue;
+
+            float score = -dist;
+
+            if (fps < 30f)
+            {
+                score += (fps - 30f) * 2f;
+            }
+
+            if (gap > 0.2f)
+            {
+                score += (0.2f - gap) * 100f;
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestPlayerId = playerId;
             }
         }
 
-        LocallyOwned = true;
-        var actorId = ActorId;
-        if (actorId.Value != 0)
+        if (bestPlayerId == LocalID)
         {
-            var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
-            Main.SendToAllOrServer(packet);
+            LocallyOwned = true;
+            var actorId = ActorId;
+            if (actorId.Value != 0)
+            {
+                Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
+            }
         }
     }
 

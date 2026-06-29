@@ -17,6 +17,7 @@ internal sealed class PlayerUpdatePacket : IPacket
     public bool Sprinting;
     public float LookY;
     public int SceneGroup;
+    public float FPS;
 
     public PacketType Type => PacketType.PlayerUpdate;
     public PacketReliability Reliability => PacketReliability.Ordered;
@@ -42,6 +43,7 @@ internal sealed class PlayerUpdatePacket : IPacket
         writer.WritePackedBool(Sprinting);
         
         writer.WriteInt(SceneGroup);
+        writer.WriteFloat(FPS);
     }
 
     public void Deserialise(PacketReader reader)
@@ -64,5 +66,6 @@ internal sealed class PlayerUpdatePacket : IPacket
         Sprinting = reader.ReadPackedBool();
 
         SceneGroup = reader.ReadInt();
+        FPS = reader.ReadFloat();
     }
 }

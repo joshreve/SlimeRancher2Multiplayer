@@ -127,6 +127,11 @@ public static class GlobalVariables
     /// Gets the current game state model from the active scene context.
     /// </summary>
     public static GameModel GameState => SceneContext.Instance.GameModel;
+
+    /// <summary>
+    /// The current calculated FPS for the local player.
+    /// </summary>
+    public static float LocalFPS = 60f;
     
     internal static readonly Dictionary<string, MarkerTransform> PlayerMarkerTransforms = new();
 }

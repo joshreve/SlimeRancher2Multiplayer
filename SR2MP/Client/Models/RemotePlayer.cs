@@ -10,6 +10,9 @@ public sealed class RemotePlayer
     /// </summary>
     public readonly string PlayerId;
 
+    public float FPS { get; set; } = 60f;
+    public float LastPacketTime { get; set; } = 0f;
+
     /// <summary>
     /// Gets the username of the player.
     /// </summary>

@@ -49,6 +49,8 @@ internal partial class NetworkPlayer : MonoBehaviour
     public TextMeshPro UsernamePanel;
 
     private float transformTimer = PlayerTimer;
+    private float fpsTimeAccumulator;
+    private int fpsFrameCount;
 
     private Animator animator;
     private bool hasAnimationController;
@@ -186,6 +188,18 @@ internal partial class NetworkPlayer : MonoBehaviour
 
     public void Update()
     {
+        if (IsLocal)
+        {
+            fpsFrameCount++;
+            fpsTimeAccumulator += UnityEngine.Time.unscaledDeltaTime;
+            if (fpsTimeAccumulator >= 0.5f)
+            {
+                GlobalVariables.LocalFPS = fpsFrameCount / fpsTimeAccumulator;
+                fpsFrameCount = 0;
+                fpsTimeAccumulator = 0f;
+            }
+        }
+
         if (model == null)
         {
             model = PlayerManager.GetPlayer(ID) ?? PlayerManager.AddPlayer(ID);
@@ -270,7 +284,8 @@ internal partial class NetworkPlayer : MonoBehaviour
                 forwardSpeed: animator.GetFloat(ForwardSpeed),
                 sprinting: animator.GetBool(Sprinting),
                 lookY: camera.eulerAngles.x,
-                sceneGroup: sceneId
+                sceneGroup: sceneId,
+                fps: GlobalVariables.LocalFPS
             );
 
             if (Main.Server.IsRunning)

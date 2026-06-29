@@ -22,9 +22,6 @@ internal static class OnPlayerLoadPatch
                 var hostData = SR2MP.Server.Managers.PlayerDataManager.Instance.GetPlayerData(playerId);
                 if (hostData != null)
                 {
-                    NetworkAmmoManager.ApplyInventory(localAmmo, hostData.Inventory);
-                    SrLogger.LogMessage($"Applied host player inventory from JSON for {playerId}");
-
                     if (hostData.PosX.HasValue && hostData.PosY.HasValue && hostData.PosZ.HasValue)
                     {
                         var targetPos = new UnityEngine.Vector3(hostData.PosX.Value, hostData.PosY.Value, hostData.PosZ.Value);

@@ -62,7 +62,8 @@ public sealed class RemotePlayerManager
         float forwardSpeed = 0f,
         bool sprinting = false,
         float lookY = 0f,
-        int sceneGroup = 1)
+        int sceneGroup = 1,
+        float fps = 60f)
     {
         var playerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty);
         var updatePacket = new PlayerUpdatePacket
@@ -79,7 +80,8 @@ public sealed class RemotePlayerManager
             ForwardSpeed = forwardSpeed,
             Sprinting = sprinting,
             LookY = lookY,
-            SceneGroup = sceneGroup
+            SceneGroup = sceneGroup,
+            FPS = fps
         };
         Main.SendToAllOrServer(updatePacket);
     }
@@ -97,7 +99,8 @@ public sealed class RemotePlayerManager
         float forwardSpeed,
         bool sprinting,
         float lookY,
-        int sceneGroup)
+        int sceneGroup,
+        float fps)
     {
         if (!players.TryGetValue(playerId, out var player))
             return;
@@ -115,6 +118,8 @@ public sealed class RemotePlayerManager
         player.LastLookY = player.LookY;
         player.LookY = lookY;
         player.SceneGroup = sceneGroup;
+        player.FPS = fps;
+        player.LastPacketTime = UnityEngine.Time.unscaledTime;
 
         OnPlayerUpdated?.Invoke(playerId, player);
     }
