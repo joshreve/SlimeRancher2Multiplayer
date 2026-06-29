@@ -177,4 +177,29 @@ internal static class NetworkAmmoManager
         slotDefinitions.TryAdd(hash, def);
         return hash;
     }
+
+    public static void ApplyInventory(AmmoSlotManager localAmmo, Dictionary<int, NetworkAmmoSlot> inventory)
+    {
+        for (int i = 0; i < localAmmo.Slots.Count; i++)
+        {
+            var slot = localAmmo.Slots[i];
+            if (inventory.TryGetValue(i, out var netSlot))
+            {
+                slot._count = netSlot.Count;
+                if (netSlot.Count > 0 && netSlot.Identifiable != -1)
+                {
+                    slot._id = GlobalVariables.ActorManager.ActorTypes.TryGetValue(netSlot.Identifiable, out var type) ? type : null!;
+                }
+                else
+                {
+                    slot._id = null;
+                }
+            }
+            else
+            {
+                slot._count = 0;
+                slot._id = null;
+            }
+        }
+    }
 }

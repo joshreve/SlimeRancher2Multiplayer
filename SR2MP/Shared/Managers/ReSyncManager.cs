@@ -71,16 +71,20 @@ internal sealed class ReSyncManager
         SendPlortDepositorsPacket(endPoint);
         SendPrismaBarriersPacket(endPoint);
 
-        // Send saved player inventory
+        // Send saved player inventory and position
         var playerData = SR2MP.Server.Managers.PlayerDataManager.Instance.GetPlayerData(playerId);
         if (playerData != null)
         {
             var syncPacket = new SR2MP.Packets.Player.PlayerInventorySyncPacket
             {
-                Ammo = new NetworkAmmo { AmmoSlots = playerData.Inventory }
+                Ammo = new NetworkAmmo { AmmoSlots = playerData.Inventory },
+                HasPosition = playerData.PosX.HasValue && playerData.PosY.HasValue && playerData.PosZ.HasValue,
+                PosX = playerData.PosX ?? 0f,
+                PosY = playerData.PosY ?? 0f,
+                PosZ = playerData.PosZ ?? 0f
             };
             Main.Server.SendToClient(syncPacket, endPoint);
-            SrLogger.LogMessage($"Sent saved player inventory to {playerId}.");
+            SrLogger.LogMessage($"Sent saved player inventory and position to {playerId}.");
         }
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");

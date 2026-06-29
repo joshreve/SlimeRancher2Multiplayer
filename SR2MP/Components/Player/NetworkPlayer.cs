@@ -252,6 +252,9 @@ internal partial class NetworkPlayer : MonoBehaviour
 
         if (IsLocal)
         {
+            var currentSceneGroup = SystemContext.Instance?.SceneLoader?._currentSceneGroup;
+            var sceneId = currentSceneGroup != null ? NetworkSceneManager.GetPersistentID(currentSceneGroup) : 1;
+
             RemotePlayerManager.SendPlayerUpdate(
                 position: transform.position,
                 rotation: transform.eulerAngles.y,
@@ -264,8 +267,14 @@ internal partial class NetworkPlayer : MonoBehaviour
                 forwardSpeed: animator.GetFloat(ForwardSpeed),
                 sprinting: animator.GetBool(Sprinting),
                 lookY: camera.eulerAngles.x,
-                sceneGroup: NetworkSceneManager.GetPersistentID(SystemContext.Instance.SceneLoader._currentSceneGroup)
+                sceneGroup: sceneId
             );
+
+            if (Main.Server.IsRunning)
+            {
+                var sceneName = currentSceneGroup != null ? currentSceneGroup.name : "SystemCore";
+                SR2MP.Server.Managers.PlayerDataManager.Instance.UpdatePlayerPosition(ID, transform.position, sceneName);
+            }
         }
         else
         {

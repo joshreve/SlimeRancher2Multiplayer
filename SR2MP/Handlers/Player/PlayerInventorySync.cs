@@ -1,5 +1,6 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Player;
+using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
@@ -24,26 +25,16 @@ internal sealed class PlayerInventorySyncHandler : BasePacketHandler<PlayerInven
 
         HandlingPacket = true;
         
-        // Loop over local slots and update them from packet slots:
-        for (int i = 0; i < localAmmo.Slots.Count; i++)
+        NetworkAmmoManager.ApplyInventory(localAmmo, packet.Ammo.AmmoSlots);
+
+        if (packet.HasPosition)
         {
-            var slot = localAmmo.Slots[i];
-            if (packet.Ammo.AmmoSlots.TryGetValue(i, out var netSlot))
+            var targetPos = new Vector3(packet.PosX, packet.PosY, packet.PosZ);
+            var characterController = SceneContext.Instance?.Player?.GetComponent<SRCharacterController>();
+            if (characterController != null)
             {
-                slot._count = netSlot.Count;
-                if (netSlot.Count > 0 && netSlot.Identifiable != -1)
-                {
-                    slot._id = GlobalVariables.ActorManager.ActorTypes.TryGetValue(netSlot.Identifiable, out var type) ? type : null!;
-                }
-                else
-                {
-                    slot._id = null;
-                }
-            }
-            else
-            {
-                slot._count = 0;
-                slot._id = null;
+                characterController.Position = targetPos;
+                SrLogger.LogMessage($"Teleported local player to saved position: {targetPos}");
             }
         }
         

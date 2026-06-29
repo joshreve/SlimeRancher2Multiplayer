@@ -351,7 +351,15 @@ internal sealed class NetworkActor : MonoBehaviour
 
             if (locallyOwned)
             {
+                if (cycle == null || cycle._joint == null)
+                {
+                    rigidbody.isKinematic = false;
+                }
                 rigidbody.WakeUp();
+                if (rigidbody.velocity.sqrMagnitude < 0.01f)
+                {
+                    rigidbody.velocity = new Vector3(0f, 0.05f, 0f);
+                }
             }
         }
         catch (Exception ex)

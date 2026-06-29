@@ -133,6 +133,7 @@ public sealed class SR2MPServer
 
     private void OnClientRemoved(ClientInfo client)
     {
+        try { PlayerDataManager.Instance.SaveAllPlayerData(); } catch {}
         NetworkManager.RemoveClient(client.EndPoint);
         var playerId = client.PlayerId;
 
@@ -186,6 +187,7 @@ public sealed class SR2MPServer
 
     internal void Close()
     {
+        try { PlayerDataManager.Instance.SaveAllPlayerData(); } catch {}
         if (!NetworkManager.IsRunning)
             return;
 

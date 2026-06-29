@@ -2,6 +2,7 @@ using System.Net;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 
 namespace SR2MP.Handlers.Player;
 
@@ -11,6 +12,11 @@ internal sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket
     protected override bool Handle(PlayerUpdatePacket packet, IPEndPoint? clientEp)
     {
         if (packet.PlayerId == LocalID) return false;
+
+        if (Main.Server.IsRunning)
+        {
+            PlayerDataManager.Instance.UpdatePlayerPosition(packet.PlayerId, packet.Position, packet.SceneGroup.ToString());
+        }
 
         PlayerManager.UpdatePlayer(
             packet.PlayerId,
