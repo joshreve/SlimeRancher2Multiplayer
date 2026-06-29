@@ -94,6 +94,13 @@ internal sealed class NetworkTransform : NetworkComponent
         Actor.savedVelocity = t.Velocity; // Keep NetworkActor.savedVelocity updated for internal references if any
         InterpolationStart = UnityEngine.Time.unscaledTime;
         InterpolationEnd = InterpolationStart + Timers.ActorTimer;
+
+        var model = Actor.ActorModel;
+        if (model != null)
+        {
+            model.lastPosition = t.Position;
+            model.lastRotation = t.Rotation;
+        }
     }
 
     public override void Update(float deltaTime)
