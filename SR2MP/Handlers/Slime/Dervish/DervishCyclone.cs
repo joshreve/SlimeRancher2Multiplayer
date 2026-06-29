@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Slime.Dervish;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Slime.Dervish;
@@ -11,12 +11,12 @@ internal sealed class DervishCycloneHandler : BasePacketHandler<DervishCyclonePa
 {
     protected override bool Handle(DervishCyclonePacket packet, IPEndPoint? _)
     {
-        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model)) return false;
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model)) return Main.Server.IsRunning;
 
-        if (!model.TryGetNetworkComponent(out var networkComponent)) return false;
+        if (!model.TryGetNetworkComponent(out var networkComponent)) return Main.Server.IsRunning;
 
         var spin = networkComponent.GetComponent<DervishSlimeSpin>();
-        if (!spin) return false;
+        if (!spin) return Main.Server.IsRunning;
 
         HandlingPacket = true;
 

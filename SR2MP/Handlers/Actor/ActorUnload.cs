@@ -11,13 +11,13 @@ internal sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
     protected override bool Handle(ActorUnloadPacket packet, IPEndPoint? _)
     {
         if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
-            return false;
+            return Main.Server.IsRunning;
 
         if (!actor.TryGetNetworkComponent(out var component))
-            return false;
+            return Main.Server.IsRunning;
 
         if (!component.RegionMember)
-            return false;
+            return Main.Server.IsRunning;
 
         if (!component.RegionMember!._hibernating)
         {

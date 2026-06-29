@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Slime.Slumber;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Slime.Sloomber;
@@ -12,14 +12,14 @@ internal sealed class SloomberYawnHandler : BasePacketHandler<SloomberYawnPacket
     protected override bool Handle(SloomberYawnPacket packet, IPEndPoint? _)
     {
         if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
-            return false;
+            return Main.Server.IsRunning;
 
         if (!model.TryGetNetworkComponent(out var networkComponent))
-            return false;
+            return Main.Server.IsRunning;
 
         var yawn = networkComponent.GetComponent<InitiateYawn>();
         if (!yawn)
-            return false;
+            return Main.Server.IsRunning;
 
         HandlingPacket = true;
 

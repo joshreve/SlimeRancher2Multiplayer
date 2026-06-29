@@ -1,6 +1,6 @@
 # Slime Rancher 2 Multiplayer Mod - Ranching Party
 
-This is a hobby project, so updates and responses may be slow. I am actively playing SR2, so I will be at least adjusting for any game updates as I go along. Feel free to fork, drop an issue, or ask questions if you have any.  I may or may not incorporate PRs depending on level of effort.
+This is a hobby project, so updates and responses may be slow. I am actively playing SR2, so I will be at least adjusting for any game updates as I go along. Feel free to fork, drop an issue, or ask questions if you have any. I may or may not incorporate PRs depending on level of effort.
 
 **LEGEND:**
 - 🟩 fully synced

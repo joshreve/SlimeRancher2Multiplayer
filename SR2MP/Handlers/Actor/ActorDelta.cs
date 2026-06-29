@@ -12,12 +12,12 @@ internal sealed class ActorDeltaHandler : BasePacketHandler<ActorDeltaPacket>
     protected override bool Handle(ActorDeltaPacket packet, IPEndPoint? _)
     {
         if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
-            return false;
+            return Main.Server.IsRunning;
 
         var actor = model.Cast<ActorModel>();
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
-            return false;
+            return Main.Server.IsRunning;
 
         networkComponent.ApplyDelta(packet);
         return true;

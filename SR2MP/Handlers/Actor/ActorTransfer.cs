@@ -12,10 +12,10 @@ internal sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPack
     protected override bool Handle(ActorTransferPacket packet, IPEndPoint? _)
     {
         if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
-            return false;
+            return Main.Server.IsRunning;
 
         if (!actor.TryGetNetworkComponent(out var component))
-            return false;
+            return Main.Server.IsRunning;
 
         var isNewOwner = packet.OwnerId == LocalID;
 

@@ -12,16 +12,16 @@ internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPa
     protected override bool Handle(ResourceAttachPacket packet, IPEndPoint? _)
     {
         if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
-            return false;
+            return Main.Server.IsRunning;
 
         var actor = model.Cast<ActorModel>();
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
-            return false;
+            return Main.Server.IsRunning;
 
         var cycle = networkComponent.GetComponent<ResourceCycle>();
         if (cycle == null)
-            return false;
+            return Main.Server.IsRunning;
 
         Joint? targetJoint = null;
         SpawnResource? currentGarden = null;
@@ -67,7 +67,7 @@ internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPa
         }
 
         if (targetJoint == null)
-            return false;
+            return Main.Server.IsRunning;
 
         HandlingPacket = true;
         cycle.Attach(targetJoint);
