@@ -31,25 +31,43 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             {
                 var cue = FXManager.PlayerAudioCueMap[packet.FX];
 
+                GameObject? playerObj = null;
+                if (packet.Player == LocalID)
+                {
+                    playerObj = SceneContext.Instance?.Player;
+                }
+                else
+                {
+                    PlayerObjects.TryGetValue(packet.Player, out playerObj);
+                }
+
+                if (playerObj == null)
+                {
+                    HandlingPacket = false;
+                    return true;
+                }
+
                 if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
                 {
-                    RemoteFXManager.PlayTransientAudio(cue, PlayerObjects[packet.Player].transform.position,
+                    RemoteFXManager.PlayTransientAudio(cue, playerObj.transform.position,
                         PlayerSoundVolumeDictionary[packet.FX]);
                 }
                 else
                 {
-                    var playerAudio = PlayerObjects[packet.Player].GetComponent<SECTR_PointSource>();
-                    playerAudio.Cue = cue;
-                    playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
-                    playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
-                    playerAudio.Play();
+                    var playerAudio = playerObj.GetComponent<SECTR_PointSource>();
+                    if (playerAudio != null)
+                    {
+                        playerAudio.Cue = cue;
+                        playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
+                        playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
+                        playerAudio.Play();
+                    }
                 }
 
-                var remotePlayer = PlayerObjects[packet.Player];
-                var vacStandard = FindChildRecursive(remotePlayer.transform, "vacStandard");
+                var vacStandard = FindChildRecursive(playerObj.transform, "vacStandard");
                 if (vacStandard == null)
                 {
-                    var netPlayer = remotePlayer.GetComponent<SR2MP.Components.Player.NetworkPlayer>();
+                    var netPlayer = playerObj.GetComponent<SR2MP.Components.Player.NetworkPlayer>();
                     if (netPlayer != null)
                     {
                         netPlayer.LastVacFX = packet.FX;
@@ -59,7 +77,7 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
                 }
                 else
                 {
-                    ApplyVacFX(remotePlayer, packet.FX);
+                    ApplyVacFX(playerObj, packet.FX);
                 }
             }
         }
