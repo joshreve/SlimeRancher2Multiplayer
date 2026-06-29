@@ -126,6 +126,10 @@ internal sealed class NetworkTransform : NetworkComponent
         {
             var extrapolationTime = Mathf.Min(now - InterpolationEnd, MaxExtrapolationTime);
             var targetPos = NextPosition + SavedVelocity * extrapolationTime;
+            if (Actor.rigidbody && Actor.rigidbody.useGravity)
+            {
+                targetPos += 0.5f * Physics.gravity * extrapolationTime * extrapolationTime;
+            }
             var targetRot = NextRotation;
 
             if (GameObject.transform.position != targetPos)

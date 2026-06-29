@@ -361,6 +361,10 @@ internal sealed class NetworkActor : MonoBehaviour
                     rigidbody.velocity = new Vector3(0f, 0.05f, 0f);
                 }
             }
+            else
+            {
+                rigidbody.isKinematic = true;
+            }
         }
         catch (Exception ex)
         {
