@@ -2,6 +2,8 @@
 
 This is a hobby project, so updates and responses may be slow. I am actively playing SR2, so I will be at least adjusting for any game updates as I go along. Feel free to fork, drop an issue, or ask questions if you have any.  I may or may not incorporate PRs depending on level of effort.
 
+Added fun item, vac pulse waves affect other players.  Use the mod menu to change pulse power and really launch people across the map!  Warning, default of 1 is quite powerful.
+
 **LEGEND:**
 - 🟩 fully synced
 - 🟨 partially synced
