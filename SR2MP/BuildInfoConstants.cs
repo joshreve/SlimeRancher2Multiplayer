@@ -3,7 +3,7 @@
 
 internal static class BuildInfo
 {
-    internal const string ID = "joshreve.ranchingparty";
+    internal const string ID = "joshreve.ranchingparty.core";
     internal const string Name = "Ranching Party";
     internal const string Description = "Adds Multiplayer to Slime Rancher 2. Major rewrite of Ranching Together!";
     internal const string Author = "joshreve";
@@ -13,7 +13,7 @@ internal static class BuildInfo
     // Version is shown by Starlight
     // Version automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
     internal const string MelonVersion = "0.3.3";
-    internal const string Version = "0.4.0"; // Auto-Dev_Do_not_remove
+    internal const string Version = "0.4.1"; // Auto-Dev_Do_not_remove
     internal const string Discord = "None";
     internal const string SourceCode = "https://github.com/joshreve/SlimeRancher2Multiplayer";
     internal const string Nexus = "None";

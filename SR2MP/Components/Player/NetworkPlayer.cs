@@ -84,15 +84,18 @@ internal partial class NetworkPlayer : MonoBehaviour
 
         try
         {
-            var overlayShader = Shader.Find("TextMeshPro/Mobile/Distance Field Overlay") ?? Shader.Find("TextMeshPro/Distance Field Overlay");
-            if (overlayShader != null)
+            var fontMaterial = UsernamePanel.fontSharedMaterial;
+            if (fontMaterial != null)
             {
-                UsernamePanel.material.shader = overlayShader;
+                var customMaterial = new Material(fontMaterial);
+                customMaterial.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                customMaterial.renderQueue = 4000;
+                UsernamePanel.material = customMaterial;
             }
         }
         catch (System.Exception ex)
         {
-            SrLogger.LogWarning($"Failed to apply overlay shader to UsernamePanel: {ex.Message}");
+            SrLogger.LogWarning($"Failed to set ZTest Always on UsernamePanel: {ex.Message}");
         }
         
         if (!radarComponent) return;

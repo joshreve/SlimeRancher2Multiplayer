@@ -21,13 +21,18 @@ internal sealed class AmmoDecrementHandler : BasePacketHandler<AmmoDecrementPack
             return true;
         }
 
-        var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
+        var ammos = NetworkAmmoManager.GetLinkedAmmoManagers(packet.ID);
+        if (ammos.Count == 0) return false;
 
-        if (ammo == null) return false;
-
-        HandlingPacket = true;
-        ammo.Decrement(packet.SlotIndex, packet.Count);
-        HandlingPacket = false;
+        foreach (var ammo in ammos)
+        {
+            if (packet.SlotIndex >= 0 && packet.SlotIndex < ammo.Slots.Count)
+            {
+                HandlingPacket = true;
+                ammo.Decrement(packet.SlotIndex, packet.Count);
+                HandlingPacket = false;
+            }
+        }
 
         return true;
     }

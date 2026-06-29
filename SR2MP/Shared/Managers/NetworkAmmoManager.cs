@@ -1,6 +1,7 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.Caretaker;
 using Il2CppMonomiPark.SlimeRancher.Player;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Ammo;
 using SR2MP.Shared.Utils;
 // ReSharper disable InconsistentNaming
@@ -142,6 +143,16 @@ internal static class NetworkAmmoManager
         var gadget = siloStorage.GetComponentInParent<Gadget>(true);
         var sprinkle = siloStorage.GetComponentInParent<SprinkleCanister>(true);
 
+        if (gadget != null)
+        {
+            int attempts = 0;
+            while (gadget.GetActorId().Value == 0 && attempts < 100)
+            {
+                yield return null;
+                attempts++;
+            }
+        }
+
         if (plot != null)
         {
             siloStorage.Ammo.RegisterAmmoPointer($"{plot._id}_{siloStorage.AmmoSetReference.name}");
@@ -201,5 +212,63 @@ internal static class NetworkAmmoManager
                 slot._id = null;
             }
         }
+    }
+
+    public static List<AmmoSlotManager> GetLinkedAmmoManagers(string? id)
+    {
+        var managers = new List<AmmoSlotManager>();
+        if (id == null)
+            return managers;
+
+        var primary = GetAmmo(id);
+        if (primary != null)
+        {
+            managers.Add(primary);
+        }
+
+        if (id.StartsWith("gadget"))
+        {
+            try
+            {
+                var firstUnderscore = id.IndexOf('_');
+                if (firstUnderscore > 6)
+                {
+                    var actorIdStr = id.Substring(6, firstUnderscore - 6);
+                    if (long.TryParse(actorIdStr, out var actorIdVal))
+                    {
+                        var model = GameState.GetIdentifiableModel(new ActorId(actorIdVal));
+                        if (model != null && model.TryCast<GadgetModel>(out var gadgetModel))
+                        {
+                            var partner = GameState.identifiables._entries.FirstOrDefault(x =>
+                                x.value != null &&
+                                gadgetModel != null &&
+                                x.value.ident == gadgetModel?.ident
+                                && gadgetModel != x.value
+                                && (gadgetModel.ident.Cast<GadgetDefinition>().BuyInPairs
+                                    || gadgetModel.ident.Cast<GadgetDefinition>().LinkedDefinition
+                                    || System.Math.Abs(gadgetModel.ident.Cast<GadgetDefinition>().LinkedGadgetRange) > 0.0001f))?
+                                .value.Cast<GadgetModel>();
+
+                            if (partner != null)
+                            {
+                                var partnerAmmoSet = id.Substring(firstUnderscore);
+                                var partnerId = $"gadget{partner.actorId.Value}{partnerAmmoSet}";
+                                var partnerAmmo = GetAmmo(partnerId);
+                                if (partnerAmmo != null)
+                                {
+                                    managers.Add(partnerAmmo);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogWarning($"GetLinkedAmmoManagers error: {ex.Message}");
+            }
+        }
+
+        return managers;
     }
 }

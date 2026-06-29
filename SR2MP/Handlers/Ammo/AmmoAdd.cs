@@ -22,17 +22,19 @@ internal sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
             return true;
         }
 
-        var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
+        var ammos = NetworkAmmoManager.GetLinkedAmmoManagers(packet.ID);
+        if (ammos.Count == 0) return false;
 
-        if (ammo == null) return false;
         var ident = ActorManager.ActorTypes[packet.Identifiable];
-        
-        var slotIdx = ammo.GetNextSlot(ident);
-        if (slotIdx >= 0 && slotIdx < ammo.Slots.Count)
+        foreach (var ammo in ammos)
         {
-            HandlingPacket = true;
-            ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), slotIdx, packet.Count, false);
-            HandlingPacket = false;
+            var slotIdx = ammo.GetNextSlot(ident);
+            if (slotIdx >= 0 && slotIdx < ammo.Slots.Count)
+            {
+                HandlingPacket = true;
+                ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), slotIdx, packet.Count, false);
+                HandlingPacket = false;
+            }
         }
 
         return true;

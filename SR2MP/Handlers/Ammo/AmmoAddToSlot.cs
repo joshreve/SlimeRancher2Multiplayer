@@ -22,13 +22,16 @@ internal sealed class AmmoAddToSlotHandler : BasePacketHandler<AmmoAddToSlotPack
             return true;
         }
 
-        var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
+        var ammos = NetworkAmmoManager.GetLinkedAmmoManagers(packet.ID);
+        if (ammos.Count == 0) return false;
 
-        if (ammo == null) return false;
-
-        HandlingPacket = true;
-        ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ActorManager.ActorTypes[packet.Identifiable]), packet.SlotIndex, packet.Count, false);
-        HandlingPacket = false;
+        var ident = ActorManager.ActorTypes[packet.Identifiable];
+        foreach (var ammo in ammos)
+        {
+            HandlingPacket = true;
+            ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), packet.SlotIndex, packet.Count, false);
+            HandlingPacket = false;
+        }
 
         return true;
     }
