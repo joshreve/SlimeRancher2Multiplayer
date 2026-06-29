@@ -9,6 +9,7 @@ using Il2CppMonomiPark.SlimeRancher.Slime;
 using JetBrains.Annotations;
 using SR2MP.Packets.Actor;
 using SR2MP.Components.Actor.Sync;
+using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 using Starlight.Storage;
 using Delegate = Il2CppSystem.Delegate;
@@ -307,8 +308,15 @@ internal sealed class NetworkActor : MonoBehaviour
             SyncTimer = Timers.ActorTimer;
 
             // Check and sync transform updates on the unscaled interval
-            if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
-                SendWorldUpdate();
+            if (LocallyOwned)
+            {
+                if (IsCloseToAnyPlayer(MaxSyncDistance))
+                    SendWorldUpdate();
+            }
+            else
+            {
+                CheckAndStealOwnership();
+            }
         }
         catch (Exception ex)
         {
@@ -340,10 +348,71 @@ internal sealed class NetworkActor : MonoBehaviour
             rigidbody.constraints = locallyOwned
                 ? RigidbodyConstraints.None
                 : RigidbodyConstraints.FreezeAll;
+
+            if (locallyOwned)
+            {
+                rigidbody.WakeUp();
+            }
         }
         catch (Exception ex)
         {
             SrLogger.LogWarning($"SetRigidbodyState error: {ex.Message}");
+        }
+    }
+
+    [HideFromIl2Cpp]
+    private void CheckAndStealOwnership()
+    {
+        if (LocallyOwned || (!Main.Client.IsConnected && !Main.Server.IsRunning))
+            return;
+
+        var actorModel = ActorModel;
+        if (actorModel == null || actorModel.sceneGroup == null)
+            return;
+
+        var localPlayer = SceneContext.Instance?.player;
+        if (!localPlayer)
+            return;
+
+        var localPlayerPos = localPlayer.transform.position;
+        var actorPos = transform.position;
+        var localDistSq = (localPlayerPos - actorPos).sqrMagnitude;
+
+        const float maxOwnershipStealDistance = 25f;
+        if (localDistSq > maxOwnershipStealDistance * maxOwnershipStealDistance)
+            return;
+
+        var sceneGroupId = NetworkSceneManager.GetPersistentID(actorModel.sceneGroup);
+        var playersInScene = GlobalVariables.ScenePresenceManager.GetPlayersInSceneGroup(sceneGroupId);
+
+        const float ownershipHysteresis = 5f;
+        var localDist = Mathf.Sqrt(localDistSq);
+
+        foreach (var playerId in playersInScene)
+        {
+            if (playerId == LocalID)
+                continue;
+
+            var remotePlayer = GlobalVariables.PlayerManager.GetPlayer(playerId);
+            if (remotePlayer == null)
+                continue;
+
+            var remotePlayerPos = remotePlayer.Position;
+            var remoteDistSq = (remotePlayerPos - actorPos).sqrMagnitude;
+            var remoteDist = Mathf.Sqrt(remoteDistSq);
+
+            if (localDist >= remoteDist - ownershipHysteresis)
+            {
+                return;
+            }
+        }
+
+        LocallyOwned = true;
+        var actorId = ActorId;
+        if (actorId.Value != 0)
+        {
+            var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
+            Main.SendToAllOrServer(packet);
         }
     }
 
