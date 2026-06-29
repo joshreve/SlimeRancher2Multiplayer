@@ -37,7 +37,7 @@ internal sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPack
 
         // Use OwnerId to determine ownership instead of unconditionally releasing.
         // This fixes ownership races when multiple players are in the same zone.
-        component.LocallyOwned = isNewOwner;
+        component.OwnerId = packet.OwnerId;
 
         return true;
     }

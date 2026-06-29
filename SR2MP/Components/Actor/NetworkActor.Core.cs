@@ -113,7 +113,34 @@ internal sealed class NetworkActor : MonoBehaviour
         }
     }
 
-    public bool LocallyOwned { get; set; }
+    private bool _locallyOwned;
+    public bool LocallyOwned
+    {
+        get => _locallyOwned;
+        set
+        {
+            _locallyOwned = value;
+            if (value)
+            {
+                _ownerId = LocalID;
+            }
+            else if (_ownerId == LocalID)
+            {
+                _ownerId = string.Empty;
+            }
+        }
+    }
+
+    private string _ownerId = string.Empty;
+    public string OwnerId
+    {
+        get => _ownerId;
+        set
+        {
+            _ownerId = value;
+            _locallyOwned = (value == LocalID);
+        }
+    }
 
     // Backwards Compatibility Delegated Properties (for Spawning manager & other places)
     public Vector3 previousPosition
@@ -378,6 +405,9 @@ internal sealed class NetworkActor : MonoBehaviour
         if (LocallyOwned || (!Main.Client.IsConnected && !Main.Server.IsRunning))
             return;
 
+        if (RegionMember != null && RegionMember._hibernating)
+            return;
+
         var actorModel = ActorModel;
         if (actorModel == null || actorModel.sceneGroup == null)
             return;
@@ -397,7 +427,7 @@ internal sealed class NetworkActor : MonoBehaviour
             const float maxOwnershipStealDistance = 25f;
             if (localDistSq <= maxOwnershipStealDistance * maxOwnershipStealDistance)
             {
-                LocallyOwned = true;
+                OwnerId = LocalID;
                 var actorId = ActorId;
                 if (actorId.Value != 0)
                 {
@@ -407,61 +437,100 @@ internal sealed class NetworkActor : MonoBehaviour
             return;
         }
 
-        string bestPlayerId = null;
-        float bestScore = float.MinValue;
+        // Calculate score for local player
+        float localDist = Vector3.Distance(localPlayer.transform.position, actorPos);
+        if (localDist > GlobalVariables.HibernationDistance * 0.75f)
+            return; // Stealing requires distance < 75% hibernation distance
 
-        foreach (var playerId in playersInScene)
+        float localScore = -localDist;
+        if (GlobalVariables.LocalFPS < 30f)
         {
-            float dist;
-            float fps = 60f;
-            float gap = 0f;
+            localScore += (GlobalVariables.LocalFPS - 30f) * 2f;
+        }
 
-            if (playerId == LocalID)
+        // Calculate the score for the current owner (if known)
+        float ownerScore = float.MinValue;
+        string currentOwnerId = OwnerId;
+        bool hasActiveOwner = false;
+
+        if (!string.IsNullOrEmpty(currentOwnerId))
+        {
+            if (currentOwnerId == LocalID)
             {
-                dist = Vector3.Distance(localPlayer.transform.position, actorPos);
-                fps = GlobalVariables.LocalFPS;
-                gap = 0f;
+                ownerScore = localScore;
+                hasActiveOwner = true;
             }
             else
             {
-                var remotePlayer = GlobalVariables.PlayerManager.GetPlayer(playerId);
-                if (remotePlayer == null)
-                    continue;
+                var remoteOwner = GlobalVariables.PlayerManager.GetPlayer(currentOwnerId);
+                if (remoteOwner != null)
+                {
+                    float ownerDist = Vector3.Distance(remoteOwner.Position, actorPos);
+                    float ownerFps = remoteOwner.FPS;
+                    float ownerGap = UnityEngine.Time.unscaledTime - remoteOwner.LastPacketTime;
 
-                dist = Vector3.Distance(remotePlayer.Position, actorPos);
-                fps = remotePlayer.FPS;
-                gap = UnityEngine.Time.unscaledTime - remotePlayer.LastPacketTime;
-            }
-
-            if (dist > 30f)
-                continue;
-
-            float score = -dist;
-
-            if (fps < 30f)
-            {
-                score += (fps - 30f) * 2f;
-            }
-
-            if (gap > 0.2f)
-            {
-                score += (0.2f - gap) * 100f;
-            }
-
-            if (score > bestScore)
-            {
-                bestScore = score;
-                bestPlayerId = playerId;
+                    ownerScore = -ownerDist;
+                    if (ownerFps < 30f)
+                    {
+                        ownerScore += (ownerFps - 30f) * 2f;
+                    }
+                    if (ownerGap > 0.2f)
+                    {
+                        ownerScore += (0.2f - ownerGap) * 100f;
+                    }
+                    hasActiveOwner = true;
+                }
             }
         }
 
-        if (bestPlayerId == LocalID)
+        // We only attempt to steal if we are the best candidate in the scene
+        bool isBest = true;
+        foreach (var playerId in playersInScene)
         {
-            LocallyOwned = true;
-            var actorId = ActorId;
-            if (actorId.Value != 0)
+            if (playerId == LocalID)
+                continue;
+
+            var remotePlayer = GlobalVariables.PlayerManager.GetPlayer(playerId);
+            if (remotePlayer == null)
+                continue;
+
+            float rDist = Vector3.Distance(remotePlayer.Position, actorPos);
+            float rFps = remotePlayer.FPS;
+            float rGap = UnityEngine.Time.unscaledTime - remotePlayer.LastPacketTime;
+
+            float rScore = -rDist;
+            if (rFps < 30f)
             {
-                Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
+                rScore += (rFps - 30f) * 2f;
+            }
+            if (rGap > 0.2f)
+            {
+                rScore += (0.2f - rGap) * 100f;
+            }
+
+            if (rScore > localScore)
+            {
+                isBest = false;
+                break;
+            }
+        }
+
+        if (isBest)
+        {
+            // Only steal ownership if the current owner falls below a threshold (-20.0f) or is inactive
+            if (!hasActiveOwner || ownerScore < -20f)
+            {
+                // Rate limit transfers to prevent network flooding (maximum 1 steal per 50ms)
+                if (UnityEngine.Time.unscaledTime - GlobalVariables.LastStealTime >= 0.05f)
+                {
+                    GlobalVariables.LastStealTime = UnityEngine.Time.unscaledTime;
+                    OwnerId = LocalID;
+                    var actorId = ActorId;
+                    if (actorId.Value != 0)
+                    {
+                        Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
+                    }
+                }
             }
         }
     }

@@ -132,6 +132,16 @@ public static class GlobalVariables
     /// The current calculated FPS for the local player.
     /// </summary>
     public static float LocalFPS = 60f;
+
+    /// <summary>
+    /// The unscaled time when the client last stole an actor's ownership.
+    /// </summary>
+    public static float LastStealTime = 0f;
+
+    /// <summary>
+    /// The standard game hibernation distance.
+    /// </summary>
+    public const float HibernationDistance = 60f;
     
     internal static readonly Dictionary<string, MarkerTransform> PlayerMarkerTransforms = new();
 }
