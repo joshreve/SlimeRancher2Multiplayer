@@ -29,6 +29,7 @@ internal sealed class NetworkActor : MonoBehaviour
     private PlortModel? plortModel;
 
     public float SyncTimer = Timers.ActorTimer;
+    public float StateSyncTimer = 0.5f;
     public bool ShouldUpdateResourceState;
     public bool IsValid = true;
     public bool IsDestroyed;
@@ -323,9 +324,14 @@ internal sealed class NetworkActor : MonoBehaviour
 
             HandleOwnershipChange();
 
-            // Check and sync critical state updates (Emotions, Resources, Plorts) every frame
-            if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
-                SendStateUpdate();
+            StateSyncTimer -= UnityEngine.Time.unscaledDeltaTime;
+            if (StateSyncTimer <= 0f)
+            {
+                StateSyncTimer = 0.5f;
+                // Check and sync critical state updates (Emotions, Resources, Plorts) on a 500ms timer
+                if (LocallyOwned && IsCloseToAnyPlayer(MaxSyncDistance))
+                    SendStateUpdate();
+            }
 
             SyncTimer -= UnityEngine.Time.unscaledDeltaTime;
 
