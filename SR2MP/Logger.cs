@@ -56,7 +56,7 @@ public static class Logger
 
     static Logger()
     {
-        _melonLogger = new MelonLogger.Instance("Ranching Together", ColorARGB.FromArgb(77, 149, 203));
+        _melonLogger = new MelonLogger.Instance("Ranching Party", ColorARGB.FromArgb(77, 149, 203));
 
         var folderPath = Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP");
 

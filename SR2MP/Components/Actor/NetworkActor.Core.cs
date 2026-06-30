@@ -43,7 +43,7 @@ internal sealed class NetworkActor : MonoBehaviour
     private bool isPlort;
 
     // Component Syncing fields
-    private NetworkTransform? transformComponent;
+    internal NetworkTransform? transformComponent;
     private NetworkSlimeEmotions? emotionsComponent;
     private NetworkResourceCycle? resourceComponent;
     private NetworkPlort? plortComponent;
@@ -523,8 +523,8 @@ internal sealed class NetworkActor : MonoBehaviour
 
         if (isBest)
         {
-            // Only steal ownership if the current owner falls below a threshold (-20.0f) or is inactive
-            if (!hasActiveOwner || ownerScore < -20f)
+            // Steal if owner is inactive, OR owner falls below -10 (distance > 10m / lag) and local is significantly closer (margin of 5)
+            if (!hasActiveOwner || (ownerScore < -10f && localScore > ownerScore + 5f))
             {
                 // Rate limit transfers to prevent network flooding (maximum 1 steal per 50ms)
                 if (UnityEngine.Time.unscaledTime - GlobalVariables.LastStealTime >= 0.05f)
@@ -629,24 +629,19 @@ internal sealed class NetworkActor : MonoBehaviour
         if (actorId.Value == 0)
             return;
 
-        var deltas = new List<DeltaValue>();
-
         if (transformComponent != null)
         {
             if (transformComponent.IsDirty() || transformComponent.ShouldForceSend())
             {
-                deltas.Add(new DeltaValue { Key = transformComponent.Key, Value = transformComponent.GetCurrentData() });
+                Main.SendToAllOrServer(new ActorUpdatePacket
+                {
+                    ActorId = actorId,
+                    Position = transform.position,
+                    Rotation = transform.rotation,
+                    Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
+                });
                 transformComponent.ResetDirty();
             }
-        }
-
-        if (deltas.Count > 0)
-        {
-            Main.SendToAllOrServer(new ActorDeltaPacket
-            {
-                ActorId = actorId,
-                Deltas = deltas
-            });
         }
     }
 

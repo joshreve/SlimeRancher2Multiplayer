@@ -325,7 +325,7 @@ internal sealed partial class MultiplayerUI
     {
         ClearChatMessages();
         RegisterSystemMessage(
-            "Welcome to Ranching Together!",
+            "Welcome to Ranching Party!",
             $"SYSTEM_WELCOME_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
             SystemMessageNormal
         );
