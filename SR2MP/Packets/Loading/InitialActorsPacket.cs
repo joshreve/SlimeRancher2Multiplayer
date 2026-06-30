@@ -18,6 +18,7 @@ internal partial class InitialActorsPacket : IPacket
     public double WorldTime;
     public uint StartingActorID;
     public List<ActorBase> Actors;
+    public string HostPlayerId = string.Empty;
 
     public PacketType Type => PacketType.InitialActors;
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -27,6 +28,7 @@ internal partial class InitialActorsPacket : IPacket
     {
         writer.WritePackedUInt(StartingActorID);
         writer.WriteDouble(WorldTime);
+        writer.WriteString(HostPlayerId);
         writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Writer);
     }
 
@@ -34,6 +36,7 @@ internal partial class InitialActorsPacket : IPacket
     {
         StartingActorID = reader.ReadPackedUInt();
         WorldTime = reader.ReadDouble();
+        HostPlayerId = reader.ReadPooledString()!;
         Actors = reader.ReadList(ReadFunction)!;
     }
 }

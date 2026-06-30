@@ -1,5 +1,6 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using SR2MP.Components.Actor;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
@@ -58,6 +59,16 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
 
         if (actor == null)
             return;
+
+        var spawnedObj = actor.GetGameObject();
+        if (spawnedObj)
+        {
+            var netActor = spawnedObj.GetComponent<NetworkActor>();
+            if (netActor)
+            {
+                netActor.OwnerId = packet.OwnerId;
+            }
+        }
 
         if (packet.MaterialIndex != (byte)SprinkleMaterialType.none)
         {

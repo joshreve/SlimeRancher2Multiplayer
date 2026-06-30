@@ -101,7 +101,25 @@ internal sealed partial class NetworkActorManager
         return true;
     }
     
-    public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
+    public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, string hostPlayerId, out IdentifiableModel? model)
+    {
+        bool success = TrySpawnInitialActorInternal(actorData, out model);
+        if (success && model != null)
+        {
+            var gameObj = model.GetGameObject();
+            if (gameObj != null)
+            {
+                var netActor = gameObj.GetComponent<NetworkActor>();
+                if (netActor != null)
+                {
+                    netActor.OwnerId = hostPlayerId;
+                }
+            }
+        }
+        return success;
+    }
+
+    private bool TrySpawnInitialActorInternal(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
     {
         model = null;
         

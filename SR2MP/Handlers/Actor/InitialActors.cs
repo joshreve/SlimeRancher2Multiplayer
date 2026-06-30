@@ -49,7 +49,7 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 
         foreach (var actor in packet.Actors)
         {
-            ActorManager.TrySpawnInitialActor(actor, out var _);
+            ActorManager.TrySpawnInitialActor(actor, packet.HostPlayerId, out var _);
         }
 
         StartCoroutine(ActorManager.TakeOwnershipOfNearby());

@@ -422,7 +422,8 @@ internal sealed class ReSyncManager
                     (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * ActorIdOffset,
                         (playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
                 Actors = batch,
-                WorldTime = GameState.world.worldTime
+                WorldTime = GameState.world.worldTime,
+                HostPlayerId = Main.Server.PlayerId
             };
 
             Main.Server.SendToClient(actorsPacket, client);

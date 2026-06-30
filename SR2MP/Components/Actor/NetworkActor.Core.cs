@@ -633,14 +633,14 @@ internal sealed class NetworkActor : MonoBehaviour
         {
             if (transformComponent.IsDirty() || transformComponent.ShouldForceSend())
             {
+                var t = (TransformData)transformComponent.GetCurrentData();
                 Main.SendToAllOrServer(new ActorUpdatePacket
                 {
                     ActorId = actorId,
-                    Position = transform.position,
-                    Rotation = transform.rotation,
-                    Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
+                    Position = t.Position,
+                    Rotation = t.Rotation,
+                    Velocity = t.Velocity
                 });
-                transformComponent.ResetDirty();
             }
         }
     }
